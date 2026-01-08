@@ -148,3 +148,31 @@ export function exportarCSV(filteredTransactions, allCards) {
     link.download = "extrato.csv";
     link.click();
 }
+
+export async function deletarTransacao(id, allTransactions, allCards) {
+    if (!confirm("Apagar esta movimentação?")) return;
+
+    const trans = allTransactions.find(t => t.id === id);
+    if (!trans) return;
+
+    try {
+        // Se for uma despesa e for de cartão, precisamos estornar o valor da fatura
+        if (trans.amount < 0 && trans.source && trans.source !== 'wallet') {
+            const card = allCards.find(c => c.id === trans.source);
+            if (card) {
+                const amountToSubtract = Math.abs(trans.amount);
+                const novaFatura = Math.max(0, (card.bill || 0) - amountToSubtract);
+                await updateDoc(doc(db, "cards", trans.source), { bill: novaFatura });
+                showToast("Fatura do cartão atualizada!");
+            }
+        }
+
+        await deleteDoc(doc(db, "transactions", id));
+        showToast("Apagado!");
+        return true;
+    } catch (e) {
+        console.error(e);
+        alert("Erro ao excluir");
+        return false;
+    }
+}

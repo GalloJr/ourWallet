@@ -1,8 +1,8 @@
 import { db, doc, setDoc } from "./firebase.js";
 import { setupAuth, configurarWallet } from "./modules/auth.js";
 import { setupCards, salvarCartao, editarCartao, deletarCartao } from "./modules/cards.js";
-import { setupTransactions, salvarTransacao, editarTransacao, exportarCSV } from "./modules/transactions.js";
-import { setupGoals, salvarMeta } from "./modules/goals.js";
+import { setupTransactions, salvarTransacao, editarTransacao, deletarTransacao, exportarCSV } from "./modules/transactions.js";
+import { setupGoals, salvarMeta, deletarMeta } from "./modules/goals.js";
 import { updateThemeIcon, toggleLoading, popularSeletorMeses, renderCharts, renderList, renderValues, renderGoals } from "./modules/ui.js";
 import { formatarMoedaInput, limparValorMoeda, formatarData, showToast } from "./modules/utils.js";
 import { bankStyles, flagLogos } from "./modules/constants.js";
@@ -224,6 +224,7 @@ window.prepararEdicaoCartao = (id) => {
 }
 
 window.deletarCartao = deletarCartao;
+window.deletarMeta = deletarMeta;
 
 window.prepararEdicao = (id) => {
     const t = allTransactions.find(item => item.id === id);
@@ -235,14 +236,7 @@ window.prepararEdicao = (id) => {
     document.getElementById('edit-date').value = t.date;
 }
 
-window.deletarItem = async (id) => {
-    if (confirm("Apagar?")) {
-        try {
-            await deleteDoc(doc(db, "transactions", id));
-            showToast("Apagado!");
-        } catch (e) { console.error(e); }
-    }
-};
+window.deletarItem = (id) => deletarTransacao(id, allTransactions, allCards);
 
 // Filter and Summary logic
 function aplicarFiltro() {

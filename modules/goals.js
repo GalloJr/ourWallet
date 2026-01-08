@@ -7,7 +7,7 @@ export function setupGoals(uid, goalsContainer) {
     return onSnapshot(q, (snapshot) => {
         const goals = [];
         snapshot.forEach(doc => goals.push({ id: doc.id, ...doc.data() }));
-        renderGoals(goals, goalsContainer, window.deletarMeta);
+        renderGoals(goals, goalsContainer, deletarMeta);
     });
 }
 

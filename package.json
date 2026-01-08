@@ -1,0 +1,20 @@
+{
+  "name": "mywallet-app-main",
+  "version": "1.0.0",
+  "description": "Aplicação web profissional para controle de finanças pessoais (SaaS). O sistema permite gerenciar entradas e saídas, visualizar saldo em tempo real e analisar gastos através de gráficos dinâmicos.",
+  "main": "app.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/GalloJr/ourWallet.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/GalloJr/ourWallet/issues"
+  },
+  "homepage": "https://github.com/GalloJr/ourWallet#readme"
+}
