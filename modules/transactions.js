@@ -1,4 +1,4 @@
-import { db, collection, addDoc, updateDoc, deleteDoc, doc, onSnapshot, query, where } from '../firebase.js';
+import { db, storage, ref, uploadBytes, getDownloadURL, collection, addDoc, updateDoc, deleteDoc, doc, onSnapshot, query, where } from '../firebase.js';
 import { categoryConfig } from './constants.js';
 import { limparValorMoeda, showToast, formatarData } from './utils.js';
 
@@ -28,30 +28,59 @@ export async function salvarTransacao(activeWalletId, currentUser, allCards, for
     const dateVal = document.getElementById('date').value;
     const category = document.getElementById('category').value;
     const paymentSource = document.getElementById('transaction-source').value;
-    const numInstallments = parseInt(installmentsSelect.value) || 1;
+    const repeatMonthly = document.getElementById('repeat-monthly').checked;
+
+    let numIterations = parseInt(installmentsSelect.value) || 1;
+    let isInstallment = numIterations > 1;
+
+    // Se marcar repetir mensalmente, ignoramos parcelas e criamos 12 lançamentos
+    if (repeatMonthly) {
+        numIterations = 12;
+        isInstallment = false; // Para não aparecer "(1/12)" se for apenas um gasto fixo, ou podemos customizar
+    }
 
     const type = categoryConfig[category].type;
     const finalAmountTotal = type === 'expense' ? -Math.abs(amountVal) : Math.abs(amountVal);
-    const amountPerInstallment = finalAmountTotal / numInstallments;
+    const amountPerIteration = isInstallment ? finalAmountTotal / numIterations : finalAmountTotal;
+
+    const receiptInput = document.getElementById('receipt');
+    let receiptUrl = null;
 
     try {
-        for (let i = 0; i < numInstallments; i++) {
+        /* Descomentar quando ativar plano pago (Blaze) e ativar o Storage do Firebase e remover o hidden do index.html linha 543
+        if (receiptInput && receiptInput.files[0]) {
+            const file = receiptInput.files[0];
+            const storageRef = ref(storage, `receipts/${currentUser.uid}/${Date.now()}_${file.name}`);
+            const snapshot = await uploadBytes(storageRef, file);
+            receiptUrl = await getDownloadURL(snapshot.ref);
+        }
+        */
+
+        for (let i = 0; i < numIterations; i++) {
             const currentParcelDate = new Date(dateVal + 'T12:00:00');
             currentParcelDate.setMonth(currentParcelDate.getMonth() + i);
 
             const dateStr = currentParcelDate.toISOString().split('T')[0];
-            const parcelDesc = numInstallments > 1 ? `${desc} (${i + 1}/${numInstallments})` : desc;
+            let parcelDesc = desc;
+
+            if (isInstallment) {
+                parcelDesc = `${desc} (${i + 1}/${numIterations})`;
+            } else if (repeatMonthly) {
+                parcelDesc = `${desc} [Fixo]`;
+            }
 
             await addDoc(collection(db, "transactions"), {
                 uid: activeWalletId,
                 owner: currentUser.uid,
                 ownerName: currentUser.displayName || "Usuário",
                 desc: parcelDesc,
-                amount: amountPerInstallment,
+                amount: amountPerIteration,
                 date: dateStr,
                 category: category,
                 source: paymentSource,
-                createdAt: new Date()
+                receiptUrl: receiptUrl,
+                createdAt: new Date(),
+                isRecurring: repeatMonthly
             });
         }
 
@@ -64,7 +93,11 @@ export async function salvarTransacao(activeWalletId, currentUser, allCards, for
             }
         }
 
-        showToast(numInstallments > 1 ? `${numInstallments} parcelas adicionadas!` : "Salvo!");
+        if (repeatMonthly) {
+            showToast("Lançamentos recorrentes criados!");
+        } else {
+            showToast(numIterations > 1 ? `${numIterations} parcelas adicionadas!` : "Salvo!");
+        }
         return true;
     } catch (e) {
         console.error(e);

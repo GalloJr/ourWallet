@@ -4,7 +4,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>OurWallet - Couple Finance</title>
+    <title>OurWallet - Finanças em Casal</title>
+    <link rel="icon"
+        href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>💰</text></svg>">
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#6366f1">
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
         tailwind.config = {
@@ -170,19 +174,37 @@
                     data-lucide="credit-card"></i> Editar Cartão</h3>
             <form id="edit-card-form" class="space-y-4">
                 <input type="hidden" id="edit-card-id">
-                <div>
-                    <label for="edit-card-name"
-                        class="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase">Nome</label>
-                    <input type="text" id="edit-card-name"
-                        class="w-full p-3 bg-gray-50 dark:bg-gray-700 border dark:border-gray-600 rounded-xl dark:text-white"
-                        required>
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label for="edit-card-name"
+                            class="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase">Nome</label>
+                        <input type="text" id="edit-card-name"
+                            class="w-full p-3 bg-gray-50 dark:bg-gray-700 border dark:border-gray-600 rounded-xl dark:text-white"
+                            required>
+                    </div>
+                    <div>
+                        <label for="edit-card-bill"
+                            class="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase">Valor Fatura</label>
+                        <input type="text" id="edit-card-bill" onkeyup="formatarMoedaInput(this)"
+                            class="w-full p-3 bg-gray-50 dark:bg-gray-700 border dark:border-gray-600 rounded-xl dark:text-white"
+                            required>
+                    </div>
                 </div>
-                <div>
-                    <label for="edit-card-bill"
-                        class="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase">Valor Fatura Atual</label>
-                    <input type="text" id="edit-card-bill" onkeyup="formatarMoedaInput(this)"
-                        class="w-full p-3 bg-gray-50 dark:bg-gray-700 border dark:border-gray-600 rounded-xl dark:text-white"
-                        required>
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label for="edit-card-closing"
+                            class="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase">Dia Fechamento</label>
+                        <input type="number" id="edit-card-closing" min="1" max="31"
+                            class="w-full p-3 bg-gray-50 dark:bg-gray-700 border dark:border-gray-600 rounded-xl dark:text-white"
+                            required>
+                    </div>
+                    <div>
+                        <label for="edit-card-due"
+                            class="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase">Dia Vencimento</label>
+                        <input type="number" id="edit-card-due" min="1" max="31"
+                            class="w-full p-3 bg-gray-50 dark:bg-gray-700 border dark:border-gray-600 rounded-xl dark:text-white"
+                            required>
+                    </div>
                 </div>
                 <div class="flex gap-3 mt-6">
                     <button type="button" onclick="fecharModalEdicaoCartao()"
@@ -257,12 +279,69 @@
                     </div>
                 </div>
 
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label for="card-closing"
+                            class="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase">Dia Fechamento</label>
+                        <input type="number" id="card-closing" placeholder="Ex: 5" min="1" max="31"
+                            class="w-full p-3 bg-gray-50 dark:bg-gray-700 border dark:border-gray-600 rounded-xl dark:text-white"
+                            required>
+                    </div>
+                    <div>
+                        <label for="card-due" class="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase">Dia
+                            Vencimento</label>
+                        <input type="number" id="card-due" placeholder="Ex: 12" min="1" max="31"
+                            class="w-full p-3 bg-gray-50 dark:bg-gray-700 border dark:border-gray-600 rounded-xl dark:text-white"
+                            required>
+                    </div>
+                </div>
+
                 <div class="flex gap-3 mt-6">
                     <button type="button" onclick="fecharModalCartao()"
                         class="flex-1 py-3 bg-gray-200 dark:bg-gray-600 rounded-xl hover:bg-gray-300 transition">Cancelar</button>
                     <button type="submit"
                         class="flex-1 py-3 bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 transition">Criar
                         Cartão</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div id="goal-modal"
+        class="hidden fixed inset-0 z-[70] bg-black/50 flex items-center justify-center backdrop-blur-sm">
+        <div class="bg-white dark:bg-darkcard p-6 rounded-2xl w-full max-w-md shadow-2xl m-4 fade-in">
+            <h3 class="text-xl font-bold mb-4 flex items-center gap-2 text-indigo-600 dark:text-indigo-400"><i
+                    data-lucide="target"></i> Nova Meta</h3>
+            <form id="goal-form" class="space-y-4">
+                <div>
+                    <label for="goal-title" class="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase">Título
+                        da Meta</label>
+                    <input type="text" id="goal-title" placeholder="Ex: Viagem para Maldivas"
+                        class="w-full p-3 bg-gray-50 dark:bg-gray-700 border dark:border-gray-600 rounded-xl dark:text-white"
+                        required>
+                </div>
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label for="goal-target"
+                            class="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase">Valor Alvo</label>
+                        <input type="text" id="goal-target" placeholder="R$ 0,00" onkeyup="formatarMoedaInput(this)"
+                            class="w-full p-3 bg-gray-50 dark:bg-gray-700 border dark:border-gray-600 rounded-xl dark:text-white"
+                            required>
+                    </div>
+                    <div>
+                        <label for="goal-current"
+                            class="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase">Valor Já Salvo</label>
+                        <input type="text" id="goal-current" placeholder="R$ 0,00" onkeyup="formatarMoedaInput(this)"
+                            class="w-full p-3 bg-gray-50 dark:bg-gray-700 border dark:border-gray-600 rounded-xl dark:text-white"
+                            required>
+                    </div>
+                </div>
+                <div class="flex gap-3 mt-6">
+                    <button type="button" onclick="fecharModalMeta()"
+                        class="flex-1 py-3 bg-gray-200 dark:bg-gray-600 rounded-xl hover:bg-gray-300 transition">Cancelar</button>
+                    <button type="submit"
+                        class="flex-1 py-3 bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 transition">Criar
+                        Meta</button>
                 </div>
             </form>
         </div>
@@ -356,6 +435,7 @@
                             data-lucide="arrow-down-circle" class="w-24 h-24"></i></div>
                     <p class="text-red-100 text-sm font-medium mb-1">Saídas</p>
                     <h3 class="text-3xl font-bold" id="display-expense">R$ 0,00</h3>
+                    <p class="text-[10px] text-red-100/80 mt-1" id="expense-insight">---</p>
                 </div>
                 <div
                     class="bg-blue-600 p-6 rounded-2xl shadow-lg shadow-blue-600/20 text-white card-hover relative overflow-hidden">
@@ -367,6 +447,18 @@
             </div>
 
             <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                <div class="lg:col-span-3">
+                    <h3 class="text-lg font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
+                        <i data-lucide="target" class="w-5 h-5 text-indigo-500"></i> Metas do Casal (Wishlist)
+                        <button onclick="abrirModalMeta()"
+                            class="ml-auto text-xs bg-indigo-100 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 px-3 py-1 rounded-lg font-bold hover:bg-indigo-200 transition">+
+                            Nova Meta</button>
+                    </h3>
+                    <div id="goals-container" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                        <!-- Metas aparecerão aqui -->
+                    </div>
+                </div>
+
                 <div class="lg:col-span-3">
                     <h3 class="text-lg font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
                         <i data-lucide="credit-card" class="w-5 h-5 text-indigo-500"></i> Meus Cartões
@@ -448,6 +540,13 @@
                                 <option value="wallet">💵 Carteira / Conta Corrente</option>
                             </select>
                         </div>
+                        <div class="col-span-full hidden">
+                            <label for="receipt"
+                                class="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase">Comprovante
+                                (Opcional)</label>
+                            <input type="file" id="receipt" accept="image/*,application/pdf"
+                                class="w-full p-2 bg-gray-50 dark:bg-gray-700 border dark:border-gray-600 rounded-xl text-xs dark:text-white file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100 transition">
+                        </div>
                         <div id="installments-container" class="hidden">
                             <label for="installments"
                                 class="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase">Parcelas</label>
@@ -466,6 +565,13 @@
                                 <option value="11">11x</option>
                                 <option value="12">12x</option>
                             </select>
+                        </div>
+                        <div class="flex items-center gap-2 px-1">
+                            <input type="checkbox" id="repeat-monthly"
+                                class="w-4 h-4 text-indigo-600 rounded cursor-pointer">
+                            <label for="repeat-monthly"
+                                class="text-xs font-semibold text-gray-600 dark:text-gray-400 cursor-pointer">Repetir
+                                mensalmente (12 meses)</label>
                         </div>
                         <button type="submit"
                             class="w-full py-3 bg-indigo-600 text-white font-bold rounded-xl hover:bg-indigo-700 transition cursor-pointer">Adicionar</button>

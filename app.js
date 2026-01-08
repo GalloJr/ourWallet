@@ -2,7 +2,8 @@ import { db, doc, setDoc } from "./firebase.js";
 import { setupAuth, configurarWallet } from "./modules/auth.js";
 import { setupCards, salvarCartao, editarCartao, deletarCartao } from "./modules/cards.js";
 import { setupTransactions, salvarTransacao, editarTransacao, exportarCSV } from "./modules/transactions.js";
-import { updateThemeIcon, toggleLoading, popularSeletorMeses, renderCharts, renderList, renderValues } from "./modules/ui.js";
+import { setupGoals, salvarMeta } from "./modules/goals.js";
+import { updateThemeIcon, toggleLoading, popularSeletorMeses, renderCharts, renderList, renderValues, renderGoals } from "./modules/ui.js";
 import { formatarMoedaInput, limparValorMoeda, formatarData, showToast } from "./modules/utils.js";
 import { bankStyles, flagLogos } from "./modules/constants.js";
 
@@ -15,6 +16,8 @@ window.fecharModalEdicaoCartao = () => document.getElementById('edit-card-modal'
 window.abrirModalFamilia = () => document.getElementById('family-modal').classList.remove('hidden');
 window.fecharModalFamilia = () => document.getElementById('family-modal').classList.add('hidden');
 window.fecharModal = () => document.getElementById('edit-modal').classList.add('hidden');
+window.abrirModalMeta = () => document.getElementById('goal-modal').classList.remove('hidden');
+window.fecharModalMeta = () => document.getElementById('goal-modal').classList.add('hidden');
 
 // Registra o Plugin de Labels do Chart.js
 if (window.Chart && window.ChartDataLabels) {
@@ -30,8 +33,10 @@ const userNameDisplay = document.getElementById('user-name');
 const form = document.getElementById('transaction-form');
 const cardForm = document.getElementById('card-form');
 const editCardForm = document.getElementById('edit-card-form');
+const goalForm = document.getElementById('goal-form');
 const listElement = document.getElementById('transaction-list');
 const cardsContainer = document.getElementById('cards-container');
+const goalsContainer = document.getElementById('goals-container');
 const monthFilter = document.getElementById('month-filter');
 const themeToggle = document.getElementById('theme-toggle');
 const sourceSelect = document.getElementById('transaction-source');
@@ -45,8 +50,17 @@ let activeWalletId = null;
 let allTransactions = [];
 let filteredTransactions = [];
 let allCards = [];
+let allGoals = [];
 let unsubscribeTrans = null;
 let unsubscribeCards = null;
+let unsubscribeGoals = null;
+
+// Register Service Worker
+if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+        navigator.serviceWorker.register('/sw.js').catch(err => console.log("SW reg error:", err));
+    });
+}
 
 // Initialization
 if (window.lucide) lucide.createIcons();
@@ -97,6 +111,7 @@ setupAuth(loginBtn, logoutBtn, appScreen, loginScreen, userNameDisplay, async (u
         // Unsubscribe from previous listeners
         if (unsubscribeTrans) unsubscribeTrans();
         if (unsubscribeCards) unsubscribeCards();
+        if (unsubscribeGoals) unsubscribeGoals();
 
         // Setup Trans and Cards
         unsubscribeTrans = setupTransactions(activeWalletId, (transactions) => {
@@ -108,13 +123,17 @@ setupAuth(loginBtn, logoutBtn, appScreen, loginScreen, userNameDisplay, async (u
         unsubscribeCards = setupCards(activeWalletId, cardsContainer, sourceSelect, (cards) => {
             allCards = cards;
         });
+
+        unsubscribeGoals = setupGoals(activeWalletId, goalsContainer);
     } else {
         currentUser = null;
         activeWalletId = null;
         if (unsubscribeTrans) unsubscribeTrans();
         if (unsubscribeCards) unsubscribeCards();
+        if (unsubscribeGoals) unsubscribeGoals();
         listElement.innerHTML = '';
         cardsContainer.innerHTML = '';
+        goalsContainer.innerHTML = '';
         renderValues([]);
         toggleLoading(false);
     }
@@ -142,6 +161,12 @@ form.addEventListener('submit', async (e) => {
 cardForm.addEventListener('submit', async (e) => {
     e.preventDefault();
     await salvarCartao(activeWalletId, cardForm, window.fecharModalCartao);
+});
+
+// Goal Form
+goalForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    await salvarMeta(activeWalletId, goalForm, window.fecharModalMeta);
 });
 
 // Edit Card Form
@@ -194,6 +219,8 @@ window.prepararEdicaoCartao = (id) => {
     document.getElementById('edit-card-id').value = id;
     document.getElementById('edit-card-name').value = card.name;
     document.getElementById('edit-card-bill').value = (card.bill || 0).toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
+    document.getElementById('edit-card-closing').value = card.closingDay || '';
+    document.getElementById('edit-card-due').value = card.dueDay || '';
 }
 
 window.deletarCartao = deletarCartao;
@@ -237,6 +264,6 @@ if (searchInput) {
 
 function renderSummary() {
     renderList(filteredTransactions, listElement, allCards, formatarData, window.prepararEdicao, window.deletarItem);
-    renderValues(filteredTransactions);
+    renderValues(filteredTransactions, allTransactions, monthFilter.value);
     renderCharts(filteredTransactions, monthFilter.value);
 }

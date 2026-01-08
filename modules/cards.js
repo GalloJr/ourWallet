@@ -34,6 +34,8 @@ export async function salvarCartao(activeWalletId, cardForm, fecharModal) {
     const name = document.getElementById('card-name').value;
     const last4 = document.getElementById('card-last4').value;
     const bill = limparValorMoeda(document.getElementById('card-bill').value);
+    const closingDay = parseInt(document.getElementById('card-closing').value);
+    const dueDay = parseInt(document.getElementById('card-due').value);
 
     try {
         await addDoc(collection(db, "cards"), {
@@ -43,6 +45,8 @@ export async function salvarCartao(activeWalletId, cardForm, fecharModal) {
             name,
             last4,
             bill,
+            closingDay,
+            dueDay,
             createdAt: new Date()
         });
         showToast("Cartão Criado!");
@@ -58,9 +62,11 @@ export async function editarCartao(editCardForm, fecharModal) {
     const id = document.getElementById('edit-card-id').value;
     const name = document.getElementById('edit-card-name').value;
     const bill = limparValorMoeda(document.getElementById('edit-card-bill').value);
+    const closingDay = parseInt(document.getElementById('edit-card-closing').value);
+    const dueDay = parseInt(document.getElementById('edit-card-due').value);
 
     try {
-        await updateDoc(doc(db, "cards", id), { name, bill });
+        await updateDoc(doc(db, "cards", id), { name, bill, closingDay, dueDay });
         showToast("Cartão Atualizado!");
         fecharModal();
     } catch (e) {

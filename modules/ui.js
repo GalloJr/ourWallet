@@ -136,6 +136,9 @@ export function renderList(transactions, listElement, allCards, formatarData, ed
         let fonteIcone = '';
         if (t.source && t.source !== 'wallet') fonteIcone = '<i data-lucide="credit-card" class="w-3 h-3 text-indigo-500 ml-1"></i>';
 
+        let receiptIcon = '';
+        if (t.receiptUrl) receiptIcon = `<a href="${t.receiptUrl}" target="_blank" class="text-indigo-500 hover:text-indigo-700 ml-1" title="Ver Comprovante"><i data-lucide="paperclip" class="w-3 h-3"></i></a>`;
+
         const row = document.createElement('tr');
         row.className = "hover:bg-gray-50 dark:hover:bg-gray-800 transition border-b border-gray-100 dark:border-gray-700";
 
@@ -144,7 +147,7 @@ export function renderList(transactions, listElement, allCards, formatarData, ed
 
         row.innerHTML = `
             <td class="p-4"><div class="flex items-center gap-2"><div class="p-2 rounded ${conf.bg} dark:bg-opacity-20 ${conf.color}"><i data-lucide="${conf.icon}" class="w-4 h-4"></i></div><span class="text-sm dark:text-gray-200">${conf.label}</span></div></td>
-            <td class="p-4 text-sm dark:text-gray-300 flex items-center">${t.desc} ${fonteIcone}</td>
+            <td class="p-4 text-sm dark:text-gray-300 flex items-center">${t.desc} ${fonteIcone} ${receiptIcon}</td>
             <td class="p-4 text-sm text-gray-500">${formatarData(t.date)}</td>
             <td class="p-4">
                 <div class="flex items-center gap-2" title="${t.ownerName || 'Responsável desconhecido'}">
@@ -167,7 +170,7 @@ export function renderList(transactions, listElement, allCards, formatarData, ed
     window.deletarItem = deleteCallback;
 }
 
-export function renderValues(transactions) {
+export function renderValues(transactions, allTransactions, selectedMonth) {
     const amounts = transactions.map(t => t.amount);
     const total = amounts.reduce((acc, item) => acc + item, 0);
     const income = amounts.filter(item => item > 0).reduce((acc, item) => acc + item, 0);
@@ -177,10 +180,39 @@ export function renderValues(transactions) {
     const displayTotal = document.getElementById('display-total');
     const displayIncome = document.getElementById('display-income');
     const displayExpense = document.getElementById('display-expense');
+    const expenseInsight = document.getElementById('expense-insight');
 
     if (displayTotal) displayTotal.innerText = format(total);
     if (displayIncome) displayIncome.innerText = format(income);
     if (displayExpense) displayExpense.innerText = format(Math.abs(expense));
+
+    // Lógica de Comparação (Insights)
+    if (expenseInsight) {
+        if (selectedMonth && allTransactions) {
+            const [ano, mes] = selectedMonth.split('-').map(Number);
+            const dataAnterior = new Date(ano, mes - 2, 1);
+            const mesAnteriorStr = `${dataAnterior.getFullYear()}-${String(dataAnterior.getMonth() + 1).padStart(2, '0')}`;
+
+            const gastosMesAnterior = Math.abs(allTransactions
+                .filter(t => t.date && t.date.startsWith(mesAnteriorStr) && t.amount < 0)
+                .reduce((acc, t) => acc + t.amount, 0));
+
+            const gastosAtuais = Math.abs(expense);
+
+            if (gastosMesAnterior > 0) {
+                const diff = gastosAtuais - gastosMesAnterior;
+                const percent = ((diff / gastosMesAnterior) * 100).toFixed(0);
+                const color = diff > 0 ? 'text-red-200' : 'text-emerald-200';
+                const sign = diff > 0 ? '+' : '';
+                expenseInsight.innerText = `${sign}${percent}% em relação ao mês anterior`;
+                expenseInsight.className = `text-[10px] ${color} mt-1 font-medium`;
+            } else {
+                expenseInsight.innerText = "Sem dados do mês anterior";
+            }
+        } else {
+            expenseInsight.innerText = "---";
+        }
+    }
 }
 
 export function renderCards(cards, cardsContainer, bankStyles, flagLogos, editCardCallback, deleteCardCallback) {
@@ -205,7 +237,10 @@ export function renderCards(cards, cardsContainer, bankStyles, flagLogos, editCa
                     <p class="text-2xl font-bold">${(card.bill || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</p>
                 </div>
                 <div class="flex justify-between items-end z-10">
-                    <p class="text-sm tracking-widest">**** ${card.last4}</p>
+                    <div>
+                        <p class="text-[10px] text-white/70">Fech: ${card.closingDay || '?'}</p>
+                        <p class="text-[10px] text-white/70">Venc: ${card.dueDay || '?'}</p>
+                    </div>
                     <div class="flex items-center gap-2">
                         <button onclick="deletarCartao('${card.id}')" aria-label="Excluir" class="opacity-50 hover:opacity-100 transition cursor-pointer"><i data-lucide="trash" class="w-4 h-4 text-white"></i></button>
                         <img src="${flagUrl}" class="h-8 bg-white/20 rounded px-1" alt="Bandeira Cartão">
@@ -227,4 +262,48 @@ export function renderCards(cards, cardsContainer, bankStyles, flagLogos, editCa
 
     window.prepararEdicaoCartao = editCardCallback;
     window.deletarCartao = deleteCardCallback;
+}
+
+export function renderGoals(goals, goalsContainer, deleteGoalCallback) {
+    if (!goalsContainer) return;
+    goalsContainer.innerHTML = '';
+
+    if (goals.length === 0) {
+        goalsContainer.innerHTML = `
+            <div class="col-span-full p-8 border-2 border-dashed border-gray-200 dark:border-gray-800 rounded-2xl text-center">
+                <p class="text-gray-400 text-sm">Nenhuma meta definida ainda.</p>
+            </div>
+        `;
+        return;
+    }
+
+    goals.forEach(goal => {
+        const percent = Math.min(100, (goal.current / goal.target) * 100).toFixed(0);
+        const format = (val) => val.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+
+        const goalHtml = `
+            <div class="bg-white dark:bg-darkcard p-5 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 hover:shadow-md transition">
+                <div class="flex justify-between items-start mb-3">
+                    <h4 class="font-bold text-gray-900 dark:text-white text-sm">${goal.title}</h4>
+                    <button onclick="deletarMeta('${goal.id}')" class="text-gray-300 hover:text-red-500 transition cursor-pointer">
+                        <i data-lucide="x" class="w-4 h-4"></i>
+                    </button>
+                </div>
+                <div class="space-y-2">
+                    <div class="flex justify-between text-[11px]">
+                        <span class="text-gray-500 text-[9px]">${format(goal.current)}</span>
+                        <span class="font-bold text-indigo-600">${percent}%</span>
+                        <span class="text-gray-500 text-[9px]">${format(goal.target)}</span>
+                    </div>
+                    <div class="w-full h-2 bg-gray-100 dark:bg-gray-800 rounded-full overflow-hidden">
+                        <div class="h-full bg-indigo-500 rounded-full transition-all duration-1000" style="width: ${percent}%"></div>
+                    </div>
+                </div>
+            </div>
+        `;
+        goalsContainer.innerHTML += goalHtml;
+    });
+
+    if (window.lucide) lucide.createIcons();
+    window.deletarMeta = deleteGoalCallback;
 }
