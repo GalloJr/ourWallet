@@ -227,7 +227,8 @@ form.addEventListener('submit', async (e) => {
 
             await addDoc(collection(db, "transactions"), {
                 uid: activeWalletId, // Agora salva com o ID da carteira ativa
-                owner: currentUser.uid, // Opcional: rastrear quem lançou
+                owner: currentUser.uid,
+                ownerName: currentUser.displayName || "Usuário",
                 desc: parcelDesc,
                 amount: amountPerInstallment,
                 date: dateStr,
@@ -451,14 +452,15 @@ document.getElementById('edit-form').addEventListener('submit', async (e) => {
 
 window.exportarCSV = () => {
     if (!filteredTransactions.length) return showToast("Nada para exportar!");
-    let csv = "\uFEFFData;Descrição;Valor;Categoria;Pagamento\n";
+    let csv = "\uFEFFData;Descrição;Valor;Categoria;Pagamento;Por\n";
     filteredTransactions.forEach(t => {
         let fonte = "Carteira";
         if (t.source && t.source !== 'wallet') {
             const card = allCards.find(c => c.id === t.source);
             fonte = card ? `Cartão ${card.name}` : "Cartão (Removido)";
         }
-        csv += `${formatarData(t.date)};${t.desc};${t.amount.toLocaleString('pt-BR')};${categoryConfig[t.category]?.label || t.category};${fonte}\n`;
+        const quem = t.ownerName || "---";
+        csv += `${formatarData(t.date)};${t.desc};${t.amount.toLocaleString('pt-BR')};${categoryConfig[t.category]?.label || t.category};${fonte};${quem}\n`;
     });
     const link = document.createElement("a");
     link.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv;charset=utf-8;' }));
@@ -549,7 +551,7 @@ function renderCharts(transactions) {
 
 function renderList(transactions) {
     listElement.innerHTML = '';
-    if (transactions.length === 0) { listElement.innerHTML = '<tr><td colspan="5" class="p-8 text-center text-gray-400">Vazio.</td></tr>'; return; }
+    if (transactions.length === 0) { listElement.innerHTML = '<tr><td colspan="6" class="p-8 text-center text-gray-400">Vazio.</td></tr>'; return; }
     transactions.forEach(t => {
         const conf = categoryConfig[t.category] || categoryConfig['other'];
         const isExpense = t.amount < 0;
@@ -558,10 +560,22 @@ function renderList(transactions) {
 
         const row = document.createElement('tr');
         row.className = "hover:bg-gray-50 dark:hover:bg-gray-800 transition border-b border-gray-100 dark:border-gray-700";
+
+        const ownerInitial = t.ownerName ? t.ownerName.charAt(0).toUpperCase() : '?';
+        const ownerFirstName = t.ownerName ? t.ownerName.split(' ')[0] : '---';
+
         row.innerHTML = `
             <td class="p-4"><div class="flex items-center gap-2"><div class="p-2 rounded ${conf.bg} dark:bg-opacity-20 ${conf.color}"><i data-lucide="${conf.icon}" class="w-4 h-4"></i></div><span class="text-sm dark:text-gray-200">${conf.label}</span></div></td>
             <td class="p-4 text-sm dark:text-gray-300 flex items-center">${t.desc} ${fonteIcone}</td>
             <td class="p-4 text-sm text-gray-500">${formatarData(t.date)}</td>
+            <td class="p-4">
+                <div class="flex items-center gap-2" title="${t.ownerName || 'Responsável desconhecido'}">
+                    <div class="w-6 h-6 rounded-full bg-indigo-100 dark:bg-indigo-900/40 flex items-center justify-center text-[10px] font-bold text-indigo-600 dark:text-indigo-400 border border-indigo-200 dark:border-indigo-800">
+                        ${ownerInitial}
+                    </div>
+                    <span class="text-xs text-gray-500 dark:text-gray-400 hidden sm:inline">${ownerFirstName}</span>
+                </div>
+            </td>
             <td class="p-4 text-right font-bold text-sm ${isExpense ? 'text-red-500' : 'text-green-500'}">${Math.abs(t.amount).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</td>
             <td class="p-4 text-center flex justify-center gap-2">
                 <button onclick="prepararEdicao('${t.id}')" aria-label="Editar" class="text-gray-400 hover:text-indigo-500 transition cursor-pointer"><i data-lucide="pencil" class="w-4 h-4"></i></button>
