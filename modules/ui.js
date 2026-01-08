@@ -122,7 +122,7 @@ export function renderCharts(transactions, monthFilterValue) {
     }
 }
 
-export function renderList(transactions, listElement, allCards, formatarData, editCallback, deleteCallback) {
+export function renderList(transactions, listElement, allCards, allAccounts, formatarData, editCallback, deleteCallback) {
     if (!listElement) return;
     listElement.innerHTML = '';
     if (transactions.length === 0) {
@@ -134,7 +134,21 @@ export function renderList(transactions, listElement, allCards, formatarData, ed
         const conf = categoryConfig[t.category] || categoryConfig['other'];
         const isExpense = t.amount < 0;
         let fonteIcone = '';
-        if (t.source && t.source !== 'wallet') fonteIcone = '<i data-lucide="credit-card" class="w-3 h-3 text-indigo-500 ml-1"></i>';
+        let sourceName = 'Carteira';
+
+        if (t.source && t.source !== 'wallet') {
+            const card = allCards?.find(c => c.id === t.source);
+            if (card) {
+                fonteIcone = '<i data-lucide="credit-card" class="w-3 h-3 text-indigo-500 ml-1"></i>';
+                sourceName = `Cartão ${card.name}`;
+            } else {
+                const acc = allAccounts?.find(a => a.id === t.source);
+                if (acc) {
+                    fonteIcone = '<i data-lucide="building-2" class="w-3 h-3 text-indigo-500 ml-1"></i>';
+                    sourceName = `Conta ${acc.name}`;
+                }
+            }
+        }
 
         let receiptIcon = '';
         if (t.receiptUrl) receiptIcon = `<a href="${t.receiptUrl}" target="_blank" class="text-indigo-500 hover:text-indigo-700 ml-1" title="Ver Comprovante"><i data-lucide="paperclip" class="w-3 h-3"></i></a>`;
@@ -147,7 +161,7 @@ export function renderList(transactions, listElement, allCards, formatarData, ed
 
         row.innerHTML = `
             <td class="p-4"><div class="flex items-center gap-2"><div class="p-2 rounded ${conf.bg} dark:bg-opacity-20 ${conf.color}"><i data-lucide="${conf.icon}" class="w-4 h-4"></i></div><span class="text-sm dark:text-gray-200">${conf.label}</span></div></td>
-            <td class="p-4 text-sm dark:text-gray-300 flex items-center">${t.desc} ${fonteIcone} ${receiptIcon}</td>
+            <td class="p-4 text-sm dark:text-gray-300 flex items-center" title="${sourceName}">${t.desc} ${fonteIcone} ${receiptIcon}</td>
             <td class="p-4 text-sm text-gray-500">${formatarData(t.date)}</td>
             <td class="p-4">
                 <div class="flex items-center gap-2" title="${t.ownerName || 'Responsável desconhecido'}">
@@ -262,6 +276,44 @@ export function renderCards(cards, cardsContainer, bankStyles, flagLogos, editCa
 
     window.prepararEdicaoCartao = editCardCallback;
     window.deletarCartao = deleteCardCallback;
+}
+
+export function renderAccounts(accounts, accountsContainer, bankStyles, editAccountCallback, deleteAccountCallback) {
+    if (!accountsContainer) return;
+    accountsContainer.innerHTML = '';
+    accounts.forEach(acc => {
+        const style = bankStyles[acc.bank] || bankStyles['blue'];
+
+        const accHtml = `
+            <div class="min-w-[280px] h-32 ${style.bg} rounded-2xl p-5 text-white shadow-lg flex flex-col justify-between relative overflow-hidden group hover:scale-105 transition duration-300">
+                <div class="absolute -right-4 -top-4 w-16 h-16 rounded-full bg-white opacity-10"></div>
+                <div class="flex justify-between items-start z-10">
+                    <span class="font-bold tracking-wider flex items-center gap-2"><i data-lucide="building-2" class="w-4 h-4"></i> ${acc.name}</span>
+                    <div class="flex gap-2">
+                        <button onclick="prepararEdicaoConta('${acc.id}')" aria-label="Editar" class="opacity-50 hover:opacity-100 transition cursor-pointer"><i data-lucide="pencil" class="w-4 h-4 text-white"></i></button>
+                        <button onclick="deletarConta('${acc.id}')" aria-label="Excluir" class="opacity-50 hover:opacity-100 transition cursor-pointer"><i data-lucide="trash-2" class="w-4 h-4 text-white"></i></button>
+                    </div>
+                </div>
+                <div class="z-10">
+                    <p class="text-xs text-white/80 mb-0">Saldo em Conta</p>
+                    <p class="text-2xl font-bold">${(acc.balance || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</p>
+                </div>
+            </div>
+        `;
+        accountsContainer.innerHTML += accHtml;
+    });
+
+    const addBtnHtml = `
+        <button onclick="abrirModalConta()" class="min-w-[100px] h-32 bg-gray-100 dark:bg-gray-800 border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-2xl flex flex-col items-center justify-center text-gray-400 cursor-pointer hover:bg-gray-200 dark:hover:bg-gray-700 transition" aria-label="Adicionar Conta">
+            <i data-lucide="plus" class="w-8 h-8 mb-2"></i>
+            <span class="text-xs font-medium">Nova</span>
+        </button>
+    `;
+    accountsContainer.innerHTML += addBtnHtml;
+    if (window.lucide) lucide.createIcons();
+
+    window.prepararEdicaoConta = editAccountCallback;
+    window.deletarConta = deleteAccountCallback;
 }
 
 export function renderGoals(goals, goalsContainer, deleteGoalCallback) {
