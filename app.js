@@ -366,7 +366,7 @@ window.prepararEdicaoConta = (id) => {
     document.getElementById('edit-account-modal').classList.remove('hidden');
     document.getElementById('edit-account-id').value = id;
     document.getElementById('edit-account-name').value = acc.name;
-    document.getElementById('edit-account-balance').value = (acc.balance || 0).toLocaleString("pt-BR", { minimumFractionDigits: 2 });
+    document.getElementById('edit-account-balance').value = (acc.balance || 0).toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
 }
 
 window.prepararEdicaoDivida = (id) => {
@@ -375,7 +375,7 @@ window.prepararEdicaoDivida = (id) => {
     document.getElementById('edit-debt-modal').classList.remove('hidden');
     document.getElementById('edit-debt-id').value = id;
     document.getElementById('edit-debt-name').value = debt.name;
-    document.getElementById('edit-debt-balance').value = (debt.totalBalance || 0).toLocaleString("pt-BR", { minimumFractionDigits: 2 });
+    document.getElementById('edit-debt-balance').value = (debt.totalBalance || 0).toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
 }
 
 window.deletarCartao = deletarCartao;
@@ -387,7 +387,7 @@ window.prepararEdicao = (id) => {
     document.getElementById('edit-modal').classList.remove('hidden');
     document.getElementById('edit-id').value = id;
     document.getElementById('edit-desc').value = t.desc;
-    document.getElementById('edit-amount').value = Math.abs(t.amount).toLocaleString("pt-BR", { minimumFractionDigits: 2 });
+    document.getElementById('edit-amount').value = Math.abs(t.amount).toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
     document.getElementById('edit-date').value = t.date;
 
     // Popular e selecionar fonte

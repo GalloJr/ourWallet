@@ -1,13 +1,36 @@
 export function formatarMoedaInput(input) {
-    let value = input.value.replace(/\D/g, "");
-    value = (Number(value) / 100).toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
-    input.value = value;
+    let value = input.value;
+    const isNegative = value.includes('-');
+
+    // Remove tudo que não é dígito
+    let cleanValue = value.replace(/\D/g, "");
+
+    if (cleanValue === "") {
+        input.value = isNegative ? "-" : "";
+        return;
+    }
+
+    let numericValue = Number(cleanValue) / 100;
+    if (isNegative) numericValue = -numericValue;
+
+    input.value = numericValue.toLocaleString("pt-BR", {
+        style: "currency",
+        currency: "BRL"
+    });
 }
 
 export function limparValorMoeda(valorString) {
     if (!valorString) return 0;
     if (typeof valorString === 'number') return valorString;
-    return Number(valorString.replace(/\./g, '').replace(',', '.').replace('R$', '').trim());
+
+    // Remove pontos de milhar, substitui vírgula por ponto decimal
+    // e mantém apenas dígitos, ponto decimal e o sinal de menos
+    const cleanValue = valorString
+        .replace(/\./g, '')
+        .replace(',', '.')
+        .replace(/[^\d.-]/g, '');
+
+    return Number(cleanValue) || 0;
 }
 
 export function formatarData(d) {
