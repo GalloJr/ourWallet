@@ -9,10 +9,11 @@ import { updateThemeIcon, toggleLoading, popularSeletorMeses, renderCharts, rend
 import { formatarMoedaInput, limparValorMoeda, formatarData, showToast } from "./modules/utils.js";
 import { bankStyles, flagLogos } from "./modules/constants.js";
 import { processarPagamento } from "./modules/transactions.js";
+import { collection, addDoc, onSnapshot, query, where, updateDoc } from "./firebase.js";
 
 // Global variables to maintain compatibility with DOM event listeners
 window.formatarMoedaInput = formatarMoedaInput;
-window.exportarCSV = () => exportarCSV(filteredTransactions, allCards);
+window.exportarCSV = () => exportarCSV(appState.filteredTrans, appState.cards);
 window.abrirModalCartao = () => document.getElementById('card-modal').classList.remove('hidden');
 window.fecharModalCartao = () => document.getElementById('card-modal').classList.add('hidden');
 window.fecharModalEdicaoCartao = () => document.getElementById('edit-card-modal').classList.add('hidden');
@@ -71,20 +72,19 @@ const searchInput = document.getElementById('search-input');
 const historySourceFilter = document.getElementById('history-source-filter');
 const paymentForm = document.getElementById('payment-form');
 
-// State
-let currentUser = null;
-let activeWalletId = null;
-let allTransactions = [];
-let filteredTransactions = [];
-let allCards = [];
-let allAccounts = [];
-let allDebts = [];
-let allGoals = [];
-let unsubscribeTrans = null;
-let unsubscribeCards = null;
-let unsubscribeAccounts = null;
-let unsubscribeDebts = null;
-let unsubscribeGoals = null;
+// Encapsulated State
+const appState = {
+    user: null,
+    walletId: null,
+    transactions: [],
+    filteredTrans: [],
+    cards: [],
+    accounts: [],
+    debts: [],
+    goals: [],
+    access: 0, // 0: Free, 1: Premium
+    _u: { t: null, c: null, a: null, d: null, g: null } // Unsubscribers
+};
 
 // Register Service Worker
 if ('serviceWorker' in navigator) {
@@ -182,51 +182,57 @@ if (sourceSelect) {
 // Auth Setup
 setupAuth(loginBtn, logoutBtn, appScreen, loginScreen, userNameDisplay, async (user) => {
     if (user) {
-        currentUser = user;
+        appState.user = user;
         toggleLoading(true);
-        activeWalletId = await configurarWallet(user.uid);
+        const config = await configurarWallet(user.uid);
+        appState.walletId = config.activeWalletId;
+
+        // Listener para o status Premium do DONO da carteira
+        onSnapshot(doc(db, "users", appState.walletId), (docSnap) => {
+            if (docSnap.exists()) {
+                appState.access = !!docSnap.data().isPremium ? 1 : 0;
+                atualizarUIPremium();
+            }
+        });
+
+        // Sempre tenta carregar admin silenciosamente. 
+        // Se o Firebase permitir a leitura, o botão aparecerá dentro da função.
+        carregarPedidosAdmin();
 
         // Unsubscribe from previous listeners
-        if (unsubscribeTrans) unsubscribeTrans();
-        if (unsubscribeCards) unsubscribeCards();
-        if (unsubscribeAccounts) unsubscribeAccounts();
-        if (unsubscribeGoals) unsubscribeGoals();
+        Object.values(appState._u).forEach(unsub => unsub && unsub());
 
         // Setup Trans and Cards
-        unsubscribeTrans = setupTransactions(activeWalletId, (transactions) => {
-            allTransactions = transactions;
+        appState._u.t = setupTransactions(appState.walletId, (transactions) => {
+            appState.transactions = transactions;
             aplicarFiltro();
             toggleLoading(false);
         });
 
-        unsubscribeCards = setupCards(activeWalletId, cardsContainer, null, (cards) => {
-            allCards = cards;
+        appState._u.c = setupCards(appState.walletId, cardsContainer, null, (cards) => {
+            appState.cards = cards;
             popularSelectSources();
             popularHistorySourceFilter();
         });
 
-        unsubscribeAccounts = setupAccounts(activeWalletId, accountsContainer, null, (accounts) => {
-            allAccounts = accounts;
+        appState._u.a = setupAccounts(appState.walletId, accountsContainer, null, (accounts) => {
+            appState.accounts = accounts;
             popularSelectSources();
             popularHistorySourceFilter();
         });
 
-        unsubscribeDebts = setupDebts(activeWalletId, document.getElementById('debts-container'), (debts) => {
-            allDebts = debts;
+        appState._u.d = setupDebts(appState.walletId, document.getElementById('debts-container'), (debts) => {
+            appState.debts = debts;
             window.allDebts = debts; // Para ui.js acessar
             popularSelectSources();
             popularHistorySourceFilter();
         });
 
-        unsubscribeGoals = setupGoals(activeWalletId, goalsContainer);
+        appState._u.g = setupGoals(appState.walletId, goalsContainer);
     } else {
-        currentUser = null;
-        activeWalletId = null;
-        if (unsubscribeTrans) unsubscribeTrans();
-        if (unsubscribeCards) unsubscribeCards();
-        if (unsubscribeAccounts) unsubscribeAccounts();
-        if (unsubscribeDebts) unsubscribeDebts();
-        if (unsubscribeGoals) unsubscribeGoals();
+        appState.user = null;
+        appState.walletId = null;
+        Object.values(appState._u).forEach(unsub => unsub && unsub());
         listElement.innerHTML = '';
         cardsContainer.innerHTML = '';
         accountsContainer.innerHTML = '';
@@ -240,9 +246,9 @@ setupAuth(loginBtn, logoutBtn, appScreen, loginScreen, userNameDisplay, async (u
 // Transaction Form
 form.addEventListener('submit', async (e) => {
     e.preventDefault();
-    if (!currentUser) return;
+    if (!appState.user) return;
 
-    const success = await salvarTransacao(activeWalletId, currentUser, allCards, allAccounts, allDebts, form, installmentsSelect);
+    const success = await salvarTransacao(appState.walletId, appState.user, appState.cards, appState.accounts, appState.debts, form, installmentsSelect);
     if (success) {
         const dateVal = document.getElementById('date').value;
         if (monthFilter && dateVal && monthFilter.value !== dateVal.slice(0, 7)) {
@@ -258,13 +264,16 @@ form.addEventListener('submit', async (e) => {
 // Card Form
 cardForm.addEventListener('submit', async (e) => {
     e.preventDefault();
-    await salvarCartao(activeWalletId, cardForm, window.fecharModalCartao);
+    if (appState.access === 0 && appState.cards.length >= 1) {
+        return window.abrirModalPremium();
+    }
+    await salvarCartao(appState.walletId, cardForm, window.fecharModalCartao);
 });
 
 // Goal Form
 goalForm.addEventListener('submit', async (e) => {
     e.preventDefault();
-    await salvarMeta(activeWalletId, goalForm, window.fecharModalMeta);
+    await salvarMeta(appState.walletId, goalForm, window.fecharModalMeta);
 });
 
 // Edit Card Form
@@ -276,7 +285,10 @@ editCardForm.addEventListener('submit', async (e) => {
 // Account Form
 accountForm.addEventListener('submit', async (e) => {
     e.preventDefault();
-    await salvarConta(activeWalletId, accountForm, window.fecharModalConta);
+    if (appState.access === 0 && appState.accounts.length >= 2) {
+        return window.abrirModalPremium();
+    }
+    await salvarConta(appState.walletId, accountForm, window.fecharModalConta);
 });
 
 // Edit Account Form
@@ -288,7 +300,7 @@ editAccountForm.addEventListener('submit', async (e) => {
 // Debt Form
 document.getElementById('debt-form').addEventListener('submit', async (e) => {
     e.preventDefault();
-    await salvarDivida(activeWalletId, e.target, window.fecharModalDivida);
+    await salvarDivida(appState.walletId, e.target, window.fecharModalDivida);
 });
 
 // Edit Debt Form
@@ -301,14 +313,14 @@ document.getElementById('edit-debt-form').addEventListener('submit', async (e) =
 document.getElementById('edit-form').addEventListener('submit', async (e) => {
     e.preventDefault();
     const id = document.getElementById('edit-id').value;
-    await editarTransacao(id, allTransactions, allCards, allAccounts, allDebts, window.fecharModal);
+    await editarTransacao(id, appState.transactions, appState.cards, appState.accounts, appState.debts, window.fecharModal);
 });
 
 // Payment Form
 if (paymentForm) {
     paymentForm.addEventListener('submit', async (e) => {
         e.preventDefault();
-        await processarPagamento(activeWalletId, currentUser, allCards, allAccounts, allDebts, window.fecharModalPagamento);
+        await processarPagamento(appState.walletId, appState.user, appState.cards, appState.accounts, appState.debts, window.fecharModalPagamento);
     });
 }
 
@@ -318,7 +330,7 @@ function atualizarVisibilidadeDesconto() {
     if (!targetSelect || !discountContainer) return;
 
     const selectedId = targetSelect.value;
-    const isDebt = allDebts.some(d => d.id === selectedId);
+    const isDebt = appState.debts.some(d => d.id === selectedId);
 
     if (isDebt) {
         discountContainer.classList.remove('hidden');
@@ -336,27 +348,151 @@ function popularSelectPagamento() {
     if (!payAccount || !payTarget) return;
 
     let accOptions = '';
-    allAccounts.forEach(acc => {
+    appState.accounts.forEach(acc => {
         accOptions += `<option value="${acc.id}">🏦 ${acc.name} (${acc.balance.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })})</option>`;
     });
     payAccount.innerHTML = accOptions;
 
     let targetOptions = '';
-    if (allCards.length > 0) {
+    if (appState.cards.length > 0) {
         targetOptions += '<optgroup label="Cartões de Crédito">';
-        allCards.forEach(card => {
+        appState.cards.forEach(card => {
             targetOptions += `<option value="${card.id}">💳 ${card.name} (Fatura: ${(card.bill || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })})</option>`;
         });
         targetOptions += '</optgroup>';
     }
-    if (allDebts.length > 0) {
+    if (appState.debts.length > 0) {
         targetOptions += '<optgroup label="Dívidas">';
-        allDebts.forEach(debt => {
+        appState.debts.forEach(debt => {
             targetOptions += `<option value="${debt.id}">📉 ${debt.name} (Saldo: ${(debt.totalBalance || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })})</option>`;
         });
         targetOptions += '</optgroup>';
     }
     payTarget.innerHTML = targetOptions;
+}
+
+// Upgrade Premium Logic
+document.getElementById('upgrade-btn').addEventListener('click', window.abrirModalPremium);
+
+document.getElementById('premium-request-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const whatsapp = document.getElementById('premium-whatsapp').value;
+    try {
+        await addDoc(collection(db, "premium_requests"), {
+            uid: appState.user.uid,
+            email: appState.user.email,
+            displayName: appState.user.displayName,
+            whatsapp: whatsapp,
+            status: 'pending',
+            createdAt: new Date()
+        });
+        showToast("Pedido enviado! Entraremos em contato.");
+        window.fecharModalPremium();
+        e.target.reset();
+    } catch (e) {
+        alert("Erro ao enviar pedido.");
+    }
+});
+
+function atualizarUIPremium() {
+    const upgradeBtn = document.getElementById('upgrade-btn');
+    const goalsLock = document.getElementById('goals-premium-lock');
+    const debtsLock = document.getElementById('debts-premium-lock');
+    const exportBtn = document.getElementById('export-btn');
+    const addGoalBtn = document.getElementById('add-goal-btn');
+
+    if (appState.access === 1) {
+        if (upgradeBtn) upgradeBtn.classList.add('hidden');
+        if (goalsLock) goalsLock.classList.add('hidden');
+        if (debtsLock) debtsLock.classList.add('hidden');
+        if (exportBtn) {
+            exportBtn.classList.remove('opacity-50', 'pointer-events-none');
+            exportBtn.title = "Exportar CSV";
+        }
+        if (addGoalBtn) addGoalBtn.classList.remove('hidden');
+    } else {
+        if (upgradeBtn) upgradeBtn.classList.remove('hidden');
+        if (goalsLock) goalsLock.classList.remove('hidden');
+        if (debtsLock) debtsLock.classList.remove('hidden');
+        if (exportBtn) {
+            exportBtn.classList.add('opacity-50', 'pointer-events-none');
+            exportBtn.title = "Disponível no Premium";
+        }
+        if (addGoalBtn) addGoalBtn.classList.add('hidden');
+
+        // Esconde conteúdo se não for premium
+        const goalsCont = document.getElementById('goals-container');
+        const debtsCont = document.getElementById('debts-container');
+        if (goalsCont) goalsCont.innerHTML = `
+            <div class="col-span-full p-8 border-2 border-dashed border-gray-200 dark:border-gray-800 rounded-2xl text-center bg-gray-50/50 dark:bg-gray-900/20">
+                <p class="text-gray-400 text-sm">Funcionalidade Premium</p>
+                <button onclick="abrirModalPremium()" class="mt-2 text-indigo-500 font-bold text-xs hover:underline">Saiba mais</button>
+            </div>
+        `;
+        if (debtsCont) debtsCont.innerHTML = `
+            <div class="min-w-full p-8 border-2 border-dashed border-gray-200 dark:border-gray-800 rounded-2xl text-center bg-gray-50/50 dark:bg-gray-900/20">
+                <p class="text-gray-400 text-sm">Funcionalidade Premium</p>
+                <button onclick="abrirModalPremium()" class="mt-2 text-indigo-500 font-bold text-xs hover:underline">Saiba mais</button>
+            </div>
+        `;
+    }
+    if (window.lucide) lucide.createIcons();
+}
+
+function carregarPedidosAdmin() {
+    const q = query(collection(db, "premium_requests"), where("status", "==", "pending"));
+    onSnapshot(q, (snapshot) => {
+        // Se entrou aqui, é porque o Firebase permitiu a leitura (é Admin de fato)
+        const adminBtn = document.getElementById('admin-btn');
+        if (adminBtn) {
+            adminBtn.classList.remove('hidden');
+            // Remove listeners antigos antes de adicionar para evitar duplicidade
+            adminBtn.replaceWith(adminBtn.cloneNode(true));
+            const newAdminBtn = document.getElementById('admin-btn');
+            newAdminBtn.addEventListener('click', window.abrirModalAdmin);
+        }
+
+        const list = document.getElementById('admin-requests-list');
+        list.innerHTML = '';
+        snapshot.forEach(docSnap => {
+            const data = docSnap.data();
+            const row = document.createElement('tr');
+            row.className = "border-b border-gray-50 dark:border-gray-800 hover:bg-gray-50/50 dark:hover:bg-gray-800/50 transition";
+            row.innerHTML = `
+                <td class="p-4">
+                    <div class="text-sm font-bold dark:text-white">${data.displayName || 'Sem nome'}</div>
+                    <div class="text-[10px] text-gray-400">${data.email}</div>
+                </td>
+                <td class="p-4 text-sm dark:text-gray-300">
+                    <a href="https://wa.me/55${data.whatsapp.replace(/\D/g, '')}" target="_blank" class="text-indigo-500 hover:underline flex items-center gap-1">
+                        <i data-lucide="message-circle" class="w-3 h-3"></i> ${data.whatsapp}
+                    </a>
+                </td>
+                <td class="p-4 text-xs text-gray-500">${data.createdAt?.toDate().toLocaleDateString('pt-BR')}</td>
+                <td class="p-4 text-center">
+                    <button onclick="aprovarUsuario('${data.uid}', '${docSnap.id}')" class="px-3 py-1 bg-emerald-500 text-white text-xs font-bold rounded-lg hover:bg-emerald-600 transition">Aprovar</button>
+                </td>
+            `;
+            list.appendChild(row);
+        });
+        if (window.lucide) lucide.createIcons();
+    }, (error) => {
+        // Se der erro de permissão, garante que o botão suma
+        console.warn("Acesso administrativo negado pelo Firebase.");
+        const adminBtn = document.getElementById('admin-btn');
+        if (adminBtn) adminBtn.classList.add('hidden');
+    });
+}
+
+window.aprovarUsuario = async (userId, requestId) => {
+    if (!confirm("Confirmar ativação Premium para este usuário?")) return;
+    try {
+        await updateDoc(doc(db, "users", userId), { isPremium: true });
+        await updateDoc(doc(db, "premium_requests", requestId), { status: 'approved' });
+        showToast("Usuário agora é Premium!");
+    } catch (e) {
+        alert("Erro ao aprovar.");
+    }
 }
 
 // Family Logic
@@ -371,9 +507,9 @@ window.copiarID = () => {
 
 document.getElementById('link-family-btn').addEventListener('click', async () => {
     const spouseId = document.getElementById('spouse-id').value.trim();
-    if (!spouseId || spouseId === currentUser.uid) return alert("ID inválido");
+    if (!spouseId || spouseId === appState.user.uid) return alert("ID inválido");
     try {
-        await setDoc(doc(db, "users", currentUser.uid), { linkedWalletId: spouseId }, { merge: true });
+        await setDoc(doc(db, "users", appState.user.uid), { linkedWalletId: spouseId }, { merge: true });
         showToast("Carteira vinculada!");
         setTimeout(() => window.location.reload(), 1500);
     } catch (e) { alert("Erro ao vincular"); }
@@ -382,7 +518,7 @@ document.getElementById('link-family-btn').addEventListener('click', async () =>
 document.getElementById('unlink-family-btn').addEventListener('click', async () => {
     if (!confirm("Deseja desconectar e voltar para sua carteira individual?")) return;
     try {
-        await setDoc(doc(db, "users", currentUser.uid), { linkedWalletId: null }, { merge: true });
+        await setDoc(doc(db, "users", appState.user.uid), { linkedWalletId: null }, { merge: true });
         showToast("Desconectado!");
         setTimeout(() => window.location.reload(), 1500);
     } catch (e) { alert("Erro ao desconectar"); }
@@ -390,7 +526,7 @@ document.getElementById('unlink-family-btn').addEventListener('click', async () 
 
 // Helper functions for UI interaction
 window.prepararEdicaoCartao = (id) => {
-    const card = allCards.find(c => c.id === id);
+    const card = appState.cards.find(c => c.id === id);
     if (!card) return;
     document.getElementById('edit-card-modal').classList.remove('hidden');
     document.getElementById('edit-card-id').value = id;
@@ -401,7 +537,7 @@ window.prepararEdicaoCartao = (id) => {
 }
 
 window.prepararEdicaoConta = (id) => {
-    const acc = allAccounts.find(a => a.id === id);
+    const acc = appState.accounts.find(a => a.id === id);
     if (!acc) return;
     document.getElementById('edit-account-modal').classList.remove('hidden');
     document.getElementById('edit-account-id').value = id;
@@ -410,7 +546,7 @@ window.prepararEdicaoConta = (id) => {
 }
 
 window.prepararEdicaoDivida = (id) => {
-    const debt = allDebts.find(d => d.id === id);
+    const debt = appState.debts.find(d => d.id === id);
     if (!debt) return;
     document.getElementById('edit-debt-modal').classList.remove('hidden');
     document.getElementById('edit-debt-id').value = id;
@@ -422,7 +558,7 @@ window.deletarCartao = deletarCartao;
 window.deletarMeta = deletarMeta;
 
 window.prepararEdicao = (id) => {
-    const t = allTransactions.find(item => item.id === id);
+    const t = appState.transactions.find(item => item.id === id);
     if (!t) return;
     document.getElementById('edit-modal').classList.remove('hidden');
     document.getElementById('edit-id').value = id;
@@ -436,7 +572,7 @@ window.prepararEdicao = (id) => {
     editSource.value = t.source || 'wallet';
 }
 
-window.deletarItem = (id) => deletarTransacao(id, allTransactions, allCards, allAccounts, allDebts);
+window.deletarItem = (id) => deletarTransacao(id, appState.transactions, appState.cards, appState.accounts, appState.debts);
 
 function popularSelectSources(target = sourceSelect) {
     if (!target) return;
@@ -444,9 +580,9 @@ function popularSelectSources(target = sourceSelect) {
     let options = '';
 
     // Agrupar Contas
-    if (allAccounts.length > 0) {
+    if (appState.accounts.length > 0) {
         options += '<optgroup label="Contas / Carteira">';
-        allAccounts.forEach(acc => {
+        appState.accounts.forEach(acc => {
             options += `<option value="${acc.id}">🏦 ${acc.name} (${acc.balance.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })})</option>`;
         });
         options += '</optgroup>';
@@ -455,18 +591,18 @@ function popularSelectSources(target = sourceSelect) {
     }
 
     // Agrupar Cartões
-    if (allCards.length > 0) {
+    if (appState.cards.length > 0) {
         options += '<optgroup label="Cartões de Crédito">';
-        allCards.forEach(card => {
+        appState.cards.forEach(card => {
             options += `<option value="${card.id}">💳 ${card.name} (Final ${card.last4})</option>`;
         });
         options += '</optgroup>';
     }
 
     // Agrupar Dívidas
-    if (allDebts.length > 0) {
+    if (appState.debts.length > 0) {
         options += '<optgroup label="Dívidas">';
-        allDebts.forEach(debt => {
+        appState.debts.forEach(debt => {
             options += `<option value="${debt.id}">📉 ${debt.name} (A pagar: ${debt.totalBalance.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })})</option>`;
         });
         options += '</optgroup>';
@@ -482,27 +618,27 @@ function popularHistorySourceFilter() {
     let options = '<option value="">Todas as Fontes</option>';
 
     // Contas
-    if (allAccounts.length > 0) {
+    if (appState.accounts.length > 0) {
         options += '<optgroup label="Contas">';
-        allAccounts.forEach(acc => {
+        appState.accounts.forEach(acc => {
             options += `<option value="${acc.id}">🏦 ${acc.name}</option>`;
         });
         options += '</optgroup>';
     }
 
     // Cartões
-    if (allCards.length > 0) {
+    if (appState.cards.length > 0) {
         options += '<optgroup label="Cartões">';
-        allCards.forEach(card => {
+        appState.cards.forEach(card => {
             options += `<option value="${card.id}">💳 ${card.name}</option>`;
         });
         options += '</optgroup>';
     }
 
     // Dívidas
-    if (allDebts.length > 0) {
+    if (appState.debts.length > 0) {
         options += '<optgroup label="Dívidas">';
-        allDebts.forEach(debt => {
+        appState.debts.forEach(debt => {
             options += `<option value="${debt.id}">📉 ${debt.name}</option>`;
         });
         options += '</optgroup>';
@@ -518,7 +654,7 @@ function aplicarFiltro() {
     const busca = searchInput ? searchInput.value.toLowerCase() : "";
     const fonteSelecionada = historySourceFilter ? historySourceFilter.value : "";
 
-    filteredTransactions = allTransactions.filter(t => {
+    appState.filteredTrans = appState.transactions.filter(t => {
         const matchesMonth = !mesSelecionado || (t.date && t.date.startsWith(mesSelecionado));
         const matchesSearch = !busca || (t.desc && t.desc.toLowerCase().includes(busca));
         const matchesSource = !fonteSelecionada || t.source === fonteSelecionada;
@@ -533,7 +669,7 @@ if (searchInput) {
 }
 
 function renderSummary() {
-    renderList(filteredTransactions, listElement, allCards, allAccounts, formatarData, window.prepararEdicao, window.deletarItem);
-    renderValues(filteredTransactions, allTransactions, monthFilter.value);
-    renderCharts(filteredTransactions, monthFilter.value);
+    renderList(appState.filteredTrans, listElement, appState.cards, appState.accounts, appState.debts, formatarData, window.prepararEdicao, window.deletarItem);
+    renderValues(appState.filteredTrans, appState.transactions, monthFilter.value);
+    renderCharts(appState.filteredTrans, monthFilter.value);
 }

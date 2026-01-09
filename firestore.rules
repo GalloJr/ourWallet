@@ -1,0 +1,57 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // Helper: Verifica se o usuário é Premium checando o campo no documento do usuário
+    function isPremium() {
+      let userDoc = get(/databases/$(database)/documents/users/$(request.auth.uid));
+      return userDoc != null && userDoc.data.isPremium == true;
+    }
+
+    // Helper: Verifica se o usuário atual é o Administrador Master (via campo no banco)
+    function isAdmin() {
+      let userDoc = get(/databases/$(database)/documents/users/$(request.auth.uid));
+      return userDoc != null && userDoc.data.isAdmin == true;
+    }
+
+    // Regras para a coleção de usuários
+    match /users/{userId} {
+      allow read: if request.auth != null && (request.auth.uid == userId || isAdmin());
+      allow write: if request.auth != null && request.auth.uid == userId && 
+                   (!request.resource.data.diff(resource.data).affectedKeys().hasAny(['isPremium', 'isAdmin']));
+      // Apenas admin pode alterar o campo isPremium
+      allow update: if isAdmin();
+    }
+
+    // Regras para Transações, Contas e Cartões (Acesso Básico)
+    match /transactions/{tId} {
+      allow read, write: if request.auth != null && resource.data.uid == request.auth.uid;
+      allow create: if request.auth != null && request.resource.data.uid == request.auth.uid;
+    }
+
+    match /accounts/{accId} {
+      allow read, write: if request.auth != null && (resource.data.uid == request.auth.uid || isAdmin());
+      allow create: if request.auth != null && request.resource.data.uid == request.auth.uid;
+    }
+
+    match /cards/{cardId} {
+      allow read, write: if request.auth != null && (resource.data.uid == request.auth.uid || isAdmin());
+      allow create: if request.auth != null && request.resource.data.uid == request.auth.uid;
+    }
+
+    // Regras para Metas e Dívidas (BLOQUEADAS PARA FREE)
+    match /goals/{goalId} {
+      allow read, write: if request.auth != null && request.auth.uid == (resource == null ? request.resource.data.uid : resource.data.uid) && isPremium();
+    }
+
+    match /debts/{debtId} {
+      allow read, write: if request.auth != null && request.auth.uid == (resource == null ? request.resource.data.uid : resource.data.uid) && isPremium();
+    }
+
+    // Regras para Pedidos Premium (Apenas Admin lê)
+    match /premium_requests/{requestId} {
+      allow create: if request.auth != null;
+      allow read, update, delete: if isAdmin();
+    }
+  }
+}

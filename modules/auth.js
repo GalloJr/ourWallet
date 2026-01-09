@@ -43,18 +43,29 @@ export async function configurarWallet(uid) {
     try {
         const userRef = doc(db, "users", uid);
         const userDoc = await getDoc(userRef);
+        let activeId = uid;
+        let isAdmin = false;
 
-        if (userDoc.exists() && userDoc.data().linkedWalletId) {
-            const linkedId = userDoc.data().linkedWalletId;
-            document.getElementById('family-status').classList.remove('hidden');
-            document.getElementById('spouse-id').value = linkedId;
-            return linkedId;
-        } else {
-            document.getElementById('family-status').classList.add('hidden');
-            return uid;
+        if (userDoc.exists()) {
+            const userData = userDoc.data();
+            isAdmin = !!userData.isAdmin;
+            if (userData.linkedWalletId) {
+                activeId = userData.linkedWalletId;
+                document.getElementById('family-status').classList.remove('hidden');
+                document.getElementById('spouse-id').value = activeId;
+            } else {
+                document.getElementById('family-status').classList.add('hidden');
+            }
         }
+
+        // Busca o status premium do DONO da carteira ativa
+        const walletOwnerRef = doc(db, "users", activeId);
+        const walletOwnerDoc = await getDoc(walletOwnerRef);
+        const isPremium = walletOwnerDoc.exists() ? !!walletOwnerDoc.data().isPremium : false;
+
+        return { activeWalletId: activeId, isPremium, isAdmin };
     } catch (e) {
         console.error("Erro ao configurar wallet:", e);
-        return uid;
+        return { activeWalletId: uid, isPremium: false, isAdmin: false };
     }
 }

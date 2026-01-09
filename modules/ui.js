@@ -122,7 +122,7 @@ export function renderCharts(transactions, monthFilterValue) {
     }
 }
 
-export function renderList(transactions, listElement, allCards, allAccounts, formatarData, editCallback, deleteCallback) {
+export function renderList(transactions, listElement, allCards, allAccounts, allDebts, formatarData, editCallback, deleteCallback) {
     if (!listElement) return;
     listElement.innerHTML = '';
     if (transactions.length === 0) {
@@ -147,7 +147,7 @@ export function renderList(transactions, listElement, allCards, allAccounts, for
                     fonteIcone = '<i data-lucide="building-2" class="w-3 h-3 text-indigo-500 ml-1"></i>';
                     sourceName = `Conta ${acc.name}`;
                 } else {
-                    const debt = window.allDebts?.find(d => d.id === t.source);
+                    const debt = allDebts?.find(d => d.id === t.source);
                     if (debt) {
                         fonteIcone = '<i data-lucide="trending-down" class="w-3 h-3 text-red-500 ml-1"></i>';
                         sourceName = `Dívida ${debt.name}`;
@@ -166,21 +166,27 @@ export function renderList(transactions, listElement, allCards, allAccounts, for
         const ownerFirstName = t.ownerName ? t.ownerName.split(' ')[0] : '---';
 
         row.innerHTML = `
-            <td class="p-4"><div class="flex items-center gap-2"><div class="p-2 rounded ${conf.bg} dark:bg-opacity-20 ${conf.color}"><i data-lucide="${conf.icon}" class="w-4 h-4"></i></div><span class="text-sm dark:text-gray-200">${conf.label}</span></div></td>
-            <td class="p-4 text-sm dark:text-gray-300 flex items-center" title="${sourceName}">${t.desc} ${fonteIcone} ${receiptIcon}</td>
-            <td class="p-4 text-sm text-gray-500">${formatarData(t.date)}</td>
-            <td class="p-4">
-                <div class="flex items-center gap-2" title="${t.ownerName || 'Responsável desconhecido'}">
-                    <div class="w-6 h-6 rounded-full bg-indigo-100 dark:bg-indigo-900/40 flex items-center justify-center text-[10px] font-bold text-indigo-600 dark:text-indigo-400 border border-indigo-200 dark:border-indigo-800">
-                        ${ownerInitial}
-                    </div>
-                    <span class="text-xs text-gray-500 dark:text-gray-400 hidden sm:inline">${ownerFirstName}</span>
+            <td class="p-3"><div class="flex items-center gap-2"><div class="p-2 rounded ${conf.bg} dark:bg-opacity-20 ${conf.color}"><i data-lucide="${conf.icon}" class="w-4 h-4"></i></div><span class="text-xs sm:text-sm dark:text-gray-200 hidden xs:inline">${conf.label}</span></div></td>
+            <td class="p-3 text-sm dark:text-gray-300" title="${sourceName}">
+                <div class="flex flex-col">
+                    <span class="font-medium line-clamp-1">${t.desc}</span>
+                    <span class="text-[10px] text-gray-400 flex items-center gap-1">${sourceName} ${fonteIcone} ${receiptIcon}</span>
                 </div>
             </td>
-            <td class="p-4 text-right font-bold text-sm ${isExpense ? 'text-red-500' : 'text-green-500'}">${Math.abs(t.amount).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</td>
-            <td class="p-4 text-center flex justify-center gap-2">
-                <button onclick="prepararEdicao('${t.id}')" aria-label="Editar" class="text-gray-400 hover:text-indigo-500 transition cursor-pointer"><i data-lucide="pencil" class="w-4 h-4"></i></button>
-                <button onclick="deletarItem('${t.id}')" aria-label="Excluir" class="text-gray-400 hover:text-red-500 transition cursor-pointer"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
+            <td class="p-3 text-[10px] sm:text-xs text-gray-500">${formatarData(t.date)}</td>
+            <td class="p-3">
+                <div class="flex items-center gap-2" title="${t.ownerName || 'Responsável desconhecido'}">
+                    <div class="w-6 h-6 rounded-full bg-indigo-100 dark:bg-indigo-900/40 flex items-center justify-center text-[10px] font-bold text-indigo-600 dark:text-indigo-400 border border-indigo-200 dark:border-indigo-800 shrink-0">
+                        ${ownerInitial}
+                    </div>
+                </div>
+            </td>
+            <td class="p-3 text-right font-bold text-sm ${isExpense ? 'text-red-500' : 'text-green-500'}">${Math.abs(t.amount).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</td>
+            <td class="p-3 text-center">
+                <div class="flex justify-center gap-2">
+                    <button onclick="prepararEdicao('${t.id}')" aria-label="Editar" class="text-gray-400 hover:text-indigo-500 transition cursor-pointer"><i data-lucide="pencil" class="w-4 h-4"></i></button>
+                    <button onclick="deletarItem('${t.id}')" aria-label="Excluir" class="text-gray-400 hover:text-red-500 transition cursor-pointer"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
+                </div>
             </td>`;
         listElement.appendChild(row);
     });
