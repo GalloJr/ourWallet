@@ -686,7 +686,12 @@
                             <div class="flex gap-2">
                                 <select id="month-filter"
                                     class="px-3 py-1 bg-gray-50 dark:bg-gray-700 border dark:border-gray-600 rounded-lg text-sm dark:text-white cursor-pointer"
-                                    aria-label="Filtro"></select>
+                                    aria-label="Filtrar por Mês"></select>
+                                <select id="history-source-filter"
+                                    class="px-3 py-1 bg-gray-50 dark:bg-gray-700 border dark:border-gray-600 rounded-lg text-sm dark:text-white cursor-pointer"
+                                    aria-label="Filtrar por Fonte">
+                                    <option value="">Todas as Fontes</option>
+                                </select>
                                 <button onclick="exportarCSV()"
                                     class="px-3 py-1 bg-gray-100 dark:bg-gray-700 rounded-lg text-sm dark:text-white cursor-pointer"
                                     aria-label="Exportar CSV"><i data-lucide="download" class="w-4 h-4"></i></button>

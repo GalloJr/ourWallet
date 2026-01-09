@@ -49,7 +49,8 @@ const themeToggle = document.getElementById('theme-toggle');
 const sourceSelect = document.getElementById('transaction-source');
 const installmentsContainer = document.getElementById('installments-container');
 const installmentsSelect = document.getElementById('installments');
-const searchInput = document.getElementById('search-input'); // We'll add this to index.html
+const searchInput = document.getElementById('search-input');
+const historySourceFilter = document.getElementById('history-source-filter');
 
 // State
 let currentUser = null;
@@ -98,6 +99,11 @@ if (themeToggle) {
 // Month Selector
 popularSeletorMeses(monthFilter, aplicarFiltro);
 
+// History Source Filter
+if (historySourceFilter) {
+    historySourceFilter.addEventListener('change', aplicarFiltro);
+}
+
 // Source Select logic
 if (sourceSelect) {
     sourceSelect.addEventListener('change', (e) => {
@@ -135,11 +141,13 @@ setupAuth(loginBtn, logoutBtn, appScreen, loginScreen, userNameDisplay, async (u
         unsubscribeCards = setupCards(activeWalletId, cardsContainer, null, (cards) => {
             allCards = cards;
             popularSelectSources();
+            popularHistorySourceFilter();
         });
 
         unsubscribeAccounts = setupAccounts(activeWalletId, accountsContainer, null, (accounts) => {
             allAccounts = accounts;
             popularSelectSources();
+            popularHistorySourceFilter();
         });
 
         unsubscribeGoals = setupGoals(activeWalletId, goalsContainer);
@@ -313,15 +321,44 @@ function popularSelectSources(target = sourceSelect) {
     if (currentVal) target.value = currentVal;
 }
 
+function popularHistorySourceFilter() {
+    if (!historySourceFilter) return;
+    const currentVal = historySourceFilter.value;
+    let options = '<option value="">Todas as Fontes</option>';
+
+    // Contas
+    if (allAccounts.length > 0) {
+        options += '<optgroup label="Contas">';
+        allAccounts.forEach(acc => {
+            options += `<option value="${acc.id}">🏦 ${acc.name}</option>`;
+        });
+        options += '</optgroup>';
+    }
+
+    // Cartões
+    if (allCards.length > 0) {
+        options += '<optgroup label="Cartões">';
+        allCards.forEach(card => {
+            options += `<option value="${card.id}">💳 ${card.name}</option>`;
+        });
+        options += '</optgroup>';
+    }
+
+    historySourceFilter.innerHTML = options;
+    if (currentVal) historySourceFilter.value = currentVal;
+}
+
 // Filter and Summary logic
 function aplicarFiltro() {
     const mesSelecionado = monthFilter.value;
     const busca = searchInput ? searchInput.value.toLowerCase() : "";
+    const fonteSelecionada = historySourceFilter ? historySourceFilter.value : "";
 
     filteredTransactions = allTransactions.filter(t => {
         const matchesMonth = !mesSelecionado || (t.date && t.date.startsWith(mesSelecionado));
         const matchesSearch = !busca || (t.desc && t.desc.toLowerCase().includes(busca));
-        return matchesMonth && matchesSearch;
+        const matchesSource = !fonteSelecionada || t.source === fonteSelecionada;
+        return matchesMonth && matchesSearch && matchesSource;
     });
 
     renderSummary();
