@@ -225,6 +225,81 @@
         </div>
     </div>
 
+    <div id="debt-modal"
+        class="hidden fixed inset-0 z-[70] bg-black/50 flex items-center justify-center backdrop-blur-sm">
+        <div class="bg-white dark:bg-darkcard p-6 rounded-2xl w-full max-w-md shadow-2xl m-4 fade-in">
+            <h3 class="text-xl font-bold mb-4 flex items-center gap-2 text-indigo-600 dark:text-indigo-400"><i
+                    data-lucide="trending-down"></i> Nova Dívida</h3>
+            <form id="debt-form" class="space-y-4">
+                <div>
+                    <label for="debt-bank" class="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase">Cor do
+                        Card</label>
+                    <select id="debt-bank"
+                        class="w-full p-3 bg-gray-50 dark:bg-gray-700 border dark:border-gray-600 rounded-xl dark:text-white cursor-pointer">
+                        <option value="red">🔴 Vermelho</option>
+                        <option value="orange">🟠 Laranja</option>
+                        <option value="black">⚫ Preto</option>
+                        <option value="blue">🔵 Azul</option>
+                        <option value="indigo">🟣 Roxo</option>
+                    </select>
+                </div>
+                <div>
+                    <label for="debt-name" class="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase">Nome da
+                        Dívida</label>
+                    <input type="text" id="debt-name" placeholder="Ex: Empréstimo Pessoal"
+                        class="w-full p-3 bg-gray-50 dark:bg-gray-700 border dark:border-gray-600 rounded-xl dark:text-white"
+                        required>
+                </div>
+                <div>
+                    <label for="debt-balance" class="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase">Valor
+                        em Aberto</label>
+                    <input type="text" id="debt-balance" placeholder="R$ 0,00" onkeyup="formatarMoedaInput(this)"
+                        class="w-full p-3 bg-gray-50 dark:bg-gray-700 border dark:border-gray-600 rounded-xl dark:text-white"
+                        required>
+                </div>
+                <div class="flex gap-3 mt-6">
+                    <button type="button" onclick="fecharModalDivida()"
+                        class="flex-1 py-3 bg-gray-200 dark:bg-gray-600 rounded-xl hover:bg-gray-300 transition">Cancelar</button>
+                    <button type="submit"
+                        class="flex-1 py-3 bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 transition">Registrar
+                        Dívida</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div id="edit-debt-modal"
+        class="hidden fixed inset-0 z-[70] bg-black/50 flex items-center justify-center backdrop-blur-sm">
+        <div class="bg-white dark:bg-darkcard p-6 rounded-2xl w-full max-w-md shadow-2xl m-4 fade-in">
+            <h3 class="text-xl font-bold mb-4 flex items-center gap-2 text-indigo-600 dark:text-indigo-400"><i
+                    data-lucide="pencil"></i> Editar Dívida</h3>
+            <form id="edit-debt-form" class="space-y-4">
+                <input type="hidden" id="edit-debt-id">
+                <div>
+                    <label for="edit-debt-name"
+                        class="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase">Nome da
+                        Dívida</label>
+                    <input type="text" id="edit-debt-name"
+                        class="w-full p-3 bg-gray-50 dark:bg-gray-700 border dark:border-gray-600 rounded-xl dark:text-white"
+                        required>
+                </div>
+                <div>
+                    <label for="edit-debt-balance"
+                        class="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase">Valor em Aberto</label>
+                    <input type="text" id="edit-debt-balance" onkeyup="formatarMoedaInput(this)"
+                        class="w-full p-3 bg-gray-50 dark:bg-gray-700 border dark:border-gray-600 rounded-xl dark:text-white"
+                        required>
+                </div>
+                <div class="flex gap-3 mt-6">
+                    <button type="button" onclick="fecharModalEdicaoDivida()"
+                        class="flex-1 py-3 bg-gray-200 dark:bg-gray-600 rounded-xl hover:bg-gray-300 transition">Cancelar</button>
+                    <button type="submit"
+                        class="flex-1 py-3 bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 transition">Salvar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
     <div id="account-modal"
         class="hidden fixed inset-0 z-[70] bg-black/50 flex items-center justify-center backdrop-blur-sm">
         <div class="bg-white dark:bg-darkcard p-6 rounded-2xl w-full max-w-md shadow-2xl m-4 fade-in">
@@ -559,6 +634,14 @@
                         <i data-lucide="credit-card" class="w-5 h-5 text-indigo-500"></i> Meus Cartões
                     </h3>
                     <div id="cards-container"
+                        class="flex overflow-x-auto gap-4 pb-4 hide-scroll card-container-padding"></div>
+                </div>
+
+                <div class="lg:col-span-3">
+                    <h3 class="text-lg font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
+                        <i data-lucide="trending-down" class="w-5 h-5 text-red-500"></i> Minhas Dívidas
+                    </h3>
+                    <div id="debts-container"
                         class="flex overflow-x-auto gap-4 pb-4 hide-scroll card-container-padding"></div>
                 </div>
 

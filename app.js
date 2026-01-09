@@ -4,7 +4,8 @@ import { setupCards, salvarCartao, editarCartao, deletarCartao } from "./modules
 import { setupTransactions, salvarTransacao, editarTransacao, deletarTransacao, exportarCSV } from "./modules/transactions.js";
 import { setupGoals, salvarMeta, deletarMeta } from "./modules/goals.js";
 import { setupAccounts, salvarConta, editarConta, deletarConta } from "./modules/accounts.js";
-import { updateThemeIcon, toggleLoading, popularSeletorMeses, renderCharts, renderList, renderValues, renderGoals, renderAccounts } from "./modules/ui.js";
+import { setupDebts, salvarDivida, editarDivida, deletarDivida } from "./modules/debts.js";
+import { updateThemeIcon, toggleLoading, popularSeletorMeses, renderCharts, renderList, renderValues, renderCards, renderAccounts, renderDebts, renderGoals } from "./modules/ui.js";
 import { formatarMoedaInput, limparValorMoeda, formatarData, showToast } from "./modules/utils.js";
 import { bankStyles, flagLogos } from "./modules/constants.js";
 
@@ -22,6 +23,9 @@ window.fecharModalMeta = () => document.getElementById('goal-modal').classList.a
 window.abrirModalConta = () => document.getElementById('account-modal').classList.remove('hidden');
 window.fecharModalConta = () => document.getElementById('account-modal').classList.add('hidden');
 window.fecharModalEdicaoConta = () => document.getElementById('edit-account-modal').classList.add('hidden');
+window.abrirModalDivida = () => document.getElementById('debt-modal').classList.remove('hidden');
+window.fecharModalDivida = () => document.getElementById('debt-modal').classList.add('hidden');
+window.fecharModalEdicaoDivida = () => document.getElementById('edit-debt-modal').classList.add('hidden');
 
 // Registra o Plugin de Labels do Chart.js
 if (window.Chart && window.ChartDataLabels) {
@@ -59,10 +63,12 @@ let allTransactions = [];
 let filteredTransactions = [];
 let allCards = [];
 let allAccounts = [];
+let allDebts = [];
 let allGoals = [];
 let unsubscribeTrans = null;
 let unsubscribeCards = null;
 let unsubscribeAccounts = null;
+let unsubscribeDebts = null;
 let unsubscribeGoals = null;
 
 // Register Service Worker
@@ -150,6 +156,13 @@ setupAuth(loginBtn, logoutBtn, appScreen, loginScreen, userNameDisplay, async (u
             popularHistorySourceFilter();
         });
 
+        unsubscribeDebts = setupDebts(activeWalletId, document.getElementById('debts-container'), (debts) => {
+            allDebts = debts;
+            window.allDebts = debts; // Para ui.js acessar
+            popularSelectSources();
+            popularHistorySourceFilter();
+        });
+
         unsubscribeGoals = setupGoals(activeWalletId, goalsContainer);
     } else {
         currentUser = null;
@@ -157,10 +170,12 @@ setupAuth(loginBtn, logoutBtn, appScreen, loginScreen, userNameDisplay, async (u
         if (unsubscribeTrans) unsubscribeTrans();
         if (unsubscribeCards) unsubscribeCards();
         if (unsubscribeAccounts) unsubscribeAccounts();
+        if (unsubscribeDebts) unsubscribeDebts();
         if (unsubscribeGoals) unsubscribeGoals();
         listElement.innerHTML = '';
         cardsContainer.innerHTML = '';
         accountsContainer.innerHTML = '';
+        document.getElementById('debts-container').innerHTML = '';
         goalsContainer.innerHTML = '';
         renderValues([]);
         toggleLoading(false);
@@ -172,7 +187,7 @@ form.addEventListener('submit', async (e) => {
     e.preventDefault();
     if (!currentUser) return;
 
-    const success = await salvarTransacao(activeWalletId, currentUser, allCards, allAccounts, form, installmentsSelect);
+    const success = await salvarTransacao(activeWalletId, currentUser, allCards, allAccounts, allDebts, form, installmentsSelect);
     if (success) {
         const dateVal = document.getElementById('date').value;
         if (monthFilter && dateVal && monthFilter.value !== dateVal.slice(0, 7)) {
@@ -215,11 +230,23 @@ editAccountForm.addEventListener('submit', async (e) => {
     await editarConta(editAccountForm, window.fecharModalEdicaoConta);
 });
 
+// Debt Form
+document.getElementById('debt-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    await salvarDivida(activeWalletId, e.target, window.fecharModalDivida);
+});
+
+// Edit Debt Form
+document.getElementById('edit-debt-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    await editarDivida(e.target, window.fecharModalEdicaoDivida);
+});
+
 // Edit Transaction Form
 document.getElementById('edit-form').addEventListener('submit', async (e) => {
     e.preventDefault();
     const id = document.getElementById('edit-id').value;
-    await editarTransacao(id, allTransactions, allCards, allAccounts, window.fecharModal);
+    await editarTransacao(id, allTransactions, allCards, allAccounts, allDebts, window.fecharModal);
 });
 
 // Family Logic
@@ -272,6 +299,15 @@ window.prepararEdicaoConta = (id) => {
     document.getElementById('edit-account-balance').value = (acc.balance || 0).toLocaleString("pt-BR", { minimumFractionDigits: 2 });
 }
 
+window.prepararEdicaoDivida = (id) => {
+    const debt = allDebts.find(d => d.id === id);
+    if (!debt) return;
+    document.getElementById('edit-debt-modal').classList.remove('hidden');
+    document.getElementById('edit-debt-id').value = id;
+    document.getElementById('edit-debt-name').value = debt.name;
+    document.getElementById('edit-debt-balance').value = (debt.totalBalance || 0).toLocaleString("pt-BR", { minimumFractionDigits: 2 });
+}
+
 window.deletarCartao = deletarCartao;
 window.deletarMeta = deletarMeta;
 
@@ -290,7 +326,7 @@ window.prepararEdicao = (id) => {
     editSource.value = t.source || 'wallet';
 }
 
-window.deletarItem = (id) => deletarTransacao(id, allTransactions, allCards, allAccounts);
+window.deletarItem = (id) => deletarTransacao(id, allTransactions, allCards, allAccounts, allDebts);
 
 function popularSelectSources(target = sourceSelect) {
     if (!target) return;
@@ -313,6 +349,15 @@ function popularSelectSources(target = sourceSelect) {
         options += '<optgroup label="Cartões de Crédito">';
         allCards.forEach(card => {
             options += `<option value="${card.id}">💳 ${card.name} (Final ${card.last4})</option>`;
+        });
+        options += '</optgroup>';
+    }
+
+    // Agrupar Dívidas
+    if (allDebts.length > 0) {
+        options += '<optgroup label="Dívidas">';
+        allDebts.forEach(debt => {
+            options += `<option value="${debt.id}">📉 ${debt.name} (A pagar: ${debt.totalBalance.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })})</option>`;
         });
         options += '</optgroup>';
     }
@@ -340,6 +385,15 @@ function popularHistorySourceFilter() {
         options += '<optgroup label="Cartões">';
         allCards.forEach(card => {
             options += `<option value="${card.id}">💳 ${card.name}</option>`;
+        });
+        options += '</optgroup>';
+    }
+
+    // Dívidas
+    if (allDebts.length > 0) {
+        options += '<optgroup label="Dívidas">';
+        allDebts.forEach(debt => {
+            options += `<option value="${debt.id}">📉 ${debt.name}</option>`;
         });
         options += '</optgroup>';
     }

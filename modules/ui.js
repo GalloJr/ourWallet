@@ -146,6 +146,12 @@ export function renderList(transactions, listElement, allCards, allAccounts, for
                 if (acc) {
                     fonteIcone = '<i data-lucide="building-2" class="w-3 h-3 text-indigo-500 ml-1"></i>';
                     sourceName = `Conta ${acc.name}`;
+                } else {
+                    const debt = window.allDebts?.find(d => d.id === t.source);
+                    if (debt) {
+                        fonteIcone = '<i data-lucide="trending-down" class="w-3 h-3 text-red-500 ml-1"></i>';
+                        sourceName = `Dívida ${debt.name}`;
+                    }
                 }
             }
         }
@@ -314,6 +320,44 @@ export function renderAccounts(accounts, accountsContainer, bankStyles, editAcco
 
     window.prepararEdicaoConta = editAccountCallback;
     window.deletarConta = deleteAccountCallback;
+}
+
+export function renderDebts(debts, debtsContainer, bankStyles, editDebtCallback, deleteDebtCallback) {
+    if (!debtsContainer) return;
+    debtsContainer.innerHTML = '';
+    debts.forEach(debt => {
+        const style = bankStyles[debt.bank] || bankStyles['blue'];
+
+        const debtHtml = `
+            <div class="min-w-[280px] h-32 ${style.bg} rounded-2xl p-5 text-white shadow-lg flex flex-col justify-between relative overflow-hidden group hover:scale-105 transition duration-300">
+                <div class="absolute -right-4 -top-4 w-16 h-16 rounded-full bg-black opacity-10"></div>
+                <div class="flex justify-between items-start z-10">
+                    <span class="font-bold tracking-wider flex items-center gap-2"><i data-lucide="trending-down" class="w-4 h-4"></i> ${debt.name}</span>
+                    <div class="flex gap-2">
+                        <button onclick="prepararEdicaoDivida('${debt.id}')" aria-label="Editar" class="opacity-50 hover:opacity-100 transition cursor-pointer"><i data-lucide="pencil" class="w-4 h-4 text-white"></i></button>
+                        <button onclick="deletarDivida('${debt.id}')" aria-label="Excluir" class="opacity-50 hover:opacity-100 transition cursor-pointer"><i data-lucide="trash-2" class="w-4 h-4 text-white"></i></button>
+                    </div>
+                </div>
+                <div class="z-10">
+                    <p class="text-xs text-white/80 mb-0">Saldo Devedor</p>
+                    <p class="text-2xl font-bold">${(debt.totalBalance || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</p>
+                </div>
+            </div>
+        `;
+        debtsContainer.innerHTML += debtHtml;
+    });
+
+    const addBtnHtml = `
+        <button onclick="abrirModalDivida()" class="min-w-[100px] h-32 bg-gray-100 dark:bg-gray-800 border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-2xl flex flex-col items-center justify-center text-gray-400 cursor-pointer hover:bg-gray-200 dark:hover:bg-gray-700 transition" aria-label="Registrar Dívida">
+            <i data-lucide="plus" class="w-8 h-8 mb-2"></i>
+            <span class="text-xs font-medium">Nova</span>
+        </button>
+    `;
+    debtsContainer.innerHTML += addBtnHtml;
+    if (window.lucide) lucide.createIcons();
+
+    window.prepararEdicaoDivida = editDebtCallback;
+    window.deletarDivida = deleteDebtCallback;
 }
 
 export function renderGoals(goals, goalsContainer, deleteGoalCallback) {

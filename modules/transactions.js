@@ -20,7 +20,7 @@ export function setupTransactions(uid, onTransactionsLoaded) {
     });
 }
 
-export async function salvarTransacao(activeWalletId, currentUser, allCards, allAccounts, form, installmentsSelect, fecharModal) {
+export async function salvarTransacao(activeWalletId, currentUser, allCards, allAccounts, allDebts, form, installmentsSelect, fecharModal) {
     const desc = document.getElementById('desc').value;
     const amountVal = limparValorMoeda(document.getElementById('amount').value);
     if (amountVal <= 0) return alert("Valor inválido");
@@ -98,11 +98,17 @@ export async function salvarTransacao(activeWalletId, currentUser, allCards, all
                 await updateDoc(doc(db, "cards", paymentSource), { bill: novaFatura });
                 showToast(`Fatura do ${card.name} atualizada!`);
             } else {
-                const acc = allAccounts?.find(a => a.id === paymentSource);
                 if (acc) {
                     const novoSaldo = (acc.balance || 0) - Math.abs(amountVal);
                     await updateDoc(doc(db, "accounts", paymentSource), { balance: novoSaldo });
                     showToast(`Saldo da conta ${acc.name} atualizado!`);
+                } else {
+                    const debt = allDebts?.find(d => d.id === paymentSource);
+                    if (debt) {
+                        const novoSaldoDev = (debt.totalBalance || 0) - Math.abs(amountVal);
+                        await updateDoc(doc(db, "debts", paymentSource), { totalBalance: Math.max(0, novoSaldoDev) });
+                        showToast(`Dívida ${debt.name} abatida!`);
+                    }
                 }
             }
         }
@@ -120,7 +126,7 @@ export async function salvarTransacao(activeWalletId, currentUser, allCards, all
     }
 }
 
-export async function editarTransacao(id, allTransactions, allCards, allAccounts, fecharModal) {
+export async function editarTransacao(id, allTransactions, allCards, allAccounts, allDebts, fecharModal) {
     const desc = document.getElementById('edit-desc').value;
     const amountVal = limparValorMoeda(document.getElementById('edit-amount').value);
     const dateVal = document.getElementById('edit-date').value;
@@ -151,7 +157,12 @@ export async function editarTransacao(id, allTransactions, allCards, allAccounts
             } else { // Era Receita
                 const acc = allAccounts.find(a => a.id === original.source);
                 if (acc) {
-                    await updateDoc(doc(db, "accounts", original.source), { balance: Math.max(0, (acc.balance || 0) - Math.abs(original.amount)) });
+                    await updateDoc(doc(db, "accounts", original.source), { balance: (acc.balance || 0) + Math.abs(original.amount) });
+                } else {
+                    const debt = allDebts.find(d => d.id === original.source);
+                    if (debt) {
+                        await updateDoc(doc(db, "debts", original.source), { totalBalance: (debt.totalBalance || 0) + Math.abs(original.amount) });
+                    }
                 }
             }
 
@@ -183,6 +194,13 @@ export async function editarTransacao(id, allTransactions, allCards, allAccounts
                     if (original.source === newSource) balanceBase -= Math.abs(original.amount);
 
                     await updateDoc(doc(db, "accounts", newSource), { balance: balanceBase + Math.abs(finalAmount) });
+                } else {
+                    const debt = allDebts.find(d => d.id === newSource);
+                    if (debt) {
+                        let totalBase = debt.totalBalance || 0;
+                        if (original.source === newSource) totalBase += Math.abs(original.amount);
+                        await updateDoc(doc(db, "debts", newSource), { totalBalance: Math.max(0, totalBase - Math.abs(finalAmount)) });
+                    }
                 }
             }
         }
@@ -222,7 +240,7 @@ export function exportarCSV(filteredTransactions, allCards) {
     link.click();
 }
 
-export async function deletarTransacao(id, allTransactions, allCards, allAccounts) {
+export async function deletarTransacao(id, allTransactions, allCards, allAccounts, allDebts) {
     if (!confirm("Apagar esta movimentação?")) return;
 
     const trans = allTransactions.find(t => t.id === id);
@@ -253,6 +271,13 @@ export async function deletarTransacao(id, allTransactions, allCards, allAccount
                 const novoSaldo = Math.max(0, (acc.balance || 0) - Math.abs(trans.amount));
                 await updateDoc(doc(db, "accounts", trans.source), { balance: novoSaldo });
                 showToast(`Saldo da conta ${acc.name} atualizado!`);
+            } else {
+                const debt = allDebts.find(d => d.id === trans.source);
+                if (debt) {
+                    const novoSaldoDev = (debt.totalBalance || 0) + Math.abs(trans.amount);
+                    await updateDoc(doc(db, "debts", trans.source), { totalBalance: novoSaldoDev });
+                    showToast(`Valor retornado à dívida ${debt.name}!`);
+                }
             }
         }
 
