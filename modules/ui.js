@@ -248,6 +248,7 @@ export function renderCards(cards, cardsContainer, bankStyles, flagLogos, editCa
                 <div class="flex justify-between items-start z-10">
                     <span class="font-bold tracking-wider">${card.name}</span>
                     <div class="flex gap-2">
+                        <button onclick="abrirModalPagamento('${card.id}')" aria-label="Pagar Fatura" class="opacity-50 hover:opacity-100 transition cursor-pointer"><i data-lucide="check-circle" class="w-4 h-4 text-white"></i></button>
                         <button onclick="prepararEdicaoCartao('${card.id}')" aria-label="Editar" class="opacity-50 hover:opacity-100 transition cursor-pointer"><i data-lucide="pencil" class="w-4 h-4 text-white"></i></button>
                         <i data-lucide="nfc" class="w-6 h-6 opacity-70"></i>
                     </div>
@@ -334,6 +335,7 @@ export function renderDebts(debts, debtsContainer, bankStyles, editDebtCallback,
                 <div class="flex justify-between items-start z-10">
                     <span class="font-bold tracking-wider flex items-center gap-2"><i data-lucide="trending-down" class="w-4 h-4"></i> ${debt.name}</span>
                     <div class="flex gap-2">
+                        <button onclick="abrirModalPagamento('${debt.id}')" aria-label="Pagar Dívida" class="opacity-50 hover:opacity-100 transition cursor-pointer"><i data-lucide="check-circle" class="w-4 h-4 text-white"></i></button>
                         <button onclick="prepararEdicaoDivida('${debt.id}')" aria-label="Editar" class="opacity-50 hover:opacity-100 transition cursor-pointer"><i data-lucide="pencil" class="w-4 h-4 text-white"></i></button>
                         <button onclick="deletarDivida('${debt.id}')" aria-label="Excluir" class="opacity-50 hover:opacity-100 transition cursor-pointer"><i data-lucide="trash-2" class="w-4 h-4 text-white"></i></button>
                     </div>

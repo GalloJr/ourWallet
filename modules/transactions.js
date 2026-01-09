@@ -290,3 +290,63 @@ export async function deletarTransacao(id, allTransactions, allCards, allAccount
         return false;
     }
 }
+
+export async function processarPagamento(activeWalletId, currentUser, allCards, allAccounts, allDebts, fecharModal) {
+    const accountId = document.getElementById('pay-account').value;
+    const targetId = document.getElementById('pay-target').value;
+    const amountVal = limparValorMoeda(document.getElementById('pay-amount').value);
+    const dateVal = document.getElementById('pay-date').value;
+    const discountVal = limparValorMoeda(document.getElementById('pay-discount').value || "0");
+
+    if (amountVal <= 0) return alert("Valor inválido");
+
+    try {
+        const acc = allAccounts.find(a => a.id === accountId);
+        if (!acc) return alert("Conta de origem não encontrada");
+
+        const card = allCards.find(c => c.id === targetId);
+        const debt = allDebts.find(d => d.id === targetId);
+
+        let desc = "";
+        if (card) desc = `Pagamento Fatura: ${card.name}`;
+        else if (debt) desc = `Pagamento Dívida: ${debt.name}`;
+        else return alert("Alvo do pagamento não encontrado");
+
+        // 1. Criar a transação de saída da conta
+        await addDoc(collection(db, "transactions"), {
+            uid: activeWalletId,
+            owner: currentUser.uid,
+            ownerName: currentUser.displayName || "Usuário",
+            desc: desc,
+            amount: -Math.abs(amountVal),
+            date: dateVal,
+            category: 'other',
+            source: accountId,
+            createdAt: new Date(),
+            isPayment: true
+        });
+
+        // 2. Atualizar saldo da conta
+        const novoSaldoConta = (acc.balance || 0) - Math.abs(amountVal);
+        await updateDoc(doc(db, "accounts", accountId), { balance: novoSaldoConta });
+
+        // 3. Atualizar o alvo (Cartão ou Dívida)
+        if (card) {
+            const novaFatura = Math.max(0, (card.bill || 0) - Math.abs(amountVal));
+            await updateDoc(doc(db, "cards", targetId), { bill: novaFatura });
+            showToast(`Fatura do ${card.name} paga!`);
+        } else if (debt) {
+            const abatimentoTotal = Math.abs(amountVal) + Math.abs(discountVal);
+            const novoSaldoDev = Math.max(0, (debt.totalBalance || 0) - abatimentoTotal);
+            await updateDoc(doc(db, "debts", targetId), { totalBalance: novoSaldoDev });
+            showToast(`Dívida ${debt.name} abatida!`);
+        }
+
+        fecharModal();
+        return true;
+    } catch (e) {
+        console.error(e);
+        alert("Erro ao processar pagamento");
+        return false;
+    }
+}
