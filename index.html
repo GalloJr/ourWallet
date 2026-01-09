@@ -45,11 +45,30 @@
         }
 
         .hide-scroll::-webkit-scrollbar {
-            display: none;
+            height: 4px;
+        }
+
+        .hide-scroll::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .hide-scroll::-webkit-scrollbar-thumb {
+            background: rgba(99, 102, 241, 0.2);
+            border-radius: 10px;
+        }
+
+        .hide-scroll:hover::-webkit-scrollbar-thumb {
+            background: rgba(99, 102, 241, 0.5);
         }
 
         .hide-scroll {
-            -ms-overflow-style: none;
+            -ms-overflow-style: auto;
+            scrollbar-width: thin;
+            cursor: grab;
+        }
+
+        .hide-scroll:active {
+            cursor: grabbing;
         }
 
         button {
@@ -690,7 +709,7 @@
                         <i data-lucide="building-2" class="w-5 h-5 text-indigo-500"></i> Minhas Contas
                     </h3>
                     <div id="accounts-container"
-                        class="flex overflow-x-auto gap-4 pb-4 hide-scroll card-container-padding"></div>
+                        class="flex overflow-x-auto md:flex-wrap gap-4 pb-4 hide-scroll card-container-padding"></div>
                 </div>
 
                 <div class="lg:col-span-3">
@@ -698,7 +717,7 @@
                         <i data-lucide="credit-card" class="w-5 h-5 text-indigo-500"></i> Meus Cartões
                     </h3>
                     <div id="cards-container"
-                        class="flex overflow-x-auto gap-4 pb-4 hide-scroll card-container-padding"></div>
+                        class="flex overflow-x-auto md:flex-wrap gap-4 pb-4 hide-scroll card-container-padding"></div>
                 </div>
 
                 <div class="lg:col-span-3">
@@ -706,7 +725,7 @@
                         <i data-lucide="trending-down" class="w-5 h-5 text-red-500"></i> Minhas Dívidas
                     </h3>
                     <div id="debts-container"
-                        class="flex overflow-x-auto gap-4 pb-4 hide-scroll card-container-padding"></div>
+                        class="flex overflow-x-auto md:flex-wrap gap-4 pb-4 hide-scroll card-container-padding"></div>
                 </div>
 
                 <div

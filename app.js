@@ -93,10 +93,50 @@ if ('serviceWorker' in navigator) {
     });
 }
 
-// Initialization
+// initialization
 if (window.lucide) lucide.createIcons();
+
+function initDragToScroll(containerId) {
+    const el = document.getElementById(containerId);
+    if (!el) return;
+
+    let isDown = false;
+    let startX;
+    let scrollLeft;
+
+    el.addEventListener('mousedown', (e) => {
+        isDown = true;
+        startX = e.pageX - el.offsetLeft;
+        scrollLeft = el.scrollLeft;
+        el.style.cursor = 'grabbing';
+    });
+
+    el.addEventListener('mouseleave', () => {
+        isDown = false;
+        el.style.cursor = 'grab';
+    });
+
+    el.addEventListener('mouseup', () => {
+        isDown = false;
+        el.style.cursor = 'grab';
+    });
+
+    el.addEventListener('mousemove', (e) => {
+        if (!isDown) return;
+        e.preventDefault();
+        const x = e.pageX - el.offsetLeft;
+        const walk = (x - startX) * 2;
+        el.scrollLeft = scrollLeft - walk;
+    });
+}
+
 const dateInput = document.getElementById('date');
 if (dateInput) dateInput.valueAsDate = new Date();
+
+// Ativando o arraste nos containers
+initDragToScroll('accounts-container');
+initDragToScroll('cards-container');
+initDragToScroll('debts-container');
 
 // Theme Toggle
 const userTheme = localStorage.getItem('theme');
