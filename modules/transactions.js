@@ -98,6 +98,7 @@ export async function salvarTransacao(activeWalletId, currentUser, allCards, all
                 await updateDoc(doc(db, "cards", paymentSource), { bill: novaFatura });
                 showToast(`Fatura do ${card.name} atualizada!`);
             } else {
+                const acc = allAccounts?.find(a => a.id === paymentSource);
                 if (acc) {
                     const novoSaldo = (acc.balance || 0) - Math.abs(amountVal);
                     await updateDoc(doc(db, "accounts", paymentSource), { balance: novoSaldo });
