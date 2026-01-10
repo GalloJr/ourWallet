@@ -1,4 +1,4 @@
-import { auth, db, doc, getDoc, onAuthStateChanged, signInWithPopup, signOut, provider } from '../firebase.js';
+import { auth, db, doc, getDoc, setDoc, onAuthStateChanged, signInWithPopup, signOut, provider } from '../firebase.js';
 
 export function setupAuth(loginBtn, logoutBtn, appScreen, loginScreen, userNameDisplay, callback) {
     if (loginBtn) {
@@ -55,6 +55,21 @@ export async function configurarWallet(uid) {
                 document.getElementById('spouse-id').value = activeId;
             } else {
                 document.getElementById('family-status').classList.add('hidden');
+            }
+        } else {
+            // Se o documento não existe, cria um básico para que ele apareça no console
+            try {
+                await setDoc(userRef, {
+                    displayName: auth.currentUser.displayName,
+                    email: auth.currentUser.email,
+                    isAdmin: false,
+                    isPremium: false,
+                    createdAt: new Date()
+                });
+                // Recarrega para que o sistema reconheça o novo documento criado
+                window.location.reload();
+            } catch (e) {
+                console.warn("Não foi possível criar o documento do usuário:", e);
             }
         }
 

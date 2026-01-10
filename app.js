@@ -83,6 +83,7 @@ const appState = {
     debts: [],
     goals: [],
     access: 0, // 0: Free, 1: Premium
+    isAdmin: false,
     _u: { t: null, c: null, a: null, d: null, g: null } // Unsubscribers
 };
 
@@ -186,8 +187,25 @@ setupAuth(loginBtn, logoutBtn, appScreen, loginScreen, userNameDisplay, async (u
         toggleLoading(true);
         const config = await configurarWallet(user.uid);
         appState.walletId = config.activeWalletId;
+        appState.isAdmin = config.isAdmin;
 
-        // Listener para o status Premium do DONO da carteira
+        // Listener para o status Premium/Admin do usuário logado
+        onSnapshot(doc(db, "users", user.uid), (docSnap) => {
+            if (docSnap.exists()) {
+                const data = docSnap.data();
+                appState.isAdmin = !!data.isAdmin;
+                // O access (Premium) continua vindo do DONO da carteira ativa
+                // mas se o usuário for Admin, ele tem acesso total
+                atualizarUIPremium();
+
+                const adminBtn = document.getElementById('admin-btn');
+                if (appState.isAdmin && adminBtn && adminBtn.classList.contains('hidden')) {
+                    carregarPedidosAdmin();
+                }
+            }
+        });
+
+        // Listener para o status Premium do DONO da carteira ativa
         onSnapshot(doc(db, "users", appState.walletId), (docSnap) => {
             if (docSnap.exists()) {
                 appState.access = !!docSnap.data().isPremium ? 1 : 0;
@@ -401,7 +419,7 @@ function atualizarUIPremium() {
     const exportBtn = document.getElementById('export-btn');
     const addGoalBtn = document.getElementById('add-goal-btn');
 
-    if (appState.access === 1) {
+    if (appState.access === 1 || appState.isAdmin) {
         if (upgradeBtn) upgradeBtn.classList.add('hidden');
         if (goalsLock) goalsLock.classList.add('hidden');
         if (debtsLock) debtsLock.classList.add('hidden');
