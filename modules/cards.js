@@ -1,6 +1,6 @@
 import { db, collection, addDoc, updateDoc, deleteDoc, doc, onSnapshot, query, where } from '../firebase.js';
 import { renderCards } from './ui.js';
-import { bankStyles, flagLogos } from './constants.js';
+import { colorStyles, flagLogos } from './constants.js';
 import { limparValorMoeda, showToast } from './utils.js';
 
 export function setupCards(uid, cardsContainer, sourceSelect, onCardsLoaded) {
@@ -9,7 +9,7 @@ export function setupCards(uid, cardsContainer, sourceSelect, onCardsLoaded) {
         const allCards = [];
         snapshot.forEach(doc => allCards.push({ id: doc.id, ...doc.data() }));
 
-        renderCards(allCards, cardsContainer, bankStyles, flagLogos,
+        renderCards(allCards, cardsContainer, colorStyles, flagLogos,
             window.prepararEdicaoCartao, window.deletarCartao);
 
         popularSelectCartoes(allCards, sourceSelect);
@@ -30,6 +30,7 @@ function popularSelectCartoes(cards, sourceSelect) {
 
 export async function salvarCartao(activeWalletId, cardForm, fecharModal) {
     const bank = document.getElementById('card-bank').value;
+    const color = document.getElementById('card-color').value;
     const flag = document.getElementById('card-flag').value;
     const name = document.getElementById('card-name').value;
     const last4 = document.getElementById('card-last4').value;
@@ -41,6 +42,7 @@ export async function salvarCartao(activeWalletId, cardForm, fecharModal) {
         await addDoc(collection(db, "cards"), {
             uid: activeWalletId,
             bank,
+            color,
             flag,
             name,
             last4,
@@ -60,13 +62,15 @@ export async function salvarCartao(activeWalletId, cardForm, fecharModal) {
 
 export async function editarCartao(editCardForm, fecharModal) {
     const id = document.getElementById('edit-card-id').value;
+    const bank = document.getElementById('edit-card-bank').value;
+    const color = document.getElementById('edit-card-color').value;
     const name = document.getElementById('edit-card-name').value;
     const bill = limparValorMoeda(document.getElementById('edit-card-bill').value);
     const closingDay = parseInt(document.getElementById('edit-card-closing').value);
     const dueDay = parseInt(document.getElementById('edit-card-due').value);
 
     try {
-        await updateDoc(doc(db, "cards", id), { name, bill, closingDay, dueDay });
+        await updateDoc(doc(db, "cards", id), { bank, color, name, bill, closingDay, dueDay });
         showToast("Cartão Atualizado!");
         fecharModal();
     } catch (e) {

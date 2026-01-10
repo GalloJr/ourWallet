@@ -7,7 +7,7 @@ import { setupAccounts, salvarConta, editarConta, deletarConta } from "./modules
 import { setupDebts, salvarDivida, editarDivida, deletarDivida } from "./modules/debts.js";
 import { updateThemeIcon, toggleLoading, popularSeletorMeses, renderCharts, renderList, renderValues, renderCards, renderAccounts, renderDebts, renderGoals } from "./modules/ui.js";
 import { formatarMoedaInput, limparValorMoeda, formatarData, showToast } from "./modules/utils.js";
-import { bankStyles, flagLogos } from "./modules/constants.js";
+import { colorStyles, flagLogos } from "./modules/constants.js";
 import { processarPagamento } from "./modules/transactions.js";
 import { collection, addDoc, onSnapshot, query, where, updateDoc } from "./firebase.js";
 
@@ -170,7 +170,7 @@ if (historySourceFilter) {
 if (sourceSelect) {
     sourceSelect.addEventListener('change', (e) => {
         // Agora verificamos se o ID selecionado pertence a um cartão
-        const isCard = allCards.some(c => c.id === e.target.value);
+        const isCard = appState.cards.some(c => c.id === e.target.value);
         if (isCard) {
             installmentsContainer.classList.remove('hidden');
         } else {
@@ -548,6 +548,8 @@ window.prepararEdicaoCartao = (id) => {
     if (!card) return;
     document.getElementById('edit-card-modal').classList.remove('hidden');
     document.getElementById('edit-card-id').value = id;
+    document.getElementById('edit-card-bank').value = card.bank || '';
+    document.getElementById('edit-card-color').value = card.color || card.bank || 'blue';
     document.getElementById('edit-card-name').value = card.name;
     document.getElementById('edit-card-bill').value = (card.bill || 0).toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
     document.getElementById('edit-card-closing').value = card.closingDay || '';
@@ -559,6 +561,8 @@ window.prepararEdicaoConta = (id) => {
     if (!acc) return;
     document.getElementById('edit-account-modal').classList.remove('hidden');
     document.getElementById('edit-account-id').value = id;
+    document.getElementById('edit-account-bank').value = acc.bank || '';
+    document.getElementById('edit-account-color').value = acc.color || acc.bank || 'blue';
     document.getElementById('edit-account-name').value = acc.name;
     document.getElementById('edit-account-balance').value = (acc.balance || 0).toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
 }
@@ -568,6 +572,7 @@ window.prepararEdicaoDivida = (id) => {
     if (!debt) return;
     document.getElementById('edit-debt-modal').classList.remove('hidden');
     document.getElementById('edit-debt-id').value = id;
+    document.getElementById('edit-debt-color').value = debt.color || debt.bank || 'red';
     document.getElementById('edit-debt-name').value = debt.name;
     document.getElementById('edit-debt-balance').value = (debt.totalBalance || 0).toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
 }

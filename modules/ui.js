@@ -1,4 +1,4 @@
-import { categoryConfig } from './constants.js';
+import { categoryConfig, colorStyles } from './constants.js';
 
 export function updateThemeIcon(isDark) {
     const themeIcon = document.getElementById('theme-icon');
@@ -241,18 +241,21 @@ export function renderValues(transactions, allTransactions, selectedMonth) {
     }
 }
 
-export function renderCards(cards, cardsContainer, bankStyles, flagLogos, editCardCallback, deleteCardCallback) {
+export function renderCards(cards, cardsContainer, colorStyles, flagLogos, editCardCallback, deleteCardCallback) {
     if (!cardsContainer) return;
     cardsContainer.innerHTML = '';
     cards.forEach(card => {
-        const style = bankStyles[card.bank] || bankStyles['blue'];
+        const style = colorStyles[card.color || card.bank] || colorStyles['blue'];
         const flagUrl = flagLogos[card.flag] || flagLogos['visa'];
 
         const cardHtml = `
             <div class="min-w-[280px] h-44 ${style.bg} rounded-2xl p-5 text-white shadow-lg flex flex-col justify-between relative overflow-hidden group hover:scale-105 transition duration-300">
                 <div class="absolute -right-6 -top-6 w-24 h-24 rounded-full bg-white opacity-10"></div>
                 <div class="flex justify-between items-start z-10">
-                    <span class="font-bold tracking-wider">${card.name}</span>
+                    <div class="flex flex-col">
+                        <span class="text-[10px] text-white/70 uppercase font-bold">${card.bank || 'Banco'}</span>
+                        <span class="font-bold tracking-wider">${card.name}</span>
+                    </div>
                     <div class="flex gap-2">
                         <button onclick="abrirModalPagamento('${card.id}')" aria-label="Pagar Fatura" class="opacity-50 hover:opacity-100 transition cursor-pointer"><i data-lucide="check-circle" class="w-4 h-4 text-white"></i></button>
                         <button onclick="prepararEdicaoCartao('${card.id}')" aria-label="Editar" class="opacity-50 hover:opacity-100 transition cursor-pointer"><i data-lucide="pencil" class="w-4 h-4 text-white"></i></button>
@@ -291,17 +294,20 @@ export function renderCards(cards, cardsContainer, bankStyles, flagLogos, editCa
     window.deletarCartao = deleteCardCallback;
 }
 
-export function renderAccounts(accounts, accountsContainer, bankStyles, editAccountCallback, deleteAccountCallback) {
+export function renderAccounts(accounts, accountsContainer, colorStyles, editAccountCallback, deleteAccountCallback) {
     if (!accountsContainer) return;
     accountsContainer.innerHTML = '';
     accounts.forEach(acc => {
-        const style = bankStyles[acc.bank] || bankStyles['blue'];
+        const style = colorStyles[acc.color || acc.bank] || colorStyles['blue'];
 
         const accHtml = `
             <div class="min-w-[280px] h-32 ${style.bg} rounded-2xl p-5 text-white shadow-lg flex flex-col justify-between relative overflow-hidden group hover:scale-105 transition duration-300">
                 <div class="absolute -right-4 -top-4 w-16 h-16 rounded-full bg-white opacity-10"></div>
                 <div class="flex justify-between items-start z-10">
-                    <span class="font-bold tracking-wider flex items-center gap-2"><i data-lucide="building-2" class="w-4 h-4"></i> ${acc.name}</span>
+                    <div class="flex flex-col">
+                        <span class="text-[10px] text-white/70 uppercase font-bold">${acc.bank || 'Banco'}</span>
+                        <span class="font-bold tracking-wider flex items-center gap-2"><i data-lucide="building-2" class="w-4 h-4"></i> ${acc.name}</span>
+                    </div>
                     <div class="flex gap-2">
                         <button onclick="prepararEdicaoConta('${acc.id}')" aria-label="Editar" class="opacity-50 hover:opacity-100 transition cursor-pointer"><i data-lucide="pencil" class="w-4 h-4 text-white"></i></button>
                         <button onclick="deletarConta('${acc.id}')" aria-label="Excluir" class="opacity-50 hover:opacity-100 transition cursor-pointer"><i data-lucide="trash-2" class="w-4 h-4 text-white"></i></button>
@@ -329,11 +335,11 @@ export function renderAccounts(accounts, accountsContainer, bankStyles, editAcco
     window.deletarConta = deleteAccountCallback;
 }
 
-export function renderDebts(debts, debtsContainer, bankStyles, editDebtCallback, deleteDebtCallback) {
+export function renderDebts(debts, debtsContainer, colorStyles, editDebtCallback, deleteDebtCallback) {
     if (!debtsContainer) return;
     debtsContainer.innerHTML = '';
     debts.forEach(debt => {
-        const style = bankStyles[debt.bank] || bankStyles['blue'];
+        const style = colorStyles[debt.color || debt.bank] || colorStyles['blue'];
 
         const debtHtml = `
             <div class="min-w-[280px] h-32 ${style.bg} rounded-2xl p-5 text-white shadow-lg flex flex-col justify-between relative overflow-hidden group hover:scale-105 transition duration-300">

@@ -12,16 +12,17 @@ export const categoryConfig = {
     other: { label: 'Outros', icon: 'package', color: 'text-gray-600', bg: 'bg-gray-100', type: 'expense' }
 };
 
-export const bankStyles = {
-    nubank: { bg: 'bg-gradient-to-br from-purple-600 to-purple-800' },
-    itau: { bg: 'bg-gradient-to-br from-orange-500 to-orange-600' },
-    bb: { bg: 'bg-gradient-to-br from-yellow-400 to-yellow-600' },
-    santander: { bg: 'bg-gradient-to-br from-red-600 to-red-800' },
-    bradesco: { bg: 'bg-gradient-to-br from-red-600 to-red-700' },
-    inter: { bg: 'bg-gradient-to-br from-orange-400 to-orange-500' },
-    c6: { bg: 'bg-gradient-to-br from-gray-800 to-black' },
-    blue: { bg: 'bg-gradient-to-br from-blue-500 to-blue-700' },
-    green: { bg: 'bg-gradient-to-br from-emerald-500 to-emerald-700' }
+export const colorStyles = {
+    purple: { bg: 'bg-gradient-to-br from-purple-600 to-purple-800', label: 'Roxo' },
+    orange: { bg: 'bg-gradient-to-br from-orange-500 to-orange-600', label: 'Laranja' },
+    yellow: { bg: 'bg-gradient-to-br from-yellow-400 to-yellow-600', label: 'Amarelo' },
+    red: { bg: 'bg-gradient-to-br from-red-600 to-red-800', label: 'Vermelho' },
+    blue: { bg: 'bg-gradient-to-br from-blue-500 to-blue-700', label: 'Azul' },
+    green: { bg: 'bg-gradient-to-br from-emerald-500 to-emerald-700', label: 'Verde' },
+    black: { bg: 'bg-gradient-to-br from-gray-800 to-black', label: 'Preto' },
+    indigo: { bg: 'bg-gradient-to-br from-indigo-500 to-indigo-700', label: 'Indigo' },
+    rose: { bg: 'bg-gradient-to-br from-rose-500 to-rose-700', label: 'Rosa' },
+    cyan: { bg: 'bg-gradient-to-br from-cyan-500 to-cyan-700', label: 'Ciano' }
 };
 
 export const flagLogos = {
