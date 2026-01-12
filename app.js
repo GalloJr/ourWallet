@@ -416,6 +416,7 @@ function atualizarUIPremium() {
     const upgradeBtn = document.getElementById('upgrade-btn');
     const goalsLock = document.getElementById('goals-premium-lock');
     const debtsLock = document.getElementById('debts-premium-lock');
+    const csvLock = document.getElementById('csv-premium-lock');
     const exportBtn = document.getElementById('export-btn');
     const addGoalBtn = document.getElementById('add-goal-btn');
 
@@ -423,6 +424,7 @@ function atualizarUIPremium() {
         if (upgradeBtn) upgradeBtn.classList.add('hidden');
         if (goalsLock) goalsLock.classList.add('hidden');
         if (debtsLock) debtsLock.classList.add('hidden');
+        if (csvLock) csvLock.classList.add('hidden');
         if (exportBtn) {
             exportBtn.classList.remove('opacity-50', 'pointer-events-none');
             exportBtn.title = "Exportar CSV";
@@ -432,9 +434,11 @@ function atualizarUIPremium() {
         if (upgradeBtn) upgradeBtn.classList.remove('hidden');
         if (goalsLock) goalsLock.classList.remove('hidden');
         if (debtsLock) debtsLock.classList.remove('hidden');
+        if (csvLock) csvLock.classList.remove('hidden'); // Reinicia visibilidade
         if (exportBtn) {
             exportBtn.classList.add('opacity-50', 'pointer-events-none');
             exportBtn.title = "Disponível no Premium";
+            if (csvLock) csvLock.classList.remove('hidden');
         }
         if (addGoalBtn) addGoalBtn.classList.add('hidden');
 
