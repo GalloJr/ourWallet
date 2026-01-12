@@ -31,7 +31,8 @@ export function setupAuth(loginBtn, logoutBtn, appScreen, loginScreen, userNameD
         } else {
             if (loginScreen) {
                 loginScreen.classList.remove('hidden');
-                loginScreen.classList.add('flex');
+                loginScreen.classList.add('block');
+                loginScreen.classList.remove('flex');
             }
             if (appScreen) appScreen.classList.add('hidden');
             callback(null);
