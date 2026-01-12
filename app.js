@@ -87,10 +87,31 @@ const appState = {
     _u: { t: null, c: null, a: null, d: null, g: null } // Unsubscribers
 };
 
-// Register Service Worker
+// Register Service Worker and Handle PWA Install
+let deferredPrompt;
 if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => {
         navigator.serviceWorker.register('/sw.js').catch(err => console.log("SW reg error:", err));
+    });
+
+    window.addEventListener('beforeinstallprompt', (e) => {
+        // Prevenir o mini-infobar padrão do navegador
+        e.preventDefault();
+        deferredPrompt = e;
+        // Mostrar o botão de instalação customizado
+        const installBtn = document.getElementById('install-pwa');
+        if (installBtn) installBtn.classList.remove('hidden');
+    });
+
+    document.getElementById('install-pwa')?.addEventListener('click', async () => {
+        if (!deferredPrompt) return;
+        deferredPrompt.prompt();
+        const { outcome } = await deferredPrompt.userChoice;
+        if (outcome === 'accepted') {
+            console.log('User accepted the PWA install');
+        }
+        deferredPrompt = null;
+        document.getElementById('install-pwa').classList.add('hidden');
     });
 }
 
