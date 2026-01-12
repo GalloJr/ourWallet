@@ -91,8 +91,38 @@ const appState = {
 let deferredPrompt;
 if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => {
-        navigator.serviceWorker.register('/sw.js').catch(err => console.log("SW reg error:", err));
+        navigator.serviceWorker.register('/sw.js').then(reg => {
+            // Check for updates periodically or on reload
+            reg.addEventListener('updatefound', () => {
+                const newWorker = reg.installing;
+                newWorker.addEventListener('statechange', () => {
+                    if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                        // New version available! 
+                        showUpdateNotification();
+                    }
+                });
+            });
+        }).catch(err => console.log("SW reg error:", err));
     });
+
+    // Helper to show update toast
+    function showUpdateNotification() {
+        const toast = document.createElement('div');
+        toast.className = 'fixed bottom-4 left-4 right-4 md:left-auto md:right-4 md:w-96 bg-indigo-600 text-white p-4 rounded-2xl shadow-2xl flex items-center justify-between z-50 animate-bounce cursor-pointer hover:bg-indigo-700 transition';
+        toast.innerHTML = `
+            <div class="flex items-center gap-3">
+                <i data-lucide="refresh-cw" class="w-5 h-5"></i>
+                <div class="text-sm">
+                    <p class="font-bold">Nova versão disponível!</p>
+                    <p class="text-[10px] opacity-80">Clique aqui para atualizar agora.</p>
+                </div>
+            </div>
+            <i data-lucide="chevron-right" class="w-4 h-4"></i>
+        `;
+        toast.onclick = () => window.location.reload();
+        document.body.appendChild(toast);
+        if (window.lucide) lucide.createIcons();
+    }
 
     window.addEventListener('beforeinstallprompt', (e) => {
         // Prevenir o mini-infobar padrão do navegador

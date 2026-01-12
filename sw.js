@@ -1,4 +1,4 @@
-const CACHE_NAME = 'ourwallet-v1';
+const CACHE_NAME = 'ourwallet-v2'; // Incrementado para v2 para forçar atualização
 const ASSETS = [
     '/',
     '/index.html',
@@ -10,17 +10,57 @@ const ASSETS = [
     '/modules/goals.js',
     '/modules/transactions.js',
     '/modules/ui.js',
-    '/modules/utils.js'
+    '/modules/utils.js',
+    '/manifest.json'
 ];
 
+// Instalação: Pré-cache dos assets essenciais
 self.addEventListener('install', (e) => {
+    self.skipWaiting(); // Força o SW a se tornar ativo imediatamente
     e.waitUntil(
         caches.open(CACHE_NAME).then((cache) => cache.addAll(ASSETS))
     );
 });
 
+// Ativação: Limpeza de caches antigos
+self.addEventListener('activate', (e) => {
+    e.waitUntil(
+        caches.keys().then((keys) => {
+            return Promise.all(
+                keys.filter(key => key !== CACHE_NAME)
+                    .map(key => caches.delete(key))
+            );
+        })
+    );
+    self.clients.claim(); // Assume o controle das abas abertas imediatamente
+});
+
+// Fetch: Estratégia Stale-While-Revalidate para assets dinâmicos
+// E Network-First para o index.html (garantindo que o HTML sempre venha fresco se houver rede)
 self.addEventListener('fetch', (e) => {
+    const url = new URL(e.request.url);
+
+    // Estratégia Network-First para a página principal (HTML)
+    if (e.request.mode === 'navigate') {
+        e.respondWith(
+            fetch(e.request).catch(() => caches.match('/index.html'))
+        );
+        return;
+    }
+
+    // Estratégia Stale-While-Revalidate para outros assets
     e.respondWith(
-        caches.match(e.request).then((res) => res || fetch(e.request))
+        caches.match(e.request).then((cachedResponse) => {
+            const fetchPromise = fetch(e.request).then((networkResponse) => {
+                if (networkResponse && networkResponse.status === 200 && networkResponse.type === 'basic') {
+                    const responseToCache = networkResponse.clone();
+                    caches.open(CACHE_NAME).then((cache) => {
+                        cache.put(e.request, responseToCache);
+                    });
+                }
+                return networkResponse;
+            });
+            return cachedResponse || fetchPromise;
+        })
     );
 });
