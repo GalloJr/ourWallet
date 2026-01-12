@@ -208,7 +208,24 @@ setupAuth(loginBtn, logoutBtn, appScreen, loginScreen, userNameDisplay, async (u
         // Listener para o status Premium do DONO da carteira ativa
         onSnapshot(doc(db, "users", appState.walletId), (docSnap) => {
             if (docSnap.exists()) {
-                appState.access = !!docSnap.data().isPremium ? 1 : 0;
+                const data = docSnap.data();
+                const now = new Date();
+                const trialUntil = data.trialUntil ? data.trialUntil.toDate() : null;
+                const isPremiumByTrial = trialUntil && trialUntil > now;
+
+                appState.access = (!!data.isPremium || isPremiumByTrial) ? 1 : 0;
+
+                // Atualizar badge de trial
+                const trialBadge = document.getElementById('trial-badge');
+                if (isPremiumByTrial && !data.isPremium) {
+                    const diffTime = Math.abs(trialUntil - now);
+                    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+                    document.getElementById('trial-days').textContent = diffDays;
+                    trialBadge.classList.remove('hidden');
+                } else {
+                    trialBadge.classList.add('hidden');
+                }
+
                 atualizarUIPremium();
             }
         });
@@ -247,6 +264,12 @@ setupAuth(loginBtn, logoutBtn, appScreen, loginScreen, userNameDisplay, async (u
         });
 
         appState._u.g = setupGoals(appState.walletId, goalsContainer);
+
+        // Gerar link de indicação
+        const refLinkInput = document.getElementById('referral-link');
+        if (refLinkInput) {
+            refLinkInput.value = `${window.location.origin}?ref=${user.uid}`;
+        }
     } else {
         appState.user = null;
         appState.walletId = null;
@@ -700,3 +723,18 @@ function renderSummary() {
     renderValues(appState.filteredTrans, appState.transactions, monthFilter.value);
     renderCharts(appState.filteredTrans, monthFilter.value);
 }
+
+// Auxiliares de Cópia
+window.copiarReferral = () => {
+    const input = document.getElementById('referral-link');
+    input.select();
+    document.execCommand('copy');
+    alert("Link de indicação copiado! Compartilhe com seus amigos.");
+};
+
+window.copiarID = () => {
+    const input = document.getElementById('my-share-id');
+    input.select();
+    document.execCommand('copy');
+    alert("Seu ID de sincronização foi copiado!");
+};
