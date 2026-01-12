@@ -13,6 +13,9 @@ export function setupDebts(uid, debtsContainer, onDebtsLoaded) {
             window.prepararEdicaoDivida, window.deletarDivida);
 
         if (onDebtsLoaded) onDebtsLoaded(allDebts);
+    }, (error) => {
+        console.warn("Erro ao carregar dívidas (funcionalidade premium):", error.message);
+        if (onDebtsLoaded) onDebtsLoaded([]);
     });
 }
 

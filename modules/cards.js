@@ -15,6 +15,9 @@ export function setupCards(uid, cardsContainer, sourceSelect, onCardsLoaded) {
         popularSelectCartoes(allCards, sourceSelect);
 
         if (onCardsLoaded) onCardsLoaded(allCards);
+    }, (error) => {
+        console.warn("Erro ao carregar cartões:", error.message);
+        if (onCardsLoaded) onCardsLoaded([]);
     });
 }
 

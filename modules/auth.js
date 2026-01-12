@@ -85,17 +85,25 @@ export async function configurarWallet(uid) {
                     createdAt: new Date()
                 });
 
-                // Se foi indicado, dar bônus ao indicador (ex: +30 dias)
+                // Se foi indicado, registrar a indicação. 
+                // Nota: O bônus automático pro indicador via client-side pode ser bloqueado por segurança.
+                // Aqui tentamos atualizar apenas se as regras permitirem, mas capturamos erro para não quebrar o login.
                 if (referredBy) {
-                    const referrerRef = doc(db, "users", referredBy);
-                    const referrerDoc = await getDoc(referrerRef);
-                    if (referrerDoc.exists()) {
-                        const rData = referrerDoc.data();
-                        let currentTrial = rData.trialUntil ? rData.trialUntil.toDate() : new Date();
-                        if (currentTrial < new Date()) currentTrial = new Date();
+                    try {
+                        const referrerRef = doc(db, "users", referredBy);
+                        const referrerDoc = await getDoc(referrerRef);
+                        if (referrerDoc.exists()) {
+                            const rData = referrerDoc.data();
+                            let currentTrial = rData.trialUntil ? rData.trialUntil.toDate() : new Date();
+                            if (currentTrial < new Date()) currentTrial = new Date();
 
-                        currentTrial.setDate(currentTrial.getDate() + 30);
-                        await setDoc(referrerRef, { trialUntil: currentTrial }, { merge: true });
+                            currentTrial.setDate(currentTrial.getDate() + 30);
+                            // Esta escrita pode falhar se as regras de segurança forem restritas, 
+                            // o que é o esperado para proteção de dados de terceiros.
+                            await setDoc(referrerRef, { trialUntil: currentTrial }, { merge: true });
+                        }
+                    } catch (referralErr) {
+                        console.warn("Não foi possível atribuir bônus ao indicador automaticamente (Segurança):", referralErr);
                     }
                     localStorage.removeItem('referredBy');
                 }
@@ -111,18 +119,25 @@ export async function configurarWallet(uid) {
         const walletOwnerRef = doc(db, "users", activeId);
         const walletOwnerDoc = await getDoc(walletOwnerRef);
         let isPremium = false;
+        let trialDays = 0;
 
         if (walletOwnerDoc.exists()) {
             const data = walletOwnerDoc.data();
             const now = new Date();
             const trialUntil = data.trialUntil ? data.trialUntil.toDate() : null;
+            const isPremiumByTrial = trialUntil && trialUntil > now;
 
-            isPremium = !!data.isPremium || (trialUntil && trialUntil > now);
+            isPremium = !!data.isPremium || isPremiumByTrial;
+
+            if (isPremiumByTrial && !data.isPremium) {
+                const diffTime = Math.abs(trialUntil - now);
+                trialDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+            }
         }
 
-        return { activeWalletId: activeId, isPremium, isAdmin };
+        return { activeWalletId: activeId, isPremium, isAdmin, trialDays };
     } catch (e) {
         console.error("Erro ao configurar wallet:", e);
-        return { activeWalletId: uid, isPremium: false, isAdmin: false };
+        return { activeWalletId: uid, isPremium: false, isAdmin: false, trialDays: 0 };
     }
 }

@@ -209,6 +209,18 @@ setupAuth(loginBtn, logoutBtn, appScreen, loginScreen, userNameDisplay, async (u
         const config = await configurarWallet(user.uid);
         appState.walletId = config.activeWalletId;
         appState.isAdmin = config.isAdmin;
+        appState.access = config.isPremium ? 1 : 0;
+
+        // Atualizar badge de trial inicial se necessário
+        const trialBadge = document.getElementById('trial-badge');
+        if (config.trialDays > 0) {
+            document.getElementById('trial-days').textContent = config.trialDays;
+            trialBadge?.classList.remove('hidden');
+        } else {
+            trialBadge?.classList.add('hidden');
+        }
+
+        atualizarUIPremium();
 
         // Listener para o status Premium/Admin do usuário logado
         onSnapshot(doc(db, "users", user.uid), (docSnap) => {
@@ -224,6 +236,8 @@ setupAuth(loginBtn, logoutBtn, appScreen, loginScreen, userNameDisplay, async (u
                     carregarPedidosAdmin();
                 }
             }
+        }, (error) => {
+            console.warn("Erro no snapshot do usuário:", error.message);
         });
 
         // Listener para o status Premium do DONO da carteira ativa
@@ -241,14 +255,17 @@ setupAuth(loginBtn, logoutBtn, appScreen, loginScreen, userNameDisplay, async (u
                 if (isPremiumByTrial && !data.isPremium) {
                     const diffTime = Math.abs(trialUntil - now);
                     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-                    document.getElementById('trial-days').textContent = diffDays;
-                    trialBadge.classList.remove('hidden');
+                    const daysSpan = document.getElementById('trial-days');
+                    if (daysSpan) daysSpan.textContent = diffDays;
+                    trialBadge?.classList.remove('hidden');
                 } else {
-                    trialBadge.classList.add('hidden');
+                    trialBadge?.classList.add('hidden');
                 }
 
                 atualizarUIPremium();
             }
+        }, (error) => {
+            console.warn("Snapshot listener error (common during login):", error.message);
         });
 
         // Sempre tenta carregar admin silenciosamente. 

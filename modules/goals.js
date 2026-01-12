@@ -8,6 +8,8 @@ export function setupGoals(uid, goalsContainer) {
         const goals = [];
         snapshot.forEach(doc => goals.push({ id: doc.id, ...doc.data() }));
         renderGoals(goals, goalsContainer, deletarMeta);
+    }, (error) => {
+        console.warn("Erro ao carregar metas (funcionalidade premium):", error.message);
     });
 }
 

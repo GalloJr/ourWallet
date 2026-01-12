@@ -2,65 +2,67 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
     
-    // Helper: Verifica se o usuário é Premium checando o campo no documento do usuário
-    function isPremium() {
-      let userDoc = get(/databases/$(database)/documents/users/$(request.auth.uid));
-      return userDoc != null && (userDoc.data.isPremium == true || userDoc.data.isAdmin == true);
+    // Helper: Verifica se o usuário tem acesso Premium (assinatura, admin ou Trial ativo)
+    function isPremium(walletId) {
+      let userPath = /databases/$(database)/documents/users/$(walletId);
+      if (!exists(userPath)) return false;
+      let userDoc = get(userPath);
+      return userDoc.data.get('isPremium', false) == true || 
+             userDoc.data.get('isAdmin', false) == true || 
+             (userDoc.data.get('trialUntil', timestamp.date(0)) > request.time);
     }
 
-    // Helper: Verifica se o usuário atual é o Administrador Master (via campo no banco)
+    // Helper: Verifica se o usuário é membro da carteira (dono ou vinculado)
+    function isWalletMember(walletId) {
+      if (request.auth == null) return false;
+      if (request.auth.uid == walletId) return true;
+      let userPath = /databases/$(database)/documents/users/$(request.auth.uid);
+      return exists(userPath) && get(userPath).data.get('linkedWalletId', '') == walletId;
+    }
+
+    // Helper: Verifica se o usuário atual é o Administrador Master
     function isAdmin() {
-      return request.auth != null && 
-             exists(/databases/$(database)/documents/users/$(request.auth.uid)) && 
-             get(/databases/$(database)/documents/users/$(request.auth.uid)).data.isAdmin == true;
+      if (request.auth == null) return false;
+      let userPath = /databases/$(database)/documents/users/$(request.auth.uid);
+      return exists(userPath) && get(userPath).data.get('isAdmin', false) == true;
     }
 
     // Regras para a coleção de usuários
     match /users/{userId} {
-      // Pode ler se for o dono, se for Admin, ou se for a carteira vinculada (spouse)
-      allow read: if request.auth != null && (
-        request.auth.uid == userId || 
-        isAdmin() || 
-        (exists(/databases/$(database)/documents/users/$(request.auth.uid)) && 
-         get(/databases/$(database)/documents/users/$(request.auth.uid)).data.get('linkedWalletId', '') == userId)
-      );
-      
-      // Permite criar o próprio documento (Segurança: o app sempre envia isAdmin: false)
+      allow get: if request.auth != null;
+      allow list: if isAdmin();
       allow create: if request.auth != null && request.auth.uid == userId;
-
-      // Permite atualizar se for admin, ou se for o dono (sem mexer em campos sensíveis)
       allow update: if request.auth != null && (
         isAdmin() || 
         (request.auth.uid == userId && !request.resource.data.diff(resource.data).affectedKeys().hasAny(['isPremium', 'isAdmin']))
       );
     }
 
-    // Regras para Transações, Contas e Cartões (Acesso Básico)
+    // Regras para Transações, Contas e Cartões
     match /transactions/{tId} {
-      allow read, write: if request.auth != null && resource.data.uid == request.auth.uid;
-      allow create: if request.auth != null && request.resource.data.uid == request.auth.uid;
+      allow read, write: if isWalletMember(resource == null ? request.resource.data.uid : resource.data.uid);
     }
 
     match /accounts/{accId} {
-      allow read, write: if request.auth != null && (resource.data.uid == request.auth.uid || isAdmin());
-      allow create: if request.auth != null && request.resource.data.uid == request.auth.uid;
+      allow read, write: if isWalletMember(resource == null ? request.resource.data.uid : resource.data.uid) || isAdmin();
     }
 
     match /cards/{cardId} {
-      allow read, write: if request.auth != null && (resource.data.uid == request.auth.uid || isAdmin());
-      allow create: if request.auth != null && request.resource.data.uid == request.auth.uid;
+      allow read, write: if isWalletMember(resource == null ? request.resource.data.uid : resource.data.uid) || isAdmin();
     }
 
-    // Regras para Metas e Dívidas (BLOQUEADAS PARA FREE)
+    // Regras para Metas e Dívidas (Requer Premium/Trial na carteira ativa)
     match /goals/{goalId} {
-      allow read, write: if request.auth != null && request.auth.uid == (resource == null ? request.resource.data.uid : resource.data.uid) && isPremium();
+      allow read, write: if let wId = (resource == null ? request.resource.data.uid : resource.data.uid);
+                         isWalletMember(wId) && isPremium(wId);
     }
 
     match /debts/{debtId} {
-      allow read, write: if request.auth != null && request.auth.uid == (resource == null ? request.resource.data.uid : resource.data.uid) && isPremium();
+      allow read, write: if let wId = (resource == null ? request.resource.data.uid : resource.data.uid);
+                         isWalletMember(wId) && isPremium(wId);
     }
 
-    // Regras para Pedidos Premium (Apenas Admin lê)
+    // Regras para Pedidos Premium
     match /premium_requests/{requestId} {
       allow create: if request.auth != null;
       allow read, update, delete: if isAdmin();

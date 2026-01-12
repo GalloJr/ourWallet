@@ -15,18 +15,15 @@ export function setupAccounts(uid, accountsContainer, sourceSelect, onAccountsLo
         popularSelectContas(allAccounts, sourceSelect);
 
         if (onAccountsLoaded) onAccountsLoaded(allAccounts);
+    }, (error) => {
+        console.warn("Erro ao carregar contas:", error.message);
+        if (onAccountsLoaded) onAccountsLoaded([]);
     });
 }
 
 function popularSelectContas(accounts, sourceSelect) {
     if (!sourceSelect) return;
-
-    // Pegamos o valor selecionado atualmente para tentar manter
-    const currentValue = sourceSelect.value;
-
-    // A opção "Carteira" agora será substituída pelas contas reais ou mantida se não houver contas
     let options = '';
-
     if (accounts.length === 0) {
         options = '<option value="wallet">💵 Carteira / Conta Corrente (Padrão)</option>';
     } else {
@@ -34,14 +31,7 @@ function popularSelectContas(accounts, sourceSelect) {
             options += `<option value="${acc.id}">🏦 ${acc.name} (Saldo: ${acc.balance.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })})</option>`;
         });
     }
-
-    // Preservamos as opções de cartão que já possam estar lá (o cards.js também popula esse select)
-    // Mas na verdade, é melhor que ambos os módulos colaborem ou um módulo central gerencie isso.
-    // Vamos fazer com que o app.js coordene ou que cada um adicione o seu.
-    // Atualmente cards.js sobrescreve o innerHTML.
-
-    // Decisão: Vou marcar as opções com classes para poder filtrar/manter. 
-    // Ou simplesmente deixar o app.js fazer a renderização do select combinando ambos.
+    // Nota: cards.js também popula este select. Idealmente um coordenador uniria ambos.
 }
 
 export async function salvarConta(activeWalletId, accountForm, fecharModal) {

@@ -17,6 +17,9 @@ export function setupTransactions(uid, onTransactionsLoaded) {
         });
         transactions.sort((a, b) => new Date(b.date) - new Date(a.date));
         if (onTransactionsLoaded) onTransactionsLoaded(transactions);
+    }, (error) => {
+        console.warn("Erro ao carregar transações:", error.message);
+        if (onTransactionsLoaded) onTransactionsLoaded([]); // Permite que o app continue carregando
     });
 }
 
@@ -47,15 +50,6 @@ export async function salvarTransacao(activeWalletId, currentUser, allCards, all
     let receiptUrl = null;
 
     try {
-        /* Descomentar quando ativar plano pago (Blaze) e ativar o Storage do Firebase e remover o hidden do index.html linha 543
-        if (receiptInput && receiptInput.files[0]) {
-            const file = receiptInput.files[0];
-            const storageRef = ref(storage, `receipts/${currentUser.uid}/${Date.now()}_${file.name}`);
-            const snapshot = await uploadBytes(storageRef, file);
-            receiptUrl = await getDownloadURL(snapshot.ref);
-        }
-        */
-
         for (let i = 0; i < numIterations; i++) {
             const currentParcelDate = new Date(dateVal + 'T12:00:00');
             currentParcelDate.setMonth(currentParcelDate.getMonth() + i);
@@ -140,10 +134,8 @@ export async function editarTransacao(id, allTransactions, allCards, allAccounts
     const finalAmount = isExpense ? -Math.abs(amountVal) : Math.abs(amountVal);
 
     try {
-        // Se mudou a fonte ou o valor, precisamos atualizar os saldos/faturas
         if (original.source !== newSource || original.amount !== finalAmount) {
 
-            // 1. Estornar o impacto da transação original
             if (original.amount < 0) { // Era Despesa
                 const card = allCards.find(c => c.id === original.source);
                 if (card) {
@@ -158,7 +150,8 @@ export async function editarTransacao(id, allTransactions, allCards, allAccounts
             } else { // Era Receita
                 const acc = allAccounts.find(a => a.id === original.source);
                 if (acc) {
-                    await updateDoc(doc(db, "accounts", original.source), { balance: (acc.balance || 0) + Math.abs(original.amount) });
+                    const currentBalance = acc.balance || 0;
+                    await updateDoc(doc(db, "accounts", original.source), { balance: currentBalance - Math.abs(original.amount) });
                 } else {
                     const debt = allDebts.find(d => d.id === original.source);
                     if (debt) {
@@ -167,24 +160,17 @@ export async function editarTransacao(id, allTransactions, allCards, allAccounts
                 }
             }
 
-            // 2. Aplicar o impacto da nova transação (atualizada)
             if (finalAmount < 0) { // Agora é Despesa
                 const card = allCards.find(c => c.id === newSource);
                 if (card) {
-                    // Se estivermos editando e a fonte for a mesma, precisamos pegar o valor que ACABAMOS de atualizar no passo 1
-                    // Mas como o Firestore é assíncrono e estamos usando 'await', 
-                    // o 'allCards' que temos está desatualizado.
-                    // Para simplificar e evitar erros, vamos buscar o dado mais recente se a fonte for a mesma.
                     let billBase = card.bill || 0;
                     if (original.source === newSource) billBase = Math.max(0, billBase - Math.abs(original.amount));
-
                     await updateDoc(doc(db, "cards", newSource), { bill: billBase + Math.abs(finalAmount) });
                 } else {
                     const acc = allAccounts.find(a => a.id === newSource);
                     if (acc) {
                         let balanceBase = acc.balance || 0;
                         if (original.source === newSource) balanceBase += Math.abs(original.amount);
-
                         await updateDoc(doc(db, "accounts", newSource), { balance: balanceBase - Math.abs(finalAmount) });
                     }
                 }
@@ -193,7 +179,6 @@ export async function editarTransacao(id, allTransactions, allCards, allAccounts
                 if (acc) {
                     let balanceBase = acc.balance || 0;
                     if (original.source === newSource) balanceBase -= Math.abs(original.amount);
-
                     await updateDoc(doc(db, "accounts", newSource), { balance: balanceBase + Math.abs(finalAmount) });
                 } else {
                     const debt = allDebts.find(d => d.id === newSource);
@@ -248,7 +233,6 @@ export async function deletarTransacao(id, allTransactions, allCards, allAccount
     if (!trans) return;
 
     try {
-        // Estornar valor dependendo do tipo da transação
         if (trans.amount < 0) { // Despesa
             if (trans.source && trans.source !== 'wallet') {
                 const card = allCards.find(c => c.id === trans.source);
@@ -269,7 +253,7 @@ export async function deletarTransacao(id, allTransactions, allCards, allAccount
         } else { // Receita
             const acc = allAccounts.find(a => a.id === trans.source);
             if (acc) {
-                const novoSaldo = Math.max(0, (acc.balance || 0) - Math.abs(trans.amount));
+                const novoSaldo = (acc.balance || 0) - Math.abs(trans.amount);
                 await updateDoc(doc(db, "accounts", trans.source), { balance: novoSaldo });
                 showToast(`Saldo da conta ${acc.name} atualizado!`);
             } else {
@@ -313,7 +297,6 @@ export async function processarPagamento(activeWalletId, currentUser, allCards, 
         else if (debt) desc = `Pagamento Dívida: ${debt.name}`;
         else return alert("Alvo do pagamento não encontrado");
 
-        // 1. Criar a transação de saída da conta
         await addDoc(collection(db, "transactions"), {
             uid: activeWalletId,
             owner: currentUser.uid,
@@ -327,11 +310,9 @@ export async function processarPagamento(activeWalletId, currentUser, allCards, 
             isPayment: true
         });
 
-        // 2. Atualizar saldo da conta
         const novoSaldoConta = (acc.balance || 0) - Math.abs(amountVal);
         await updateDoc(doc(db, "accounts", accountId), { balance: novoSaldoConta });
 
-        // 3. Atualizar o alvo (Cartão ou Dívida)
         if (card) {
             const novaFatura = Math.max(0, (card.bill || 0) - Math.abs(amountVal));
             await updateDoc(doc(db, "cards", targetId), { bill: novaFatura });
