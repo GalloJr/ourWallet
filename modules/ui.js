@@ -263,7 +263,7 @@ export function renderCards(cards, cardsContainer, colorStyles, flagLogos, editC
                     </div>
                 </div>
                 <div class="z-10">
-                    <p class="text-xs text-white/80 mb-1">Fatura Atual</p>
+                    <p class="text-xs text-white/80 mb-1">Limite Utilizado</p>
                     <p class="text-2xl font-bold">${(card.bill || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</p>
                 </div>
                 <div class="flex justify-between items-end z-10">
