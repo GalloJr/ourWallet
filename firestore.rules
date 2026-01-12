@@ -2,29 +2,34 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
     
-    // Helper: Verifica se o usuário tem acesso Premium (assinatura, admin ou Trial ativo)
-    function isPremium(walletId) {
-      let userPath = /databases/$(database)/documents/users/$(walletId);
-      if (!exists(userPath)) return false;
-      let userDoc = get(userPath);
-      return userDoc.data.get('isPremium', false) == true || 
-             userDoc.data.get('isAdmin', false) == true || 
-             (userDoc.data.get('trialUntil', timestamp.date(0)) > request.time);
+    // Helper: Verifica se o usuário atual é o Administrador Master
+    function isAdmin() {
+      return request.auth != null && 
+             exists(/databases/$(database)/documents/users/$(request.auth.uid)) && 
+             get(/databases/$(database)/documents/users/$(request.auth.uid)).data.get('isAdmin', false) == true;
     }
 
     // Helper: Verifica se o usuário é membro da carteira (dono ou vinculado)
     function isWalletMember(walletId) {
-      if (request.auth == null) return false;
-      if (request.auth.uid == walletId) return true;
-      let userPath = /databases/$(database)/documents/users/$(request.auth.uid);
-      return exists(userPath) && get(userPath).data.get('linkedWalletId', '') == walletId;
+      return request.auth != null && (
+        request.auth.uid == walletId || 
+        (exists(/databases/$(database)/documents/users/$(request.auth.uid)) && 
+         get(/databases/$(database)/documents/users/$(request.auth.uid)).data.get('linkedWalletId', '') == walletId)
+      );
     }
 
-    // Helper: Verifica se o usuário atual é o Administrador Master
-    function isAdmin() {
-      if (request.auth == null) return false;
-      let userPath = /databases/$(database)/documents/users/$(request.auth.uid);
-      return exists(userPath) && get(userPath).data.get('isAdmin', false) == true;
+    // Helper: Verifica se a carteira tem acesso Premium (assinatura, admin ou Trial ativo)
+    function isPremium(walletId) {
+      return exists(/databases/$(database)/documents/users/$(walletId)) && (
+        get(/databases/$(database)/documents/users/$(walletId)).data.get('isPremium', false) == true || 
+        get(/databases/$(database)/documents/users/$(walletId)).data.get('isAdmin', false) == true || 
+        get(/databases/$(database)/documents/users/$(walletId)).data.get('trialUntil', timestamp.date(0)) > request.time
+      );
+    }
+
+    // Helper para extrair o proprietário dos dados (transações, metas, etc)
+    function dataOwner() {
+      return (resource != null) ? resource.data.uid : request.resource.data.uid;
     }
 
     // Regras para a coleção de usuários
@@ -40,26 +45,24 @@ service cloud.firestore {
 
     // Regras para Transações, Contas e Cartões
     match /transactions/{tId} {
-      allow read, write: if isWalletMember(resource == null ? request.resource.data.uid : resource.data.uid);
+      allow read, write: if isWalletMember(dataOwner());
     }
 
     match /accounts/{accId} {
-      allow read, write: if isWalletMember(resource == null ? request.resource.data.uid : resource.data.uid) || isAdmin();
+      allow read, write: if isWalletMember(dataOwner()) || isAdmin();
     }
 
     match /cards/{cardId} {
-      allow read, write: if isWalletMember(resource == null ? request.resource.data.uid : resource.data.uid) || isAdmin();
+      allow read, write: if isWalletMember(dataOwner()) || isAdmin();
     }
 
     // Regras para Metas e Dívidas (Requer Premium/Trial na carteira ativa)
     match /goals/{goalId} {
-      allow read, write: if let wId = (resource == null ? request.resource.data.uid : resource.data.uid);
-                         isWalletMember(wId) && isPremium(wId);
+      allow read, write: if isWalletMember(dataOwner()) && isPremium(dataOwner());
     }
 
     match /debts/{debtId} {
-      allow read, write: if let wId = (resource == null ? request.resource.data.uid : resource.data.uid);
-                         isWalletMember(wId) && isPremium(wId);
+      allow read, write: if isWalletMember(dataOwner()) && isPremium(dataOwner());
     }
 
     // Regras para Pedidos Premium
