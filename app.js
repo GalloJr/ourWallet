@@ -683,8 +683,8 @@ window.prepararEdicao = (id) => {
     document.getElementById('edit-desc').value = t.desc;
     document.getElementById('edit-amount').value = Math.abs(t.amount).toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
     document.getElementById('edit-date').value = t.date;
+    document.getElementById('edit-category').value = t.category || 'other';
 
-    // Popular e selecionar fonte
     const editSource = document.getElementById('edit-source');
     popularSelectSources(editSource);
     editSource.value = t.source || 'wallet';

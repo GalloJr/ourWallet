@@ -125,6 +125,7 @@ export async function editarTransacao(id, allTransactions, allCards, allAccounts
     const desc = document.getElementById('edit-desc').value;
     const amountVal = limparValorMoeda(document.getElementById('edit-amount').value);
     const dateVal = document.getElementById('edit-date').value;
+    const newCategory = document.getElementById('edit-category').value;
     const newSource = document.getElementById('edit-source').value;
 
     const original = allTransactions.find(t => t.id === id);
@@ -195,6 +196,7 @@ export async function editarTransacao(id, allTransactions, allCards, allAccounts
             desc: desc,
             amount: finalAmount,
             date: dateVal,
+            category: newCategory,
             source: newSource
         });
 
