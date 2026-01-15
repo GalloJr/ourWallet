@@ -10,6 +10,12 @@ firebase-debug.*.log*
 # Firebase cache
 .firebase/
 
+# Node modules
+node_modules/
+
+# Compiled CSS (gerado pelo build)
+# css/output.css será commitado
+
 # Firebase config
 
 # Uncomment this if you'd like others to create their own Firebase project.

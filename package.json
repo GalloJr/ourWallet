@@ -4,6 +4,8 @@
   "description": "Aplicação web profissional para controle de finanças pessoais (SaaS). O sistema permite gerenciar entradas e saídas, visualizar saldo em tempo real e analisar gastos através de gráficos dinâmicos.",
   "main": "app.js",
   "scripts": {
+    "build:css": "npx tailwindcss -i ./src/input.css -o ./css/output.css --minify",
+    "watch:css": "npx tailwindcss -i ./src/input.css -o ./css/output.css --watch",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
@@ -16,5 +18,13 @@
   "bugs": {
     "url": "https://github.com/GalloJr/ourWallet/issues"
   },
-  "homepage": "https://github.com/GalloJr/ourWallet#readme"
+  "homepage": "https://github.com/GalloJr/ourWallet#readme",
+  "directories": {
+    "doc": "docs"
+  },
+  "devDependencies": {
+    "autoprefixer": "^10.4.23",
+    "postcss": "^8.5.6",
+    "tailwindcss": "^3.4.19"
+  }
 }
