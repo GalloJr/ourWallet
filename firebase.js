@@ -15,12 +15,15 @@ const firebaseConfig = {
 
 const app = initializeApp(firebaseConfig);
 
-// App Check temporariamente desabilitado devido a erro de configuração do reCAPTCHA
-// Para reabilitar: configure corretamente no Firebase Console → App Check
-// const appCheck = initializeAppCheck(app, {
-//   provider: new ReCaptchaV3Provider('6LeIzkssAAAAAE9_Cprw4iBiXhInpfiWBG-7uJW-'),
-//   isTokenAutoRefreshEnabled: true
-// });
+// Inicializar App Check com reCAPTCHA v3
+// IMPORTANTE: A chave abaixo é do Firebase Console → App Check
+const appCheck = initializeAppCheck(app, {
+  provider: new ReCaptchaV3Provider('6LeIzkssAAAAAE9_Cprw4iBiXhInpfiWBG-7uJW-'),
+  isTokenAutoRefreshEnabled: true
+});
+
+// Para desenvolvimento local, use:
+// self.FIREBASE_APPCHECK_DEBUG_TOKEN = true; (no navegador)
 
 const auth = getAuth(app);
 const db = getFirestore(app);
