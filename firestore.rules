@@ -139,5 +139,14 @@ service cloud.firestore {
                        request.resource.data.keys().hasAll(['userId', 'createdAt']);
       allow read, update, delete: if isAdmin();
     }
+
+    // Regras para Error Logs (substitui Crashlytics para web)
+    match /error_logs/{logId} {
+      // Qualquer usuário autenticado pode criar logs de erro
+      allow create: if request.auth != null;
+      // Apenas admin pode ler/deletar logs
+      allow read, delete: if isAdmin();
+    }
   }
 }
+

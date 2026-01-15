@@ -10,6 +10,7 @@ import { formatarMoedaInput, formatarData } from "./modules/utils.js";
 import { processarPagamento } from "./modules/transactions.js";
 import { collection, addDoc, onSnapshot, query, where, updateDoc } from "./firebase.js";
 import { showToast } from "./modules/dialogs.js";
+import { initErrorLogger } from "./modules/errorLogger.js";
 
 // Global variables to maintain compatibility with DOM event listeners
 window.formatarMoedaInput = formatarMoedaInput;
@@ -238,6 +239,9 @@ if (sourceSelect) {
         }
     });
 }
+
+// Inicializar Error Logger
+initErrorLogger();
 
 // Auth Setup
 setupAuth(loginBtn, logoutBtn, appScreen, loginScreen, userNameDisplay, async (user) => {

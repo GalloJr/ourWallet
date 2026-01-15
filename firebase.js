@@ -3,6 +3,7 @@ import { getAuth, GoogleAuthProvider, signInWithPopup, signInWithRedirect, signO
 import { getFirestore, collection, addDoc, query, where, onSnapshot, orderBy, deleteDoc, doc, updateDoc, getDoc, setDoc, runTransaction, increment } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-storage.js";
 import { initializeAppCheck, ReCaptchaV3Provider } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app-check.js";
+import { getPerformance } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-performance.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyBhLGUK3w4iwWnze0FEvA46z4VCv86CFHg",
@@ -21,6 +22,9 @@ const appCheck = initializeAppCheck(app, {
   provider: new ReCaptchaV3Provider('6LeIzkssAAAAAE9_Cprw4iBiXhInpfiWBG-7uJW-'),
   isTokenAutoRefreshEnabled: true
 });
+
+// Inicializar Performance Monitoring
+const performance = getPerformance(app);
 
 // Para desenvolvimento local, use:
 // self.FIREBASE_APPCHECK_DEBUG_TOKEN = true; (no navegador)
