@@ -1241,6 +1241,9 @@
                         class="p-6 border-b border-gray-100 dark:border-gray-700 flex flex-wrap justify-between items-center gap-4">
                         <div class="flex items-center gap-3">
                             <h3 class="text-lg font-bold text-gray-900 dark:text-white">Histórico</h3>
+                            <button onclick="consolidarPagamentosEmLote()" id="consolidate-btn"
+                                class="px-2 py-1 bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 rounded-lg text-xs font-semibold cursor-pointer flex items-center gap-1 hover:bg-green-200 dark:hover:bg-green-900/50 transition-colors"
+                                aria-label="Consolidar Pagamentos" title="Marcar transações pendentes como pagas"><i data-lucide="check-square" class="w-3 h-3"></i> Consolidar Pagamentos</button>
                             <button onclick="exportarCSV()" id="export-btn"
                                 class="px-2 py-1 bg-gray-100 dark:bg-gray-700 rounded-lg text-xs dark:text-white cursor-pointer flex items-center gap-1 hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
                                 aria-label="Exportar CSV"><i data-lucide="download" class="w-3 h-3"></i> CSV</button>
@@ -1259,6 +1262,13 @@
                                 <select id="month-filter"
                                     class="px-2 py-1 bg-gray-50 dark:bg-gray-700 border dark:border-gray-600 rounded-lg text-xs dark:text-white cursor-pointer"
                                     aria-label="Filtrar por Mês"></select>
+                                <select id="payment-status-filter"
+                                    class="px-2 py-1 bg-gray-50 dark:bg-gray-700 border dark:border-gray-600 rounded-lg text-xs dark:text-white cursor-pointer"
+                                    aria-label="Filtrar por Status">
+                                    <option value="">Todas</option>
+                                    <option value="pending">🟡 Pendentes</option>
+                                    <option value="paid">🟢 Pagas</option>
+                                </select>
                                 <select id="history-source-filter"
                                     class="px-2 py-1 bg-gray-50 dark:bg-gray-700 border dark:border-gray-600 rounded-lg text-xs dark:text-white cursor-pointer max-w-[120px]"
                                     aria-label="Filtrar por Fonte">

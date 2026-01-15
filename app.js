@@ -1,7 +1,7 @@
 import { db, doc, setDoc } from "./firebase.js";
 import { setupAuth, configurarWallet } from "./modules/auth.js";
 import { setupCards, salvarCartao, editarCartao, deletarCartao } from "./modules/cards.js";
-import { setupTransactions, salvarTransacao, editarTransacao, deletarTransacao, exportarCSV } from "./modules/transactions.js";
+import { setupTransactions, salvarTransacao, editarTransacao, deletarTransacao, exportarCSV, consolidarPagamento, consolidarPagamentosEmLote } from "./modules/transactions.js";
 import { setupGoals, salvarMeta, deletarMeta } from "./modules/goals.js";
 import { setupAccounts, salvarConta, editarConta, deletarConta } from "./modules/accounts.js";
 import { setupDebts, salvarDivida, editarDivida, deletarDivida } from "./modules/debts.js";
@@ -14,6 +14,8 @@ import { collection, addDoc, onSnapshot, query, where, updateDoc } from "./fireb
 // Global variables to maintain compatibility with DOM event listeners
 window.formatarMoedaInput = formatarMoedaInput;
 window.exportarCSV = () => exportarCSV(appState.filteredTrans, appState.cards);
+window.consolidarPagamento = (id) => consolidarPagamento(id, appState.transactions, appState.cards, appState.accounts);
+window.consolidarPagamentosEmLote = () => consolidarPagamentosEmLote(appState.transactions, appState.cards, appState.accounts);
 window.abrirModalCartao = () => document.getElementById('card-modal').classList.remove('hidden');
 window.fecharModalCartao = () => document.getElementById('card-modal').classList.add('hidden');
 window.fecharModalEdicaoCartao = () => document.getElementById('edit-card-modal').classList.add('hidden');
@@ -70,6 +72,7 @@ const installmentsContainer = document.getElementById('installments-container');
 const installmentsSelect = document.getElementById('installments');
 const searchInput = document.getElementById('search-input');
 const historySourceFilter = document.getElementById('history-source-filter');
+const paymentStatusFilter = document.getElementById('payment-status-filter');
 const paymentForm = document.getElementById('payment-form');
 
 // Encapsulated State
@@ -215,6 +218,11 @@ popularSeletorMeses(monthFilter, aplicarFiltro);
 // History Source Filter
 if (historySourceFilter) {
     historySourceFilter.addEventListener('change', aplicarFiltro);
+}
+
+// Payment Status Filter
+if (paymentStatusFilter) {
+    paymentStatusFilter.addEventListener('change', aplicarFiltro);
 }
 
 // Source Select logic
@@ -771,12 +779,28 @@ function aplicarFiltro() {
     const mesSelecionado = monthFilter.value;
     const busca = searchInput ? searchInput.value.toLowerCase() : "";
     const fonteSelecionada = historySourceFilter ? historySourceFilter.value : "";
+    const statusSelecionado = paymentStatusFilter ? paymentStatusFilter.value : "";
 
     appState.filteredTrans = appState.transactions.filter(t => {
         const matchesMonth = !mesSelecionado || (t.date && t.date.startsWith(mesSelecionado));
         const matchesSearch = !busca || (t.desc && t.desc.toLowerCase().includes(busca));
         const matchesSource = !fonteSelecionada || t.source === fonteSelecionada;
-        return matchesMonth && matchesSearch && matchesSource;
+        
+        // Filtro de status de pagamento
+        let matchesStatus = true;
+        if (statusSelecionado) {
+            const card = appState.cards.find(c => c.id === t.source);
+            const isPaid = t.paid || (t.amount < 0 && card); // Cartões são considerados pagos
+            const isPending = t.amount < 0 && !t.paid && !card;
+            
+            if (statusSelecionado === 'pending') {
+                matchesStatus = isPending;
+            } else if (statusSelecionado === 'paid') {
+                matchesStatus = isPaid && t.amount < 0; // Só despesas podem ser "pagas"
+            }
+        }
+        
+        return matchesMonth && matchesSearch && matchesSource && matchesStatus;
     });
 
     renderSummary();

@@ -165,12 +165,30 @@ export function renderList(transactions, listElement, allCards, allAccounts, all
         const ownerInitial = t.ownerName ? t.ownerName.charAt(0).toUpperCase() : '?';
         const ownerFirstName = t.ownerName ? t.ownerName.split(' ')[0] : '---';
 
+        // Verifica se é uma despesa não paga e não é via cartão
+        const card = allCards?.find(c => c.id === t.source);
+        const isUnpaidExpense = t.amount < 0 && !t.paid && !card;
+        const isPaid = t.paid || (t.amount < 0 && card); // Cartões são considerados "pagos" automaticamente
+        
+        const paidBadge = isPaid 
+            ? '<span class="text-[9px] bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 px-1.5 py-0.5 rounded font-bold">PAGO</span>'
+            : '<span class="text-[9px] bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-400 px-1.5 py-0.5 rounded font-bold">PENDENTE</span>';
+
+        const rowClass = isUnpaidExpense 
+            ? "hover:bg-gray-50 dark:hover:bg-gray-800 transition border-b border-gray-100 dark:border-gray-700 bg-yellow-50/30 dark:bg-yellow-900/10"
+            : "hover:bg-gray-50 dark:hover:bg-gray-800 transition border-b border-gray-100 dark:border-gray-700";
+
+        row.className = rowClass;
+
         row.innerHTML = `
             <td class="p-3"><div class="flex items-center gap-2"><div class="p-2 rounded ${conf.bg} dark:bg-opacity-20 ${conf.color}"><i data-lucide="${conf.icon}" class="w-4 h-4"></i></div><span class="text-xs sm:text-sm dark:text-gray-200 hidden xs:inline">${conf.label}</span></div></td>
             <td class="p-3 text-sm dark:text-gray-300" title="${sourceName}">
-                <div class="flex flex-col">
+                <div class="flex flex-col gap-1">
                     <span class="font-medium line-clamp-1">${t.desc}</span>
-                    <span class="text-[10px] text-gray-400 flex items-center gap-1">${sourceName} ${fonteIcone} ${receiptIcon}</span>
+                    <div class="flex items-center gap-1 flex-wrap">
+                        <span class="text-[10px] text-gray-400 flex items-center gap-1">${sourceName} ${fonteIcone} ${receiptIcon}</span>
+                        ${isExpense ? paidBadge : ''}
+                    </div>
                 </div>
             </td>
             <td class="p-3 text-[10px] sm:text-xs text-gray-500">${formatarData(t.date)}</td>
@@ -184,6 +202,7 @@ export function renderList(transactions, listElement, allCards, allAccounts, all
             <td class="p-3 text-right font-bold text-sm ${isExpense ? 'text-red-500' : 'text-green-500'}">${Math.abs(t.amount).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</td>
             <td class="p-3 text-center">
                 <div class="flex justify-center gap-2">
+                    ${isUnpaidExpense ? `<button onclick="consolidarPagamento('${t.id}')" aria-label="Marcar como Pago" title="Marcar como Pago" class="text-gray-400 hover:text-green-500 transition cursor-pointer"><i data-lucide="check-circle" class="w-4 h-4"></i></button>` : ''}
                     <button onclick="prepararEdicao('${t.id}')" aria-label="Editar" class="text-gray-400 hover:text-indigo-500 transition cursor-pointer"><i data-lucide="pencil" class="w-4 h-4"></i></button>
                     <button onclick="deletarItem('${t.id}')" aria-label="Excluir" class="text-gray-400 hover:text-red-500 transition cursor-pointer"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
                 </div>

@@ -74,11 +74,19 @@ export async function salvarTransacao(activeWalletId, currentUser, allCards, all
                 source: paymentSource,
                 receiptUrl: receiptUrl,
                 createdAt: new Date(),
-                isRecurring: repeatMonthly
+                isRecurring: repeatMonthly,
+                paid: false
             });
         }
 
+        // Verifica se a transação é de data futura ou passada
+        const hoje = new Date();
+        hoje.setHours(0, 0, 0, 0);
+        const dataTransacao = new Date(dateVal + 'T00:00:00');
+        const isDataPassadaOuHoje = dataTransacao <= hoje;
+
         if (type === 'income') {
+            // Receitas sempre atualizam o saldo imediatamente
             const acc = allAccounts?.find(a => a.id === paymentSource);
             if (acc) {
                 const novoSaldo = (acc.balance || 0) + Math.abs(amountVal);
@@ -88,18 +96,21 @@ export async function salvarTransacao(activeWalletId, currentUser, allCards, all
         } else if (type === 'expense') {
             const card = allCards.find(c => c.id === paymentSource);
             if (card) {
+                // Cartões sempre atualizam a fatura imediatamente (independente da data)
                 const novaFatura = (card.bill || 0) + Math.abs(amountVal);
                 await updateDoc(doc(db, "cards", paymentSource), { bill: novaFatura });
                 showToast(`Fatura do ${card.name} atualizada!`);
             } else {
+                // Para contas bancárias, só desconta se for data passada ou hoje
+                // Se for data futura, será descontado na consolidação
                 const acc = allAccounts?.find(a => a.id === paymentSource);
-                if (acc) {
+                if (acc && isDataPassadaOuHoje) {
                     const novoSaldo = (acc.balance || 0) - Math.abs(amountVal);
                     await updateDoc(doc(db, "accounts", paymentSource), { balance: novoSaldo });
                     showToast(`Saldo da conta ${acc.name} atualizado!`);
                 } else {
                     const debt = allDebts?.find(d => d.id === paymentSource);
-                    if (debt) {
+                    if (debt && isDataPassadaOuHoje) {
                         const novoSaldoDev = (debt.totalBalance || 0) - Math.abs(amountVal);
                         await updateDoc(doc(db, "debts", paymentSource), { totalBalance: Math.max(0, novoSaldoDev) });
                         showToast(`Dívida ${debt.name} abatida!`);
@@ -309,7 +320,8 @@ export async function processarPagamento(activeWalletId, currentUser, allCards, 
             category: 'other',
             source: accountId,
             createdAt: new Date(),
-            isPayment: true
+            isPayment: true,
+            paid: true
         });
 
         const novoSaldoConta = (acc.balance || 0) - Math.abs(amountVal);
@@ -331,6 +343,96 @@ export async function processarPagamento(activeWalletId, currentUser, allCards, 
     } catch (e) {
         console.error(e);
         alert("Erro ao processar pagamento");
+        return false;
+    }
+}
+
+export async function consolidarPagamento(transactionId, allTransactions, allCards, allAccounts) {
+    const trans = allTransactions.find(t => t.id === transactionId);
+    if (!trans) return alert("Transação não encontrada");
+
+    if (trans.paid) return alert("Transação já foi paga!");
+
+    // Verifica se é uma despesa
+    if (trans.amount >= 0) return alert("Apenas despesas podem ser marcadas como pagas!");
+
+    // Verifica se foi paga via cartão de crédito - essas já estão no limite e não devem ser consolidadas
+    const card = allCards.find(c => c.id === trans.source);
+    if (card) {
+        return alert("Transações pagas via cartão de crédito já estão consideradas no limite!");
+    }
+
+    try {
+        // Marca a transação como paga
+        await updateDoc(doc(db, "transactions", transactionId), { paid: true });
+
+        // Abate o valor da conta correspondente
+        const acc = allAccounts.find(a => a.id === trans.source);
+        if (acc) {
+            const novoSaldo = (acc.balance || 0) - Math.abs(trans.amount);
+            await updateDoc(doc(db, "accounts", trans.source), { balance: novoSaldo });
+            showToast(`Pagamento consolidado! Saldo da conta ${acc.name} atualizado.`);
+        } else {
+            // Se não tem conta específica, apenas marca como paga
+            showToast("Pagamento consolidado!");
+        }
+
+        return true;
+    } catch (e) {
+        console.error(e);
+        alert("Erro ao consolidar pagamento");
+        return false;
+    }
+}
+
+export async function consolidarPagamentosEmLote(allTransactions, allCards, allAccounts) {
+    const hoje = new Date();
+    hoje.setHours(0, 0, 0, 0);
+
+    // Filtra transações futuras não pagas que não são via cartão
+    const transacoesParaConsolidar = allTransactions.filter(t => {
+        if (t.paid) return false; // Já paga
+        if (t.amount >= 0) return false; // Não é despesa
+        
+        const dataTransacao = new Date(t.date + 'T00:00:00');
+        if (dataTransacao > hoje) return false; // Ainda é futura
+
+        // Verifica se não é cartão de crédito
+        const card = allCards.find(c => c.id === t.source);
+        if (card) return false; // É cartão, não consolida
+
+        return true;
+    });
+
+    if (transacoesParaConsolidar.length === 0) {
+        return alert("Não há transações pendentes para consolidar!");
+    }
+
+    const confirmacao = confirm(`Consolidar ${transacoesParaConsolidar.length} transação(ões) pendente(s)?\n\nIsso irá marcar como pagas e abater os valores das contas correspondentes.`);
+    if (!confirmacao) return false;
+
+    try {
+        let consolidadas = 0;
+        
+        for (const trans of transacoesParaConsolidar) {
+            // Marca como paga
+            await updateDoc(doc(db, "transactions", trans.id), { paid: true });
+
+            // Abate o valor da conta
+            const acc = allAccounts.find(a => a.id === trans.source);
+            if (acc) {
+                const novoSaldo = (acc.balance || 0) - Math.abs(trans.amount);
+                await updateDoc(doc(db, "accounts", trans.source), { balance: novoSaldo });
+            }
+            
+            consolidadas++;
+        }
+
+        showToast(`${consolidadas} pagamento(s) consolidado(s) com sucesso!`);
+        return true;
+    } catch (e) {
+        console.error(e);
+        alert("Erro ao consolidar pagamentos");
         return false;
     }
 }
