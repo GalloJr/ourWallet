@@ -1,4 +1,6 @@
-const functions = require('firebase-functions');
+const {onCall, HttpsError} = require('firebase-functions/v2/https');
+const {onDocumentCreated} = require('firebase-functions/v2/firestore');
+const {onSchedule} = require('firebase-functions/v2/scheduler');
 const admin = require('firebase-admin');
 admin.initializeApp();
 
@@ -8,38 +10,38 @@ const db = admin.firestore();
  * Valida operação financeira
  * Chamada antes de qualquer atualização de saldo crítica
  */
-exports.validateFinancialOperation = functions.https.onCall(async (data, context) => {
+exports.validateFinancialOperation = onCall(async (request) => {
   // Verificar autenticação
-  if (!context.auth) {
-    throw new functions.https.HttpsError('unauthenticated', 'Usuário não autenticado');
+  if (!request.auth) {
+    throw new HttpsError('unauthenticated', 'Usuário não autenticado');
   }
 
-  const { type, amount, accountId, walletId } = data;
+  const { type, amount, accountId, walletId } = request.data;
 
   // Validações básicas
   if (!type || !['credit', 'debit'].includes(type)) {
-    throw new functions.https.HttpsError('invalid-argument', 'Tipo de operação inválido');
+    throw new HttpsError('invalid-argument', 'Tipo de operação inválido');
   }
 
   if (typeof amount !== 'number' || amount <= 0 || amount > 1000000) {
-    throw new functions.https.HttpsError('invalid-argument', 'Valor inválido');
+    throw new HttpsError('invalid-argument', 'Valor inválido');
   }
 
   if (!accountId || typeof accountId !== 'string') {
-    throw new functions.https.HttpsError('invalid-argument', 'ID da conta inválido');
+    throw new HttpsError('invalid-argument', 'ID da conta inválido');
   }
 
   // Verificar se usuário tem permissão na carteira
-  const userDoc = await db.collection('users').doc(context.auth.uid).get();
+  const userDoc = await db.collection('users').doc(request.auth.uid).get();
   if (!userDoc.exists) {
-    throw new functions.https.HttpsError('not-found', 'Usuário não encontrado');
+    throw new HttpsError('not-found', 'Usuário não encontrado');
   }
 
   const userData = userDoc.data();
-  const activeWalletId = userData.linkedWalletId || context.auth.uid;
+  const activeWalletId = userData.linkedWalletId || request.auth.uid;
 
   if (walletId && activeWalletId !== walletId) {
-    throw new functions.https.HttpsError('permission-denied', 'Sem permissão para esta carteira');
+    throw new HttpsError('permission-denied', 'Sem permissão para esta carteira');
   }
 
   return { valid: true, message: 'Operação validada' };
@@ -48,19 +50,19 @@ exports.validateFinancialOperation = functions.https.onCall(async (data, context
 /**
  * Atualiza saldo de forma atômica usando transação
  */
-exports.updateAccountBalance = functions.https.onCall(async (data, context) => {
-  if (!context.auth) {
-    throw new functions.https.HttpsError('unauthenticated', 'Usuário não autenticado');
+exports.updateAccountBalance = onCall(async (request) => {
+  if (!request.auth) {
+    throw new HttpsError('unauthenticated', 'Usuário não autenticado');
   }
 
-  const { accountId, amount, operation } = data;
+  const { accountId, amount, operation } = request.data;
 
   if (!accountId || typeof amount !== 'number') {
-    throw new functions.https.HttpsError('invalid-argument', 'Parâmetros inválidos');
+    throw new HttpsError('invalid-argument', 'Parâmetros inválidos');
   }
 
   if (!['add', 'subtract'].includes(operation)) {
-    throw new functions.https.HttpsError('invalid-argument', 'Operação inválida');
+    throw new HttpsError('invalid-argument', 'Operação inválida');
   }
 
   try {
@@ -93,70 +95,68 @@ exports.updateAccountBalance = functions.https.onCall(async (data, context) => {
 
     return result;
   } catch (error) {
-    throw new functions.https.HttpsError('internal', error.message);
+    throw new HttpsError('internal', error.message);
   }
 });
 
 /**
  * Trigger: Log de auditoria para operações financeiras
  */
-exports.auditFinancialChanges = functions.firestore
-  .document('transactions/{transactionId}')
-  .onCreate(async (snap, context) => {
-    const transaction = snap.data();
-    
-    // Criar log de auditoria
-    await db.collection('audit_logs').add({
-      action: 'transaction_created',
-      transactionId: context.params.transactionId,
-      userId: transaction.owner,
-      walletId: transaction.uid,
-      amount: transaction.amount,
-      timestamp: admin.firestore.FieldValue.serverTimestamp(),
-      metadata: {
-        category: transaction.category,
-        source: transaction.source
-      }
-    });
+exports.auditFinancialChanges = onDocumentCreated('transactions/{transactionId}', async (event) => {
+  const transaction = event.data.data();
+  const transactionId = event.params.transactionId;
+  
+  // Criar log de auditoria
+  await db.collection('audit_logs').add({
+    action: 'transaction_created',
+    transactionId: transactionId,
+    userId: transaction.owner,
+    walletId: transaction.uid,
+    amount: transaction.amount,
+    timestamp: admin.firestore.FieldValue.serverTimestamp(),
+    metadata: {
+      category: transaction.category,
+      source: transaction.source
+    }
   });
+});
 
 /**
  * Trigger: Validar transação antes de criar
  */
-exports.validateTransaction = functions.firestore
-  .document('transactions/{transactionId}')
-  .onCreate(async (snap, context) => {
-    const transaction = snap.data();
+exports.validateTransaction = onDocumentCreated('transactions/{transactionId}', async (event) => {
+  const transaction = event.data.data();
+  const transactionId = event.params.transactionId;
+  
+  // Validações adicionais
+  if (Math.abs(transaction.amount) > 1000000) {
+    // Valor suspeito - marcar para revisão
+    await event.data.ref.update({
+      flaggedForReview: true,
+      flagReason: 'Valor excepcionalmente alto'
+    });
     
-    // Validações adicionais
-    if (Math.abs(transaction.amount) > 1000000) {
-      // Valor suspeito - marcar para revisão
-      await snap.ref.update({
-        flaggedForReview: true,
-        flagReason: 'Valor excepcionalmente alto'
-      });
-      
-      // Notificar admin (aqui você pode adicionar envio de email)
-      console.warn(`Transação ${context.params.transactionId} marcada para revisão`);
-    }
-  });
+    // Notificar admin (aqui você pode adicionar envio de email)
+    console.warn(`Transação ${transactionId} marcada para revisão`);
+  }
+});
 
 /**
  * Função para processar pagamentos em lote com segurança
  */
-exports.batchConsolidatePayments = functions.https.onCall(async (data, context) => {
-  if (!context.auth) {
-    throw new functions.https.HttpsError('unauthenticated', 'Usuário não autenticado');
+exports.batchConsolidatePayments = onCall(async (request) => {
+  if (!request.auth) {
+    throw new HttpsError('unauthenticated', 'Usuário não autenticado');
   }
 
-  const { transactionIds, walletId } = data;
+  const { transactionIds, walletId } = request.data;
 
   if (!Array.isArray(transactionIds) || transactionIds.length === 0) {
-    throw new functions.https.HttpsError('invalid-argument', 'Lista de transações inválida');
+    throw new HttpsError('invalid-argument', 'Lista de transações inválida');
   }
 
   if (transactionIds.length > 100) {
-    throw new functions.https.HttpsError('invalid-argument', 'Máximo 100 transações por lote');
+    throw new HttpsError('invalid-argument', 'Máximo 100 transações por lote');
   }
 
   try {
@@ -171,7 +171,7 @@ exports.batchConsolidatePayments = functions.https.onCall(async (data, context) 
         batch.update(transRef, { 
           paid: true,
           paidAt: admin.firestore.FieldValue.serverTimestamp(),
-          paidBy: context.auth.uid
+          paidBy: request.auth.uid
         });
         results.push({ id: transId, success: true });
       } else {
@@ -182,14 +182,14 @@ exports.batchConsolidatePayments = functions.https.onCall(async (data, context) 
     await batch.commit();
     return { results, totalProcessed: results.filter(r => r.success).length };
   } catch (error) {
-    throw new functions.https.HttpsError('internal', error.message);
+    throw new HttpsError('internal', error.message);
   }
 });
 
 /**
  * Limpeza automática de dados antigos (executar mensalmente)
  */
-exports.cleanupOldData = functions.pubsub.schedule('0 0 1 * *').onRun(async (context) => {
+exports.cleanupOldData = onSchedule('0 0 1 * *', async (event) => {
   const sixMonthsAgo = new Date();
   sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 6);
 
