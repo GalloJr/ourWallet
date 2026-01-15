@@ -32,42 +32,111 @@ service cloud.firestore {
       return (resource != null) ? resource.data.uid : request.resource.data.uid;
     }
 
+    // Helper: Validação de string
+    function isValidString(value, minLen, maxLen) {
+      return value is string && value.size() >= minLen && value.size() <= maxLen;
+    }
+
+    // Helper: Validação de número monetário
+    function isValidMoney(value) {
+      return value is number && value >= -1000000 && value <= 1000000;
+    }
+
+    // Helper: Validação de data
+    function isValidDate(value) {
+      return value is string && value.matches('[0-9]{4}-[0-9]{2}-[0-9]{2}');
+    }
+
     // Regras para a coleção de usuários
     match /users/{userId} {
       allow get: if request.auth != null;
       allow list: if isAdmin();
-      allow create: if request.auth != null && request.auth.uid == userId;
+      allow create: if request.auth != null && 
+                       request.auth.uid == userId &&
+                       request.resource.data.keys().hasAll(['displayName', 'email']) &&
+                       isValidString(request.resource.data.displayName, 1, 100) &&
+                       isValidString(request.resource.data.email, 5, 255);
       allow update: if request.auth != null && (
         isAdmin() || 
-        (request.auth.uid == userId && !request.resource.data.diff(resource.data).affectedKeys().hasAny(['isPremium', 'isAdmin']))
+        (request.auth.uid == userId && 
+         !request.resource.data.diff(resource.data).affectedKeys().hasAny(['isPremium', 'isAdmin']) &&
+         (!request.resource.data.diff(resource.data).affectedKeys().hasAny(['displayName']) || 
+          isValidString(request.resource.data.displayName, 1, 100)))
       );
     }
 
-    // Regras para Transações, Contas e Cartões
+    // Regras para Transações com validações
     match /transactions/{tId} {
-      allow read, write: if isWalletMember(dataOwner());
+      allow read: if isWalletMember(dataOwner());
+      allow create: if isWalletMember(request.resource.data.uid) &&
+                       request.resource.data.keys().hasAll(['uid', 'owner', 'desc', 'amount', 'date', 'category', 'source']) &&
+                       isValidString(request.resource.data.desc, 1, 255) &&
+                       isValidMoney(request.resource.data.amount) &&
+                       isValidDate(request.resource.data.date) &&
+                       isValidString(request.resource.data.category, 1, 50) &&
+                       isValidString(request.resource.data.source, 1, 100);
+      allow update: if isWalletMember(resource.data.uid) &&
+                       isValidString(request.resource.data.desc, 1, 255) &&
+                       isValidMoney(request.resource.data.amount) &&
+                       isValidDate(request.resource.data.date);
+      allow delete: if isWalletMember(resource.data.uid);
     }
 
+    // Regras para Contas com validações
     match /accounts/{accId} {
-      allow read, write: if isWalletMember(dataOwner()) || isAdmin();
+      allow read: if isWalletMember(dataOwner()) || isAdmin();
+      allow create: if isWalletMember(request.resource.data.uid) &&
+                       request.resource.data.keys().hasAll(['uid', 'name', 'balance']) &&
+                       isValidString(request.resource.data.name, 1, 100) &&
+                       isValidMoney(request.resource.data.balance);
+      allow update: if isWalletMember(resource.data.uid) &&
+                       isValidString(request.resource.data.name, 1, 100) &&
+                       isValidMoney(request.resource.data.balance);
+      allow delete: if isWalletMember(resource.data.uid) || isAdmin();
     }
 
+    // Regras para Cartões com validações
     match /cards/{cardId} {
-      allow read, write: if isWalletMember(dataOwner()) || isAdmin();
+      allow read: if isWalletMember(dataOwner()) || isAdmin();
+      allow create: if isWalletMember(request.resource.data.uid) &&
+                       request.resource.data.keys().hasAll(['uid', 'name', 'bill']) &&
+                       isValidString(request.resource.data.name, 1, 100) &&
+                       isValidMoney(request.resource.data.bill) &&
+                       request.resource.data.bill >= 0;
+      allow update: if isWalletMember(resource.data.uid) &&
+                       isValidString(request.resource.data.name, 1, 100) &&
+                       isValidMoney(request.resource.data.bill) &&
+                       request.resource.data.bill >= 0;
+      allow delete: if isWalletMember(resource.data.uid) || isAdmin();
     }
 
     // Regras para Metas e Dívidas (Requer Premium/Trial na carteira ativa)
     match /goals/{goalId} {
-      allow read, write: if isWalletMember(dataOwner()) && isPremium(dataOwner());
+      allow read: if isWalletMember(dataOwner()) && isPremium(dataOwner());
+      allow create: if isWalletMember(request.resource.data.uid) && 
+                       isPremium(request.resource.data.uid) &&
+                       request.resource.data.keys().hasAll(['title', 'target', 'current']) &&
+                       isValidString(request.resource.data.title, 1, 100) &&
+                       isValidMoney(request.resource.data.target) &&
+                       isValidMoney(request.resource.data.current);
+      allow update, delete: if isWalletMember(resource.data.uid) && isPremium(resource.data.uid);
     }
 
     match /debts/{debtId} {
-      allow read, write: if isWalletMember(dataOwner()) && isPremium(dataOwner());
+      allow read: if isWalletMember(dataOwner()) && isPremium(dataOwner());
+      allow create: if isWalletMember(request.resource.data.uid) && 
+                       isPremium(request.resource.data.uid) &&
+                       request.resource.data.keys().hasAll(['name', 'totalBalance']) &&
+                       isValidString(request.resource.data.name, 1, 100) &&
+                       isValidMoney(request.resource.data.totalBalance) &&
+                       request.resource.data.totalBalance >= 0;
+      allow update, delete: if isWalletMember(resource.data.uid) && isPremium(resource.data.uid);
     }
 
     // Regras para Pedidos Premium
     match /premium_requests/{requestId} {
-      allow create: if request.auth != null;
+      allow create: if request.auth != null &&
+                       request.resource.data.keys().hasAll(['userId', 'createdAt']);
       allow read, update, delete: if isAdmin();
     }
   }

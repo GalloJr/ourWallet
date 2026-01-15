@@ -1,6 +1,7 @@
 import { db, collection, addDoc, updateDoc, deleteDoc, doc, onSnapshot, query, where } from '../firebase.js';
 import { renderGoals } from './ui.js';
-import { limparValorMoeda, showToast } from './utils.js';
+import { limparValorMoeda } from './utils.js';
+import { showToast } from './dialogs.js';
 
 export function setupGoals(uid, goalsContainer) {
     const q = query(collection(db, "goals"), where("uid", "==", uid));

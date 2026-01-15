@@ -1,7 +1,8 @@
 import { db, collection, addDoc, updateDoc, deleteDoc, doc, onSnapshot, query, where } from '../firebase.js';
 import { renderCards } from './ui.js';
 import { colorStyles, flagLogos } from './constants.js';
-import { limparValorMoeda, showToast } from './utils.js';
+import { limparValorMoeda } from './utils.js';
+import { showToast } from './dialogs.js';
 
 export function setupCards(uid, cardsContainer, sourceSelect, onCardsLoaded) {
     const q = query(collection(db, "cards"), where("uid", "==", uid));

@@ -1,6 +1,7 @@
 import { db, storage, ref, uploadBytes, getDownloadURL, collection, addDoc, updateDoc, deleteDoc, doc, onSnapshot, query, where } from '../firebase.js';
 import { categoryConfig } from './constants.js';
-import { limparValorMoeda, showToast, formatarData } from './utils.js';
+import { limparValorMoeda, formatarData } from './utils.js';
+import { showToast } from './dialogs.js';
 
 export function setupTransactions(uid, onTransactionsLoaded) {
     const q = query(collection(db, "transactions"), where("uid", "==", uid));

@@ -3,13 +3,13 @@ import { setupAuth, configurarWallet } from "./modules/auth.js";
 import { setupCards, salvarCartao, editarCartao, deletarCartao } from "./modules/cards.js";
 import { setupTransactions, salvarTransacao, editarTransacao, deletarTransacao, exportarCSV, consolidarPagamento, consolidarPagamentosEmLote } from "./modules/transactions.js";
 import { setupGoals, salvarMeta, deletarMeta } from "./modules/goals.js";
-import { setupAccounts, salvarConta, editarConta, deletarConta } from "./modules/accounts.js";
-import { setupDebts, salvarDivida, editarDivida, deletarDivida } from "./modules/debts.js";
+import { setupAccounts, salvarConta, editarConta } from "./modules/accounts.js";
+import { setupDebts, salvarDivida, editarDivida } from "./modules/debts.js";
 import { updateThemeIcon, toggleLoading, popularSeletorMeses, renderCharts, renderList, renderValues, renderCards, renderAccounts, renderDebts, renderGoals } from "./modules/ui.js";
-import { formatarMoedaInput, limparValorMoeda, formatarData, showToast } from "./modules/utils.js";
-import { colorStyles, flagLogos } from "./modules/constants.js";
+import { formatarMoedaInput, formatarData } from "./modules/utils.js";
 import { processarPagamento } from "./modules/transactions.js";
 import { collection, addDoc, onSnapshot, query, where, updateDoc } from "./firebase.js";
+import { showToast } from "./modules/dialogs.js";
 
 // Global variables to maintain compatibility with DOM event listeners
 window.formatarMoedaInput = formatarMoedaInput;

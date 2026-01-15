@@ -1,7 +1,8 @@
 import { db, collection, addDoc, updateDoc, deleteDoc, doc, onSnapshot, query, where } from '../firebase.js';
 import { renderAccounts } from './ui.js';
 import { colorStyles } from './constants.js';
-import { limparValorMoeda, showToast } from './utils.js';
+import { limparValorMoeda } from './utils.js';
+import { showToast } from './dialogs.js';
 
 export function setupAccounts(uid, accountsContainer, sourceSelect, onAccountsLoaded) {
     const q = query(collection(db, "accounts"), where("uid", "==", uid));

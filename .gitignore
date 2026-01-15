@@ -64,6 +64,50 @@ node_modules/
 
 # dotenv environment variables file
 .env
+.env.local
+.env.production
 
 # dataconnect generated files
 .dataconnect
+
+# Security - NUNCA COMMITAR
+firebase-adminsdk-*.json
+google-credentials.json
+service-account-*.json
+credentials/
+secrets/
+*.secret
+*.key
+
+# Backups
+backups/
+*.backup
+*.bak
+
+# IDEs
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Functions
+functions/node_modules/
+functions/.env
+functions/lib/
+
+# Testing
+coverage/
+.nyc_output/
+
+# Temporary
+tmp/
+temp/
+*.tmp
+.local/
+local-config.js
