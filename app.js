@@ -8,6 +8,7 @@ import { setupDebts, salvarDivida, editarDivida } from "./modules/debts.js";
 import { updateThemeIcon, toggleLoading, popularSeletorMeses, renderCharts, renderList, renderValues, renderCards, renderAccounts, renderDebts, renderGoals } from "./modules/ui.js";
 import { formatarMoedaInput, formatarData, limparValorMoeda } from "./modules/utils.js";
 import { processarPagamento } from "./modules/transactions.js";
+import { gerarRelatorioMensalIA } from "./modules/reports.js";
 import { collection, addDoc, onSnapshot, query, where, updateDoc } from "./firebase.js";
 import { showToast } from "./modules/dialogs.js";
 import { initErrorLogger } from "./modules/errorLogger.js";
@@ -16,6 +17,7 @@ import { setupNavigation, navigateToSection, renderSectionContent } from "./modu
 // Global variables to maintain compatibility with DOM event listeners
 window.formatarMoedaInput = formatarMoedaInput;
 window.exportarCSV = () => exportarCSV(appState.filteredTrans, appState.cards, appState.accounts);
+window.gerarRelatorio = () => gerarRelatorio();
 window.consolidarPagamento = (id) => consolidarPagamento(id, appState.transactions, appState.cards, appState.accounts);
 window.consolidarPagamentosEmLote = () => consolidarPagamentosEmLote(appState.transactions, appState.cards, appState.accounts);
 window.abrirModalCartao = () => document.getElementById('card-modal').classList.remove('hidden');
@@ -627,6 +629,7 @@ function atualizarUIPremium() {
     const debtsLock = document.getElementById('debts-premium-lock');
     const csvLock = document.getElementById('csv-premium-lock');
     const exportBtn = document.getElementById('export-btn');
+    const reportBtn = document.getElementById('report-btn');
     const addGoalBtn = document.getElementById('add-goal-btn');
 
     if (appState.access === 1 || appState.isAdmin) {
@@ -638,6 +641,10 @@ function atualizarUIPremium() {
             exportBtn.classList.remove('opacity-50', 'pointer-events-none');
             exportBtn.title = "Exportar CSV";
         }
+        if (reportBtn) {
+            reportBtn.disabled = false;
+            reportBtn.title = "Gerar Relatório Financeiro com IA";
+        }
         if (addGoalBtn) addGoalBtn.classList.remove('hidden');
     } else {
         if (upgradeBtn) upgradeBtn.classList.remove('hidden');
@@ -648,6 +655,10 @@ function atualizarUIPremium() {
             exportBtn.classList.add('opacity-50', 'pointer-events-none');
             exportBtn.title = "Disponível no Premium";
             if (csvLock) csvLock.classList.remove('hidden');
+        }
+        if (reportBtn) {
+            reportBtn.disabled = true;
+            reportBtn.title = "Relatório com IA - Exclusivo Premium";
         }
         if (addGoalBtn) addGoalBtn.classList.add('hidden');
 
@@ -928,6 +939,31 @@ function renderSummary() {
     // Update section content when data changes
     const event = new CustomEvent('section-changed', { detail: { section: 'current' } });
     window.dispatchEvent(event);
+}
+
+// Função para gerar relatório com IA
+async function gerarRelatorio() {
+    // Verifica se é premium
+    if (!appState.access || appState.access === 0) {
+        window.abrirModalPremium();
+        showToast("⭐ Relatórios com IA são exclusivos para Premium");
+        return;
+    }
+    
+    // Pega mês/ano atual do filtro
+    const mesAnoFiltro = monthFilter.value; // formato: "2026-01"
+    const [ano, mes] = mesAnoFiltro.split('-').map(Number);
+    
+    // Gera relatório
+    await gerarRelatorioMensalIA(
+        appState.transactions,
+        appState.cards,
+        appState.accounts,
+        appState.goals,
+        mes,
+        ano,
+        appState.user?.displayName || 'Usuário'
+    );
 }
 
 // Auxiliares de Cópia
