@@ -514,7 +514,6 @@ Contribuições são bem-vindas! Para contribuir:
 
 ### Em Desenvolvimento
 
-- [ ] Relatórios PDF exportáveis
 - [ ] Notificações push de vencimentos
 - [ ] Dashboard de investimentos
 

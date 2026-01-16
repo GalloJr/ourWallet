@@ -460,3 +460,111 @@ export function renderGoals(goals, goalsContainer, deleteGoalCallback) {
         sectionContainer.innerHTML = goalsContainer.innerHTML;
     }
 }
+
+export function renderInvestments(investments, container, editCallback, deleteCallback) {
+    if (!container) return;
+    container.innerHTML = '';
+
+    if (investments.length === 0) {
+        container.innerHTML = `
+            <div class="col-span-full p-8 border-2 border-dashed border-gray-200 dark:border-gray-800 rounded-2xl text-center bg-gray-50/50 dark:bg-gray-900/20">
+                <i data-lucide="trending-up" class="w-12 h-12 mx-auto text-gray-300 dark:text-gray-600 mb-2"></i>
+                <p class="text-gray-400 text-sm">Nenhum investimento cadastrado</p>
+            </div>
+        `;
+        if (window.lucide) lucide.createIcons();
+        return;
+    }
+
+    const colorMap = {
+        blue: { from: 'blue-500', to: 'blue-700' },
+        green: { from: 'emerald-500', to: 'emerald-700' },
+        purple: { from: 'purple-500', to: 'purple-700' },
+        yellow: { from: 'yellow-500', to: 'yellow-700' },
+        red: { from: 'red-500', to: 'red-700' },
+        indigo: { from: 'indigo-500', to: 'indigo-700' }
+    };
+
+    const typeLabels = {
+        'renda-fixa': 'Renda Fixa',
+        'renda-variavel': 'Renda Variável',
+        'cripto': 'Criptomoedas',
+        'imoveis': 'Imóveis',
+        'fundos': 'Fundos'
+    };
+
+    investments.forEach(inv => {
+        const colors = colorMap[inv.color] || colorMap.blue;
+        const rendimento = inv.currentValue - inv.amount;
+        const rentabilidade = inv.amount > 0 ? ((rendimento / inv.amount) * 100) : 0;
+        const isPositive = rendimento >= 0;
+        const typeLabel = typeLabels[inv.type] || inv.type;
+
+        const investmentHtml = `
+            <div class="bg-gradient-to-br from-${colors.from} to-${colors.to} rounded-2xl p-5 text-white shadow-lg hover:scale-105 transition duration-300 relative overflow-hidden">
+                <div class="absolute right-0 top-0 opacity-10 transform translate-x-4 -translate-y-4">
+                    <i data-lucide="trending-up" class="w-24 h-24"></i>
+                </div>
+                <div class="relative z-10">
+                    <div class="flex justify-between items-start mb-3">
+                        <div class="flex-1">
+                            <h3 class="font-bold text-lg mb-1 truncate">${inv.name}</h3>
+                            <p class="text-xs opacity-80 flex items-center gap-1">
+                                <i data-lucide="briefcase" class="w-3 h-3"></i>
+                                ${typeLabel}
+                            </p>
+                        </div>
+                        <div class="flex gap-1">
+                            <button onclick="window.editarInvHandler('${inv.id}')" 
+                                class="p-1.5 bg-white/20 hover:bg-white/30 rounded-lg transition" 
+                                title="Editar">
+                                <i data-lucide="edit-2" class="w-3 h-3"></i>
+                            </button>
+                            <button onclick="window.deletarInvestimento('${inv.id}', '${inv.name.replace(/'/g, "\\'")}')" 
+                                class="p-1.5 bg-white/20 hover:bg-white/30 rounded-lg transition" 
+                                title="Deletar">
+                                <i data-lucide="trash-2" class="w-3 h-3"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="space-y-2 mb-3">
+                        <div class="flex justify-between text-sm">
+                            <span class="opacity-80">Investido:</span>
+                            <span class="font-bold">R$ ${inv.amount.toFixed(2).replace('.', ',')}</span>
+                        </div>
+                        <div class="flex justify-between text-sm">
+                            <span class="opacity-80">Valor Atual:</span>
+                            <span class="font-bold">R$ ${inv.currentValue.toFixed(2).replace('.', ',')}</span>
+                        </div>
+                    </div>
+                    <div class="pt-3 border-t border-white/20">
+                        <div class="flex justify-between items-center">
+                            <div>
+                                <p class="text-xs opacity-80 mb-1">Rendimento</p>
+                                <p class="font-bold text-lg ${isPositive ? 'text-white' : 'text-red-200'}">
+                                    ${isPositive ? '+' : ''}R$ ${rendimento.toFixed(2).replace('.', ',')}
+                                </p>
+                            </div>
+                            <div class="text-right">
+                                <p class="text-xs opacity-80 mb-1">Rentabilidade</p>
+                                <p class="font-bold text-lg ${isPositive ? 'text-white' : 'text-red-200'}">
+                                    ${isPositive ? '+' : ''}${rentabilidade.toFixed(2)}%
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+        container.innerHTML += investmentHtml;
+    });
+
+    if (window.lucide) lucide.createIcons();
+    window.deletarInvestimento = deleteCallback;
+
+    // Sync with section container
+    const sectionContainer = document.getElementById('investments-container-section');
+    if (sectionContainer) {
+        sectionContainer.innerHTML = container.innerHTML;
+    }
+}

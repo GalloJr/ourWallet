@@ -5,7 +5,8 @@ import { setupTransactions, salvarTransacao, editarTransacao, deletarTransacao, 
 import { setupGoals, salvarMeta, deletarMeta } from "./modules/goals.js";
 import { setupAccounts, salvarConta, editarConta } from "./modules/accounts.js";
 import { setupDebts, salvarDivida, editarDivida } from "./modules/debts.js";
-import { updateThemeIcon, toggleLoading, popularSeletorMeses, renderCharts, renderList, renderValues, renderCards, renderAccounts, renderDebts, renderGoals } from "./modules/ui.js";
+import { setupInvestments, salvarInvestimento, editarInvestimento, deletarInvestimento, popularFormularioEdicao, calcularEstatisticasInvestimentos } from "./modules/investments.js";
+import { updateThemeIcon, toggleLoading, popularSeletorMeses, renderCharts, renderList, renderValues, renderCards, renderAccounts, renderDebts, renderGoals, renderInvestments } from "./modules/ui.js";
 import { formatarMoedaInput, formatarData, limparValorMoeda } from "./modules/utils.js";
 import { processarPagamento } from "./modules/transactions.js";
 import { gerarRelatorioMensalIA } from "./modules/reports.js";
@@ -28,6 +29,11 @@ window.fecharModalFamilia = () => document.getElementById('family-modal').classL
 window.fecharModal = () => document.getElementById('edit-modal').classList.add('hidden');
 window.abrirModalMeta = () => document.getElementById('goal-modal').classList.remove('hidden');
 window.fecharModalMeta = () => document.getElementById('goal-modal').classList.add('hidden');
+window.abrirModalInvestimento = () => document.getElementById('investimento-modal').classList.remove('hidden');
+window.fecharModalInvestimento = () => document.getElementById('investimento-modal').classList.add('hidden');
+window.abrirEditModalInvestimento = () => document.getElementById('edit-investimento-modal').classList.remove('hidden');
+window.fecharEditModalInvestimento = () => document.getElementById('edit-investimento-modal').classList.add('hidden');
+window.navigateToSection = (section) => navigateToSection(section);
 window.abrirModalConta = () => document.getElementById('account-modal').classList.remove('hidden');
 window.fecharModalConta = () => document.getElementById('account-modal').classList.add('hidden');
 window.fecharModalEdicaoConta = () => document.getElementById('edit-account-modal').classList.add('hidden');
@@ -98,12 +104,13 @@ const appState = {
     transactions: [],
     filteredTrans: [],
     cards: [],
+    investments: [],
     accounts: [],
     debts: [],
     goals: [],
     access: 0, // 0: Free, 1: Premium
     isAdmin: false,
-    _u: { t: null, c: null, a: null, d: null, g: null } // Unsubscribers
+    _u: { t: null, c: null, a: null, d: null, g: null, i: null } // Unsubscribers (i = investments)
 };
 
 // Register Service Worker and Handle PWA Install
@@ -358,6 +365,11 @@ setupAuth(loginBtn, logoutBtn, appScreen, loginScreen, userNameDisplay, async (u
             popularHistorySourceFilter();
         });
 
+        appState._u.i = setupInvestments(appState.walletId, document.getElementById('investments-container'), (investments) => {
+            appState.investments = investments;
+            atualizarEstatisticasInvestimentos(investments);
+        });
+
         appState._u.g = setupGoals(appState.walletId, goalsContainer);
 
         // Setup navigation
@@ -426,6 +438,36 @@ goalForm.addEventListener('submit', async (e) => {
     e.preventDefault();
     await salvarMeta(appState.walletId, goalForm, window.fecharModalMeta);
 });
+
+// Investment Form
+const investimentoForm = document.getElementById('investimento-form');
+if (investimentoForm) {
+    investimentoForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        if (appState.access === 0) {
+            return window.abrirModalPremium();
+        }
+        await salvarInvestimento(appState.walletId, investimentoForm, window.fecharModalInvestimento);
+    });
+}
+
+// Edit Investment Form
+const editInvestimentoForm = document.getElementById('edit-investimento-form');
+if (editInvestimentoForm) {
+    editInvestimentoForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        await editarInvestimento(editInvestimentoForm, window.fecharEditModalInvestimento);
+    });
+}
+
+// Investment edit handler
+window.editarInvHandler = (id) => {
+    const investment = appState.investments.find(inv => inv.id === id);
+    if (investment) {
+        popularFormularioEdicao(investment);
+        window.abrirEditModalInvestimento();
+    }
+};
 
 // Edit Card Form
 editCardForm.addEventListener('submit', async (e) => {
@@ -631,6 +673,7 @@ function atualizarUIPremium() {
     const exportBtn = document.getElementById('export-btn');
     const reportBtn = document.getElementById('report-btn');
     const addGoalBtn = document.getElementById('add-goal-btn');
+    const addInvestmentBtn = document.getElementById('add-investment-btn-section');
 
     if (appState.access === 1 || appState.isAdmin) {
         if (upgradeBtn) upgradeBtn.classList.add('hidden');
@@ -646,6 +689,7 @@ function atualizarUIPremium() {
             reportBtn.title = "Gerar Relatório Financeiro com IA";
         }
         if (addGoalBtn) addGoalBtn.classList.remove('hidden');
+        if (addInvestmentBtn) addInvestmentBtn.classList.remove('hidden');
     } else {
         if (upgradeBtn) upgradeBtn.classList.remove('hidden');
         if (goalsLock) goalsLock.classList.remove('hidden');
@@ -661,10 +705,13 @@ function atualizarUIPremium() {
             reportBtn.title = "Relatório com IA - Exclusivo Premium";
         }
         if (addGoalBtn) addGoalBtn.classList.add('hidden');
+        if (addInvestmentBtn) addInvestmentBtn.classList.add('hidden');
 
         // Esconde conteúdo se não for premium
         const goalsCont = document.getElementById('goals-container');
         const debtsCont = document.getElementById('debts-container');
+        const investCont = document.getElementById('investments-container');
+        
         if (goalsCont) goalsCont.innerHTML = `
             <div class="col-span-full p-8 border-2 border-dashed border-gray-200 dark:border-gray-800 rounded-2xl text-center bg-gray-50/50 dark:bg-gray-900/20">
                 <p class="text-gray-400 text-sm">Funcionalidade Premium</p>
@@ -673,6 +720,13 @@ function atualizarUIPremium() {
         `;
         if (debtsCont) debtsCont.innerHTML = `
             <div class="min-w-full p-8 border-2 border-dashed border-gray-200 dark:border-gray-800 rounded-2xl text-center bg-gray-50/50 dark:bg-gray-900/20">
+                <p class="text-gray-400 text-sm">Funcionalidade Premium</p>
+                <button onclick="abrirModalPremium()" class="mt-2 text-indigo-500 font-bold text-xs hover:underline">Saiba mais</button>
+            </div>
+        `;
+        if (investCont) investCont.innerHTML = `
+            <div class="col-span-full p-8 border-2 border-dashed border-gray-200 dark:border-gray-800 rounded-2xl text-center bg-gray-50/50 dark:bg-gray-900/20">
+                <i data-lucide="trending-up" class="w-12 h-12 mx-auto text-gray-300 dark:text-gray-600 mb-2"></i>
                 <p class="text-gray-400 text-sm">Funcionalidade Premium</p>
                 <button onclick="abrirModalPremium()" class="mt-2 text-indigo-500 font-bold text-xs hover:underline">Saiba mais</button>
             </div>
@@ -939,6 +993,60 @@ function renderSummary() {
     // Update section content when data changes
     const event = new CustomEvent('section-changed', { detail: { section: 'current' } });
     window.dispatchEvent(event);
+}
+
+// Função para atualizar estatísticas de investimentos
+function atualizarEstatisticasInvestimentos(investments) {
+    const stats = calcularEstatisticasInvestimentos(investments);
+    
+    // Atualiza painel de estatísticas na seção de investimentos
+    const invStatInvested = document.getElementById('inv-stat-invested');
+    const invStatCurrent = document.getElementById('inv-stat-current');
+    const invStatProfit = document.getElementById('inv-stat-profit');
+    const invStatPercentage = document.getElementById('inv-stat-percentage');
+    
+    if (invStatInvested) invStatInvested.textContent = `R$ ${stats.totalInvestido.toFixed(2).replace('.', ',')}`;
+    if (invStatCurrent) invStatCurrent.textContent = `R$ ${stats.totalAtual.toFixed(2).replace('.', ',')}`;
+    
+    if (invStatProfit) {
+        const isPositive = stats.lucro >= 0;
+        invStatProfit.textContent = `${isPositive ? '+' : ''}R$ ${stats.lucro.toFixed(2).replace('.', ',')}`;
+        invStatProfit.className = `text-2xl font-bold ${isPositive ? 'text-emerald-600 dark:text-emerald-400' : 'text-red-600 dark:text-red-400'}`;
+    }
+    
+    if (invStatPercentage) {
+        const isPositive = stats.rentabilidade >= 0;
+        invStatPercentage.textContent = `${isPositive ? '+' : ''}${stats.rentabilidade.toFixed(2)}%`;
+        invStatPercentage.className = `text-2xl font-bold ${isPositive ? 'text-emerald-600 dark:text-emerald-400' : 'text-red-600 dark:text-red-400'}`;
+    }
+    
+    // Atualiza widget no dashboard
+    const invTotal = document.getElementById('investments-total');
+    const invProfit = document.getElementById('investments-profit');
+    const invPercentage = document.getElementById('investments-percentage');
+    
+    if (invTotal) invTotal.textContent = `R$ ${stats.totalAtual.toFixed(2).replace('.', ',')}`;
+    
+    if (invProfit) {
+        const isPositive = stats.lucro >= 0;
+        invProfit.textContent = `${isPositive ? '+' : ''}R$ ${stats.lucro.toFixed(2).replace('.', ',')}`;
+    }
+    
+    if (invPercentage) {
+        const isPositive = stats.rentabilidade >= 0;
+        invPercentage.textContent = `${isPositive ? '+' : ''}${stats.rentabilidade.toFixed(2)}%`;
+        invPercentage.className = `text-xs font-bold ${isPositive ? 'text-white' : 'text-red-200'}`;
+    }
+    
+    // Oculta widget se não houver investimentos
+    const widget = document.getElementById('investments-widget');
+    if (widget) {
+        if (stats.quantidade === 0) {
+            widget.style.display = 'none';
+        } else {
+            widget.style.display = 'block';
+        }
+    }
 }
 
 // Função para gerar relatório com IA

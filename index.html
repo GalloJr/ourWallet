@@ -1428,6 +1428,9 @@
                 <button id="nav-debts" class="nav-tab px-6 py-3 rounded-lg font-bold text-sm transition-all flex items-center gap-2 whitespace-nowrap">
                     <i data-lucide="trending-down" class="w-4 h-4"></i> Dívidas
                 </button>
+                <button id="nav-investments" class="nav-tab px-6 py-3 rounded-lg font-bold text-sm transition-all flex items-center gap-2 whitespace-nowrap">
+                    <i data-lucide="trending-up" class="w-4 h-4"></i> Investimentos
+                </button>
             </nav>
             
             <!-- Referral Banner -->
@@ -1453,7 +1456,7 @@
 
             <!-- Dashboard Section -->
             <div id="section-dashboard" class="section-content active">
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
                     <div
                         class="bg-emerald-500 p-6 rounded-2xl shadow-lg shadow-emerald-500/20 text-white card-hover relative overflow-hidden">
                         <div class="absolute right-0 top-0 opacity-10 transform translate-x-2 -translate-y-2"><i
@@ -1480,6 +1483,20 @@
                                 data-lucide="wallet" class="w-24 h-24"></i></div>
                         <p class="text-blue-100 text-sm font-medium mb-1">Saldo Total</p>
                         <h3 class="text-3xl font-bold" id="display-total">R$ 0,00</h3>
+                    </div>
+                    <div id="investments-widget"
+                        class="bg-gradient-to-br from-purple-600 to-indigo-600 p-6 rounded-2xl shadow-lg shadow-purple-600/20 text-white card-hover relative overflow-hidden cursor-pointer"
+                        onclick="navigateToSection('investments')">
+                        <div class="absolute right-0 top-0 opacity-10 transform translate-x-2 -translate-y-2"><i
+                                data-lucide="trending-up" class="w-24 h-24"></i></div>
+                        <p class="text-purple-100 text-sm font-medium mb-1 flex items-center gap-1">
+                            <i data-lucide="briefcase" class="w-3 h-3"></i> Investimentos
+                        </p>
+                        <h3 class="text-2xl font-bold" id="investments-total">R$ 0,00</h3>
+                        <div class="mt-2 flex items-center gap-2">
+                            <span class="text-xs text-purple-100/80" id="investments-profit">+R$ 0,00</span>
+                            <span class="text-xs font-bold" id="investments-percentage">+0%</span>
+                        </div>
                     </div>
                 </div>
 
@@ -1852,8 +1869,208 @@
                     </div>
                 </div>
             </div>
+
+            <!-- Investments Section -->
+            <div id="section-investments" class="section-content">
+                <div class="mb-6 flex items-center justify-between">
+                    <div>
+                        <h2 class="text-2xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
+                            <i data-lucide="trending-up" class="w-6 h-6 text-emerald-500"></i> Meus Investimentos
+                        </h2>
+                        <p class="text-gray-500 dark:text-gray-400 text-sm mt-1">Gerencie investimentos e acompanhe rentabilidade</p>
+                    </div>
+                    <button onclick="abrirModalInvestimento()" id="add-investment-btn-section"
+                        class="px-4 py-2 bg-indigo-600 text-white rounded-lg font-bold hover:bg-indigo-700 transition flex items-center gap-2">
+                        <i data-lucide="plus" class="w-4 h-4"></i> Novo Investimento
+                    </button>
+                </div>
+
+                <!-- Investment Stats -->
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+                    <div class="bg-white dark:bg-darkcard p-4 rounded-xl border border-gray-200 dark:border-gray-700">
+                        <p class="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase mb-1">Total Investido</p>
+                        <h4 class="text-2xl font-bold text-gray-900 dark:text-white" id="inv-stat-invested">R$ 0,00</h4>
+                    </div>
+                    <div class="bg-white dark:bg-darkcard p-4 rounded-xl border border-gray-200 dark:border-gray-700">
+                        <p class="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase mb-1">Valor Atual</p>
+                        <h4 class="text-2xl font-bold text-gray-900 dark:text-white" id="inv-stat-current">R$ 0,00</h4>
+                    </div>
+                    <div class="bg-white dark:bg-darkcard p-4 rounded-xl border border-gray-200 dark:border-gray-700">
+                        <p class="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase mb-1">Rendimento</p>
+                        <h4 class="text-2xl font-bold" id="inv-stat-profit">R$ 0,00</h4>
+                    </div>
+                    <div class="bg-white dark:bg-darkcard p-4 rounded-xl border border-gray-200 dark:border-gray-700">
+                        <p class="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase mb-1">Rentabilidade</p>
+                        <h4 class="text-2xl font-bold" id="inv-stat-percentage">0%</h4>
+                    </div>
+                </div>
+
+                <div id="investments-container-section" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                    <!-- Investimentos aparecerão aqui -->
+                </div>
+            </div>
         </main>
     </div>
+
+    <!-- Investment Modal (Create) -->
+    <div id="investimento-modal"
+        class="hidden fixed inset-0 z-[70] bg-black/50 flex items-center justify-center backdrop-blur-sm">
+        <div class="bg-white dark:bg-darkcard p-6 rounded-2xl w-full max-w-md shadow-2xl m-4 fade-in">
+            <h3 class="text-xl font-bold mb-4 flex items-center gap-2 text-emerald-600 dark:text-emerald-400">
+                <i data-lucide="trending-up"></i> Novo Investimento
+            </h3>
+            <form id="investimento-form" class="space-y-4">
+                <div>
+                    <label for="inv-name" class="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase">
+                        Nome do Investimento
+                    </label>
+                    <input type="text" id="inv-name" placeholder="Ex: Tesouro Direto IPCA+ 2035"
+                        class="w-full p-3 bg-gray-50 dark:bg-gray-700 border dark:border-gray-600 rounded-xl dark:text-white"
+                        required>
+                </div>
+                
+                <div>
+                    <label for="inv-type" class="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase">
+                        Tipo de Investimento
+                    </label>
+                    <select id="inv-type"
+                        class="w-full p-3 bg-gray-50 dark:bg-gray-700 border dark:border-gray-600 rounded-xl dark:text-white cursor-pointer">
+                        <option value="renda-fixa">Renda Fixa</option>
+                        <option value="renda-variavel">Renda Variável</option>
+                        <option value="cripto">Criptomoedas</option>
+                        <option value="imoveis">Imóveis</option>
+                        <option value="fundos">Fundos de Investimento</option>
+                    </select>
+                </div>
+                
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label for="inv-amount" class="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase">
+                            Valor Investido
+                        </label>
+                        <input type="text" id="inv-amount" placeholder="R$ 0,00" onkeyup="formatarMoedaInput(this)"
+                            class="w-full p-3 bg-gray-50 dark:bg-gray-700 border dark:border-gray-600 rounded-xl dark:text-white"
+                            required>
+                    </div>
+                    <div>
+                        <label for="inv-current" class="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase">
+                            Valor Atual
+                        </label>
+                        <input type="text" id="inv-current" placeholder="R$ 0,00" onkeyup="formatarMoedaInput(this)"
+                            class="w-full p-3 bg-gray-50 dark:bg-gray-700 border dark:border-gray-600 rounded-xl dark:text-white"
+                            required>
+                    </div>
+                </div>
+
+                <div>
+                    <label for="inv-color" class="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase">
+                        Cor do Card
+                    </label>
+                    <select id="inv-color"
+                        class="w-full p-3 bg-gray-50 dark:bg-gray-700 border dark:border-gray-600 rounded-xl dark:text-white cursor-pointer">
+                        <option value="blue">Azul</option>
+                        <option value="green">Verde</option>
+                        <option value="purple">Roxo</option>
+                        <option value="yellow">Amarelo</option>
+                        <option value="red">Vermelho</option>
+                        <option value="indigo">Índigo</option>
+                    </select>
+                </div>
+                
+                <div class="flex gap-3 mt-6">
+                    <button type="button" onclick="fecharModalInvestimento()"
+                        class="flex-1 py-3 bg-gray-200 dark:bg-gray-600 rounded-xl hover:bg-gray-300 transition">
+                        Cancelar
+                    </button>
+                    <button type="submit"
+                        class="flex-1 py-3 bg-emerald-600 text-white rounded-xl hover:bg-emerald-700 transition">
+                        Criar Investimento
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Investment Modal (Edit) -->
+    <div id="edit-investimento-modal"
+        class="hidden fixed inset-0 z-[70] bg-black/50 flex items-center justify-center backdrop-blur-sm">
+        <div class="bg-white dark:bg-darkcard p-6 rounded-2xl w-full max-w-md shadow-2xl m-4 fade-in">
+            <h3 class="text-xl font-bold mb-4 flex items-center gap-2 text-emerald-600 dark:text-emerald-400">
+                <i data-lucide="edit-2"></i> Editar Investimento
+            </h3>
+            <form id="edit-investimento-form" class="space-y-4">
+                <input type="hidden" id="edit-inv-id">
+                <div>
+                    <label for="edit-inv-name" class="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase">
+                        Nome do Investimento
+                    </label>
+                    <input type="text" id="edit-inv-name" placeholder="Ex: Tesouro Direto IPCA+ 2035"
+                        class="w-full p-3 bg-gray-50 dark:bg-gray-700 border dark:border-gray-600 rounded-xl dark:text-white"
+                        required>
+                </div>
+                
+                <div>
+                    <label for="edit-inv-type" class="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase">
+                        Tipo de Investimento
+                    </label>
+                    <select id="edit-inv-type"
+                        class="w-full p-3 bg-gray-50 dark:bg-gray-700 border dark:border-gray-600 rounded-xl dark:text-white cursor-pointer">
+                        <option value="renda-fixa">Renda Fixa</option>
+                        <option value="renda-variavel">Renda Variável</option>
+                        <option value="cripto">Criptomoedas</option>
+                        <option value="imoveis">Imóveis</option>
+                        <option value="fundos">Fundos de Investimento</option>
+                    </select>
+                </div>
+                
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label for="edit-inv-amount" class="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase">
+                            Valor Investido
+                        </label>
+                        <input type="text" id="edit-inv-amount" placeholder="R$ 0,00" onkeyup="formatarMoedaInput(this)"
+                            class="w-full p-3 bg-gray-50 dark:bg-gray-700 border dark:border-gray-600 rounded-xl dark:text-white"
+                            required>
+                    </div>
+                    <div>
+                        <label for="edit-inv-current" class="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase">
+                            Valor Atual
+                        </label>
+                        <input type="text" id="edit-inv-current" placeholder="R$ 0,00" onkeyup="formatarMoedaInput(this)"
+                            class="w-full p-3 bg-gray-50 dark:bg-gray-700 border dark:border-gray-600 rounded-xl dark:text-white"
+                            required>
+                    </div>
+                </div>
+
+                <div>
+                    <label for="edit-inv-color" class="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase">
+                        Cor do Card
+                    </label>
+                    <select id="edit-inv-color"
+                        class="w-full p-3 bg-gray-50 dark:bg-gray-700 border dark:border-gray-600 rounded-xl dark:text-white cursor-pointer">
+                        <option value="blue">Azul</option>
+                        <option value="green">Verde</option>
+                        <option value="purple">Roxo</option>
+                        <option value="yellow">Amarelo</option>
+                        <option value="red">Vermelho</option>
+                        <option value="indigo">Índigo</option>
+                    </select>
+                </div>
+                
+                <div class="flex gap-3 mt-6">
+                    <button type="button" onclick="fecharEditModalInvestimento()"
+                        class="flex-1 py-3 bg-gray-200 dark:bg-gray-600 rounded-xl hover:bg-gray-300 transition">
+                        Cancelar
+                    </button>
+                    <button type="submit"
+                        class="flex-1 py-3 bg-emerald-600 text-white rounded-xl hover:bg-emerald-700 transition">
+                        Salvar Alterações
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
     <!-- Script de inicialização do Admin e Premium -->
     <script>
         window.abrirModalPremium = () => document.getElementById('premium-modal').classList.remove('hidden');

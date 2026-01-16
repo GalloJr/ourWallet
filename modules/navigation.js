@@ -204,6 +204,9 @@ export function renderSectionContent(section, data) {
         case 'debts':
             renderDebtsSection(data);
             break;
+        case 'investments':
+            renderInvestmentsSection(data);
+            break;
         case 'dashboard':
             // Dashboard content is always visible
             break;
@@ -262,6 +265,17 @@ function renderDebtsSection(data) {
     
     // Render debt transactions
     renderDebtTransactions(data);
+}
+
+function renderInvestmentsSection(data) {
+    const container = document.getElementById('investments-container-section');
+    if (!container) return;
+    
+    // This will be populated by the investments module
+    const mainContainer = document.getElementById('investments-container');
+    if (mainContainer) {
+        container.innerHTML = mainContainer.innerHTML;
+    }
 }
 
 function renderAccountTransactions(data) {

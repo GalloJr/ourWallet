@@ -133,6 +133,19 @@ service cloud.firestore {
       allow update, delete: if isWalletMember(resource.data.uid) && isPremium(resource.data.uid);
     }
 
+    // Regras para Investimentos (Requer Premium/Trial na carteira ativa)
+    match /investments/{investmentId} {
+      allow read: if isWalletMember(dataOwner()) && isPremium(dataOwner());
+      allow create: if isWalletMember(request.resource.data.uid) && 
+                       isPremium(request.resource.data.uid) &&
+                       request.resource.data.keys().hasAll(['name', 'type', 'amount', 'currentValue']) &&
+                       isValidString(request.resource.data.name, 1, 100) &&
+                       isValidString(request.resource.data.type, 1, 50) &&
+                       isValidMoney(request.resource.data.amount) &&
+                       isValidMoney(request.resource.data.currentValue);
+      allow update, delete: if isWalletMember(resource.data.uid) && isPremium(resource.data.uid);
+    }
+
     // Regras para Pedidos Premium
     match /premium_requests/{requestId} {
       allow create: if request.auth != null &&
