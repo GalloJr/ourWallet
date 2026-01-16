@@ -222,22 +222,95 @@ export async function editarTransacao(id, allTransactions, allCards, allAccounts
     }
 }
 
-export function exportarCSV(filteredTransactions, allCards) {
+export function exportarCSV(filteredTransactions, allCards, allAccounts) {
     if (!filteredTransactions.length) return showToast("Nada para exportar!");
-    let csv = "\uFEFFData;Descrição;Valor;Categoria;Pagamento;Por\n";
-    filteredTransactions.forEach(t => {
-        let fonte = "Carteira";
-        if (t.source && t.source !== 'wallet') {
-            const card = allCards.find(c => c.id === t.source);
-            fonte = card ? `Cartão ${card.name}` : "Cartão (Removido)";
+    
+    // Função auxiliar para escapar valores CSV
+    const escaparCSV = (valor) => {
+        if (valor === null || valor === undefined) return '';
+        const str = String(valor);
+        // Se contém vírgula, ponto-e-vírgula, aspas ou quebra de linha, envolve em aspas
+        if (str.includes(';') || str.includes(',') || str.includes('"') || str.includes('\n') || str.includes('\r')) {
+            return `"${str.replace(/"/g, '""')}"`;
         }
-        const quem = t.ownerName || "---";
-        csv += `${formatarData(t.date)};${t.desc};${t.amount.toLocaleString('pt-BR')};${categoryConfig[t.category]?.label || t.category};${fonte};${quem}\n`;
+        return str;
+    };
+
+    // Cabeçalho com BOM para Excel reconhecer UTF-8
+    let csv = "\uFEFFData;Descrição;Valor (R$);Tipo;Categoria;Forma de Pagamento;Responsável;Status;Recorrente\n";
+    
+    filteredTransactions.forEach(t => {
+        // Identifica a fonte de pagamento
+        let fonte = "Carteira";
+        let tipoFonte = "Carteira";
+        
+        if (t.source && t.source !== 'wallet') {
+            // Primeiro verifica se é um cartão
+            const card = allCards?.find(c => c.id === t.source);
+            if (card) {
+                fonte = card.name;
+                tipoFonte = "Cartão de Crédito";
+            } else {
+                // Se não for cartão, verifica se é uma conta
+                const account = allAccounts?.find(a => a.id === t.source);
+                if (account) {
+                    fonte = account.name;
+                    tipoFonte = account.bank || "Conta Bancária";
+                } else {
+                    fonte = "Fonte Removida";
+                    tipoFonte = "Desconhecido";
+                }
+            }
+        }
+        
+        const quem = t.ownerName || "Não identificado";
+        const tipo = t.amount >= 0 ? "Receita" : "Despesa";
+        
+        // Formata o valor como número com vírgula decimal (sem R$)
+        const valorNumerico = Math.abs(t.amount).toFixed(2).replace('.', ',');
+        
+        const categoria = categoryConfig[t.category]?.label || t.category;
+        const status = t.paid ? "Pago" : "Pendente";
+        const recorrente = t.isRecurring ? "Sim" : "Não";
+        
+        // Monta a linha do CSV
+        csv += `${escaparCSV(formatarData(t.date))};${escaparCSV(t.desc)};${valorNumerico};${escaparCSV(tipo)};${escaparCSV(categoria)};${escaparCSV(tipoFonte + ' - ' + fonte)};${escaparCSV(quem)};${escaparCSV(status)};${escaparCSV(recorrente)}\n`;
     });
+    
+    // Adiciona linha de resumo
+    csv += "\n";
+    csv += "RESUMO\n";
+    
+    const totalReceitas = filteredTransactions
+        .filter(t => t.amount >= 0)
+        .reduce((sum, t) => sum + t.amount, 0);
+    
+    const totalDespesas = filteredTransactions
+        .filter(t => t.amount < 0)
+        .reduce((sum, t) => sum + Math.abs(t.amount), 0);
+    
+    const saldo = totalReceitas - totalDespesas;
+    
+    csv += `Total de Receitas;${totalReceitas.toFixed(2).replace('.', ',')}\n`;
+    csv += `Total de Despesas;${totalDespesas.toFixed(2).replace('.', ',')}\n`;
+    csv += `Saldo Período;${saldo.toFixed(2).replace('.', ',')}\n`;
+    csv += `Total de Transações;${filteredTransactions.length}\n`;
+    
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
     const link = document.createElement("a");
-    link.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv;charset=utf-8;' }));
-    link.download = "extrato.csv";
+    link.href = URL.createObjectURL(blob);
+    
+    // Nome do arquivo com data e hora
+    const agora = new Date();
+    const dataHora = agora.toISOString().replace(/[:.]/g, '-').slice(0, -5);
+    link.download = `extrato_ourwallet_${dataHora}.csv`;
+    
     link.click();
+    
+    // Libera o objeto URL após um delay
+    setTimeout(() => URL.revokeObjectURL(link.href), 100);
+    
+    showToast(`✅ CSV exportado! ${filteredTransactions.length} transações`);
 }
 
 export async function deletarTransacao(id, allTransactions, allCards, allAccounts, allDebts) {

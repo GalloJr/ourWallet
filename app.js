@@ -15,7 +15,7 @@ import { setupNavigation, navigateToSection, renderSectionContent } from "./modu
 
 // Global variables to maintain compatibility with DOM event listeners
 window.formatarMoedaInput = formatarMoedaInput;
-window.exportarCSV = () => exportarCSV(appState.filteredTrans, appState.cards);
+window.exportarCSV = () => exportarCSV(appState.filteredTrans, appState.cards, appState.accounts);
 window.consolidarPagamento = (id) => consolidarPagamento(id, appState.transactions, appState.cards, appState.accounts);
 window.consolidarPagamentosEmLote = () => consolidarPagamentosEmLote(appState.transactions, appState.cards, appState.accounts);
 window.abrirModalCartao = () => document.getElementById('card-modal').classList.remove('hidden');
