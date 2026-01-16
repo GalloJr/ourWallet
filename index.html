@@ -68,6 +68,38 @@
             cursor: pointer;
         }
 
+        .nav-tab {
+            background: transparent;
+            color: #6b7280;
+        }
+
+        .dark .nav-tab {
+            color: #9ca3af;
+        }
+
+        .nav-tab.active {
+            background: #6366f1;
+            color: white;
+            box-shadow: 0 4px 6px -1px rgba(99, 102, 241, 0.3);
+        }
+
+        .nav-tab:not(.active):hover {
+            background: #f3f4f6;
+        }
+
+        .dark .nav-tab:not(.active):hover {
+            background: #374151;
+        }
+
+        .section-content {
+            display: none;
+            animation: fadeIn 0.3s ease-in-out;
+        }
+
+        .section-content.active {
+            display: block;
+        }
+
         @keyframes fadeIn {
             from {
                 opacity: 0;
@@ -1028,6 +1060,25 @@
         </nav>
 
         <main class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
+            <!-- Navigation Tabs -->
+            <nav class="flex overflow-x-auto gap-2 pb-2 border-b border-gray-200 dark:border-gray-700 hide-scroll">
+                <button id="nav-dashboard" class="nav-tab active px-6 py-3 rounded-lg font-bold text-sm transition-all flex items-center gap-2 whitespace-nowrap">
+                    <i data-lucide="layout-dashboard" class="w-4 h-4"></i> Dashboard
+                </button>
+                <button id="nav-goals" class="nav-tab px-6 py-3 rounded-lg font-bold text-sm transition-all flex items-center gap-2 whitespace-nowrap">
+                    <i data-lucide="target" class="w-4 h-4"></i> Metas
+                </button>
+                <button id="nav-accounts" class="nav-tab px-6 py-3 rounded-lg font-bold text-sm transition-all flex items-center gap-2 whitespace-nowrap">
+                    <i data-lucide="building-2" class="w-4 h-4"></i> Contas
+                </button>
+                <button id="nav-cards" class="nav-tab px-6 py-3 rounded-lg font-bold text-sm transition-all flex items-center gap-2 whitespace-nowrap">
+                    <i data-lucide="credit-card" class="w-4 h-4"></i> Cartões
+                </button>
+                <button id="nav-debts" class="nav-tab px-6 py-3 rounded-lg font-bold text-sm transition-all flex items-center gap-2 whitespace-nowrap">
+                    <i data-lucide="trending-down" class="w-4 h-4"></i> Dívidas
+                </button>
+            </nav>
+            
             <!-- Referral Banner -->
             <div id="referral-banner"
                 class="bg-gradient-to-r from-indigo-500 to-purple-600 p-4 rounded-2xl text-white flex flex-col md:flex-row items-center justify-between gap-4 shadow-lg shadow-indigo-500/20">
@@ -1049,235 +1100,394 @@
                 </div>
             </div>
 
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <div
-                    class="bg-emerald-500 p-6 rounded-2xl shadow-lg shadow-emerald-500/20 text-white card-hover relative overflow-hidden">
-                    <div class="absolute right-0 top-0 opacity-10 transform translate-x-2 -translate-y-2"><i
-                            data-lucide="arrow-up-circle" class="w-24 h-24"></i></div>
-                    <p class="text-emerald-100 text-sm font-medium mb-1">Entradas</p>
-                    <h3 class="text-3xl font-bold" id="display-income">R$ 0,00</h3>
-                </div>
-                <div
-                    class="bg-red-500 p-6 rounded-2xl shadow-lg shadow-red-500/20 text-white card-hover relative overflow-hidden">
-                    <div class="absolute right-0 top-0 opacity-10 transform translate-x-2 -translate-y-2"><i
-                            data-lucide="arrow-down-circle" class="w-24 h-24"></i></div>
-                    <p class="text-red-100 text-sm font-medium mb-1">Saídas</p>
-                    <h3 class="text-3xl font-bold" id="display-expense">R$ 0,00</h3>
-                    <div class="flex justify-between items-center mt-1">
-                        <p class="text-[10px] text-red-100/80" id="expense-insight">---</p>
-                        <button onclick="abrirModalPagamento()"
-                            class="text-[10px] bg-red-400/30 hover:bg-red-400/50 px-2 py-0.5 rounded text-white font-bold transition">Pagar
-                            Fatura/Dívida</button>
-                    </div>
-                </div>
-                <div
-                    class="bg-blue-600 p-6 rounded-2xl shadow-lg shadow-blue-600/20 text-white card-hover relative overflow-hidden">
-                    <div class="absolute right-0 top-0 opacity-10 transform translate-x-2 -translate-y-2"><i
-                            data-lucide="wallet" class="w-24 h-24"></i></div>
-                    <p class="text-blue-100 text-sm font-medium mb-1">Saldo Total</p>
-                    <h3 class="text-3xl font-bold" id="display-total">R$ 0,00</h3>
-                </div>
-            </div>
-
-            <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                <div class="lg:col-span-3">
-                    <h3 class="text-lg font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
-                        <i data-lucide="target" class="w-5 h-5 text-indigo-500"></i> Metas do Casal (Wishlist)
-                        <span id="goals-premium-lock"
-                            class="ml-2 text-[10px] bg-gray-100 dark:bg-gray-800 text-gray-400 px-2 py-0.5 rounded flex items-center gap-1"><i
-                                data-lucide="lock" class="w-2.5 h-2.5"></i> Premium</span>
-                        <button onclick="abrirModalMeta()" id="add-goal-btn"
-                            class="ml-auto text-xs bg-indigo-100 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 px-3 py-1 rounded-lg font-bold hover:bg-indigo-200 transition hidden">+
-                            Nova Meta</button>
-                    </h3>
-                    <div id="goals-container" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                        <!-- Metas aparecerão aqui -->
-                    </div>
-                </div>
-
-                <div class="lg:col-span-3">
-                    <h3 class="text-lg font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
-                        <i data-lucide="building-2" class="w-5 h-5 text-indigo-500"></i> Minhas Contas
-                    </h3>
-                    <div id="accounts-container"
-                        class="flex overflow-x-auto md:flex-wrap gap-4 pb-4 hide-scroll card-container-padding"></div>
-                </div>
-
-                <div class="lg:col-span-3">
-                    <h3 class="text-lg font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
-                        <i data-lucide="credit-card" class="w-5 h-5 text-indigo-500"></i> Meus Cartões
-                    </h3>
-                    <div id="cards-container"
-                        class="flex overflow-x-auto md:flex-wrap gap-4 pb-4 hide-scroll card-container-padding"></div>
-                </div>
-
-                <div class="lg:col-span-3">
-                    <h3 class="text-lg font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
-                        <i data-lucide="trending-down" class="w-5 h-5 text-red-500"></i> Minhas Dívidas
-                        <span id="debts-premium-lock"
-                            class="ml-2 text-[10px] bg-gray-100 dark:bg-gray-800 text-gray-400 px-2 py-0.5 rounded flex items-center gap-1"><i
-                                data-lucide="lock" class="w-2.5 h-2.5"></i> Premium</span>
-                    </h3>
-                    <div id="debts-container"
-                        class="flex overflow-x-auto md:flex-wrap gap-4 pb-4 hide-scroll card-container-padding"></div>
-                </div>
-
-                <div
-                    class="lg:col-span-2 bg-white dark:bg-darkcard p-6 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700">
-                    <h3 class="text-lg font-bold text-gray-900 dark:text-white mb-4">Gastos Diários</h3>
-                    <div class="h-64"><canvas id="lineChart"></canvas></div>
-                </div>
-                <div
-                    class="lg:col-span-1 bg-white dark:bg-darkcard p-6 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 flex flex-col">
-                    <h3 class="text-lg font-bold text-gray-900 dark:text-white mb-4">Por Categoria</h3>
-                    <div class="flex-1 relative flex items-center justify-center min-h-[200px]">
-                        <canvas id="expenseChart"></canvas>
-                        <div id="no-data-msg"
-                            class="absolute inset-0 flex flex-col items-center justify-center text-gray-400 hidden">
-                            <span class="text-sm">Sem dados</span>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                <div
-                    class="lg:col-span-1 bg-white dark:bg-darkcard p-6 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700">
-                    <h3 class="text-lg font-bold text-gray-900 dark:text-white mb-5">Adicionar Movimentação</h3>
-                    <form id="transaction-form" class="space-y-4">
-                        <div>
-                            <label for="desc"
-                                class="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase">Descrição</label>
-                            <input type="text" id="desc"
-                                class="w-full p-3 bg-gray-50 dark:bg-gray-700 border dark:border-gray-600 rounded-xl dark:text-white"
-                                required>
-                        </div>
-                        <div class="grid grid-cols-2 gap-4">
-                            <div>
-                                <label for="amount"
-                                    class="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase">Valor</label>
-                                <input type="text" id="amount" onkeyup="formatarMoedaInput(this)"
-                                    class="w-full p-3 bg-gray-50 dark:bg-gray-700 border dark:border-gray-600 rounded-xl dark:text-white"
-                                    required>
-                            </div>
-                            <div>
-                                <label for="date"
-                                    class="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase">Data</label>
-                                <input type="date" id="date"
-                                    class="w-full p-3 bg-gray-50 dark:bg-gray-700 border dark:border-gray-600 rounded-xl dark:text-white"
-                                    required>
-                            </div>
-                        </div>
-                        <div>
-                            <label for="category"
-                                class="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase">Categoria</label>
-                            <select id="category" aria-label="Selecionar Categoria"
-                                class="w-full p-3 bg-gray-50 dark:bg-gray-700 border dark:border-gray-600 rounded-xl dark:text-white cursor-pointer">
-                                <option value="salary">💸 Receita (Entrada)</option>
-                                <option value="freelance">💻 Freelance (Entrada)</option>
-                                <option value="food">🍔 Alimentação</option>
-                                <option value="transport">🚗 Transporte</option>
-                                <option value="home">🏠 Casa</option>
-                                <option value="education">📚 Educação</option>
-                                <option value="leisure">🎮 Lazer</option>
-                                <option value="health">🏥 Saúde</option>
-                                <option value="invest">📈 Investimentos</option>
-                                <option value="shopping">🛍️ Compras</option>
-                                <option value="tax">💰 Taxas</option>
-                                <option value="other">📦 Outros</option>
-                            </select>
-                        </div>
-                        <div>
-                            <label for="transaction-source"
-                                class="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase">Forma de
-                                Pagamento</label>
-                            <select id="transaction-source" aria-label="Forma de Pagamento"
-                                class="w-full p-3 bg-gray-50 dark:bg-gray-700 border dark:border-gray-600 rounded-xl dark:text-white cursor-pointer">
-                                <option value="wallet">💵 Carteira / Conta Corrente</option>
-                            </select>
-                        </div>
-                        <div class="col-span-full hidden">
-                            <label for="receipt"
-                                class="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase">Comprovante
-                                (Opcional)</label>
-                            <input type="file" id="receipt" accept="image/*,application/pdf"
-                                class="w-full p-2 bg-gray-50 dark:bg-gray-700 border dark:border-gray-600 rounded-xl text-xs dark:text-white file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100 transition">
-                        </div>
-                        <div id="installments-container" class="hidden">
-                            <label for="installments"
-                                class="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase">Parcelas</label>
-                            <select id="installments"
-                                class="w-full p-3 bg-gray-50 dark:bg-gray-700 border dark:border-gray-600 rounded-xl dark:text-white cursor-pointer">
-                                <option value="1">1x (À vista)</option>
-                                <option value="2">2x</option>
-                                <option value="3">3x</option>
-                                <option value="4">4x</option>
-                                <option value="5">5x</option>
-                                <option value="6">6x</option>
-                                <option value="7">7x</option>
-                                <option value="8">8x</option>
-                                <option value="9">9x</option>
-                                <option value="10">10x</option>
-                                <option value="11">11x</option>
-                                <option value="12">12x</option>
-                            </select>
-                        </div>
-                        <div class="flex items-center gap-2 px-1">
-                            <input type="checkbox" id="repeat-monthly"
-                                class="w-4 h-4 text-indigo-600 rounded cursor-pointer">
-                            <label for="repeat-monthly"
-                                class="text-xs font-semibold text-gray-600 dark:text-gray-400 cursor-pointer">Repetir
-                                mensalmente (12 meses)</label>
-                        </div>
-                        <button type="submit"
-                            class="w-full py-3 bg-indigo-600 text-white font-bold rounded-xl hover:bg-indigo-700 transition cursor-pointer">Adicionar</button>
-                    </form>
-                </div>
-                <div
-                    class="lg:col-span-2 bg-white dark:bg-darkcard rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden">
+            <!-- Dashboard Section -->
+            <div id="section-dashboard" class="section-content active">
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
                     <div
-                        class="p-6 border-b border-gray-100 dark:border-gray-700 flex flex-wrap justify-between items-center gap-4">
-                        <div class="flex items-center gap-3">
-                            <h3 class="text-lg font-bold text-gray-900 dark:text-white">Histórico</h3>
-                            <button onclick="consolidarPagamentosEmLote()" id="consolidate-btn"
-                                class="px-2 py-1 bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 rounded-lg text-xs font-semibold cursor-pointer flex items-center gap-1 hover:bg-green-200 dark:hover:bg-green-900/50 transition-colors"
-                                aria-label="Consolidar Pagamentos" title="Marcar transações pendentes como pagas"><i data-lucide="check-square" class="w-3 h-3"></i> Consolidar Pagamentos</button>
-                            <button onclick="exportarCSV()" id="export-btn"
-                                class="px-2 py-1 bg-gray-100 dark:bg-gray-700 rounded-lg text-xs dark:text-white cursor-pointer flex items-center gap-1 hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
-                                aria-label="Exportar CSV"><i data-lucide="download" class="w-3 h-3"></i> CSV</button>
-                            <span id="csv-premium-lock"
-                                class="hidden text-[10px] bg-gray-100 dark:bg-gray-800 text-gray-400 px-2 py-0.5 rounded flex items-center gap-1"><i
-                                    data-lucide="lock" class="w-2.5 h-2.5"></i> Premium</span>
+                        class="bg-emerald-500 p-6 rounded-2xl shadow-lg shadow-emerald-500/20 text-white card-hover relative overflow-hidden">
+                        <div class="absolute right-0 top-0 opacity-10 transform translate-x-2 -translate-y-2"><i
+                                data-lucide="arrow-up-circle" class="w-24 h-24"></i></div>
+                        <p class="text-emerald-100 text-sm font-medium mb-1">Entradas</p>
+                        <h3 class="text-3xl font-bold" id="display-income">R$ 0,00</h3>
+                    </div>
+                    <div
+                        class="bg-red-500 p-6 rounded-2xl shadow-lg shadow-red-500/20 text-white card-hover relative overflow-hidden">
+                        <div class="absolute right-0 top-0 opacity-10 transform translate-x-2 -translate-y-2"><i
+                                data-lucide="arrow-down-circle" class="w-24 h-24"></i></div>
+                        <p class="text-red-100 text-sm font-medium mb-1">Saídas</p>
+                        <h3 class="text-3xl font-bold" id="display-expense">R$ 0,00</h3>
+                        <div class="flex justify-between items-center mt-1">
+                            <p class="text-[10px] text-red-100/80" id="expense-insight">---</p>
+                            <button onclick="abrirModalPagamento()"
+                                class="text-[10px] bg-red-400/30 hover:bg-red-400/50 px-2 py-0.5 rounded text-white font-bold transition">Pagar
+                                Fatura/Dívida</button>
                         </div>
+                    </div>
+                    <div
+                        class="bg-blue-600 p-6 rounded-2xl shadow-lg shadow-blue-600/20 text-white card-hover relative overflow-hidden">
+                        <div class="absolute right-0 top-0 opacity-10 transform translate-x-2 -translate-y-2"><i
+                                data-lucide="wallet" class="w-24 h-24"></i></div>
+                        <p class="text-blue-100 text-sm font-medium mb-1">Saldo Total</p>
+                        <h3 class="text-3xl font-bold" id="display-total">R$ 0,00</h3>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                    <div
+                        class="lg:col-span-2 bg-white dark:bg-darkcard p-6 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700">
+                        <h3 class="text-lg font-bold text-gray-900 dark:text-white mb-4">Gastos Diários</h3>
+                        <div class="h-64"><canvas id="lineChart"></canvas></div>
+                    </div>
+                    <div
+                        class="lg:col-span-1 bg-white dark:bg-darkcard p-6 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 flex flex-col">
+                        <h3 class="text-lg font-bold text-gray-900 dark:text-white mb-4">Por Categoria</h3>
+                        <div class="flex-1 relative flex items-center justify-center min-h-[200px]">
+                            <canvas id="expenseChart"></canvas>
+                            <div id="no-data-msg"
+                                class="absolute inset-0 flex flex-col items-center justify-center text-gray-400 hidden">
+                                <span class="text-sm">Sem dados</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 mt-8">
+                    <div
+                        class="lg:col-span-1 bg-white dark:bg-darkcard p-6 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700">
+                        <h3 class="text-lg font-bold text-gray-900 dark:text-white mb-5">Adicionar Movimentação</h3>
+                        <form id="transaction-form" class="space-y-4">
+                            <div>
+                                <label for="desc"
+                                    class="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase">Descrição</label>
+                                <input type="text" id="desc"
+                                    class="w-full p-3 bg-gray-50 dark:bg-gray-700 border dark:border-gray-600 rounded-xl dark:text-white"
+                                    required>
+                            </div>
+                            <div class="grid grid-cols-2 gap-4">
+                                <div>
+                                    <label for="amount"
+                                        class="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase">Valor</label>
+                                    <input type="text" id="amount" onkeyup="formatarMoedaInput(this)"
+                                        class="w-full p-3 bg-gray-50 dark:bg-gray-700 border dark:border-gray-600 rounded-xl dark:text-white"
+                                        required>
+                                </div>
+                                <div>
+                                    <label for="date"
+                                        class="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase">Data</label>
+                                    <input type="date" id="date"
+                                        class="w-full p-3 bg-gray-50 dark:bg-gray-700 border dark:border-gray-600 rounded-xl dark:text-white"
+                                        required>
+                                </div>
+                            </div>
+                            <div>
+                                <label for="category"
+                                    class="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase">Categoria</label>
+                                <select id="category" aria-label="Selecionar Categoria"
+                                    class="w-full p-3 bg-gray-50 dark:bg-gray-700 border dark:border-gray-600 rounded-xl dark:text-white cursor-pointer">
+                                    <option value="salary">💸 Receita (Entrada)</option>
+                                    <option value="freelance">💻 Freelance (Entrada)</option>
+                                    <option value="food">🍔 Alimentação</option>
+                                    <option value="transport">🚗 Transporte</option>
+                                    <option value="home">🏠 Casa</option>
+                                    <option value="education">📚 Educação</option>
+                                    <option value="leisure">🎮 Lazer</option>
+                                    <option value="health">🏥 Saúde</option>
+                                    <option value="invest">📈 Investimentos</option>
+                                    <option value="shopping">🛍️ Compras</option>
+                                    <option value="tax">💰 Taxas</option>
+                                    <option value="other">📦 Outros</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label for="transaction-source"
+                                    class="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase">Forma de
+                                    Pagamento</label>
+                                <select id="transaction-source" aria-label="Forma de Pagamento"
+                                    class="w-full p-3 bg-gray-50 dark:bg-gray-700 border dark:border-gray-600 rounded-xl dark:text-white cursor-pointer">
+                                    <option value="wallet">💵 Carteira / Conta Corrente</option>
+                                </select>
+                            </div>
+                            <div class="col-span-full hidden">
+                                <label for="receipt"
+                                    class="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase">Comprovante
+                                    (Opcional)</label>
+                                <input type="file" id="receipt" accept="image/*,application/pdf"
+                                    class="w-full p-2 bg-gray-50 dark:bg-gray-700 border dark:border-gray-600 rounded-xl text-xs dark:text-white file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100 transition">
+                            </div>
+                            <div id="installments-container" class="hidden">
+                                <label for="installments"
+                                    class="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase">Parcelas</label>
+                                <select id="installments"
+                                    class="w-full p-3 bg-gray-50 dark:bg-gray-700 border dark:border-gray-600 rounded-xl dark:text-white cursor-pointer">
+                                    <option value="1">1x (À vista)</option>
+                                    <option value="2">2x</option>
+                                    <option value="3">3x</option>
+                                    <option value="4">4x</option>
+                                    <option value="5">5x</option>
+                                    <option value="6">6x</option>
+                                    <option value="7">7x</option>
+                                    <option value="8">8x</option>
+                                    <option value="9">9x</option>
+                                    <option value="10">10x</option>
+                                    <option value="11">11x</option>
+                                    <option value="12">12x</option>
+                                </select>
+                            </div>
+                            <div class="flex items-center gap-2 px-1">
+                                <input type="checkbox" id="repeat-monthly"
+                                    class="w-4 h-4 text-indigo-600 rounded cursor-pointer">
+                                <label for="repeat-monthly"
+                                    class="text-xs font-semibold text-gray-600 dark:text-gray-400 cursor-pointer">Repetir
+                                    mensalmente (12 meses)</label>
+                            </div>
+                            <button type="submit"
+                                class="w-full py-3 bg-indigo-600 text-white font-bold rounded-xl hover:bg-indigo-700 transition cursor-pointer">Adicionar</button>
+                        </form>
+                    </div>
+                    <div
+                        class="lg:col-span-2 bg-white dark:bg-darkcard rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden">
+                        <div
+                            class="p-6 border-b border-gray-100 dark:border-gray-700 flex flex-wrap justify-between items-center gap-4">
+                            <div class="flex items-center gap-3">
+                                <h3 class="text-lg font-bold text-gray-900 dark:text-white">Histórico</h3>
+                                <button onclick="consolidarPagamentosEmLote()" id="consolidate-btn"
+                                    class="px-2 py-1 bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 rounded-lg text-xs font-semibold cursor-pointer flex items-center gap-1 hover:bg-green-200 dark:hover:bg-green-900/50 transition-colors"
+                                    aria-label="Consolidar Pagamentos" title="Marcar transações pendentes como pagas"><i data-lucide="check-square" class="w-3 h-3"></i> Consolidar Pagamentos</button>
+                                <button onclick="exportarCSV()" id="export-btn"
+                                    class="px-2 py-1 bg-gray-100 dark:bg-gray-700 rounded-lg text-xs dark:text-white cursor-pointer flex items-center gap-1 hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
+                                    aria-label="Exportar CSV"><i data-lucide="download" class="w-3 h-3"></i> CSV</button>
+                                <span id="csv-premium-lock"
+                                    class="hidden text-[10px] bg-gray-100 dark:bg-gray-800 text-gray-400 px-2 py-0.5 rounded flex items-center gap-1"><i
+                                        data-lucide="lock" class="w-2.5 h-2.5"></i> Premium</span>
+                            </div>
+                            <div class="flex flex-wrap items-center gap-2">
+                                <div class="relative">
+                                    <i data-lucide="search"
+                                        class="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"></i>
+                                    <input type="text" id="search-input" placeholder="Buscar..."
+                                        class="pl-9 pr-3 py-1 bg-gray-50 dark:bg-gray-700 border dark:border-gray-600 rounded-lg text-sm dark:text-white focus:ring-2 focus:ring-indigo-500 outline-none w-32 sm:w-40 transition-all focus:w-48 sm:focus:w-60">
+                                </div>
+                                <div class="flex gap-2">
+                                    <select id="month-filter"
+                                        class="px-2 py-1 bg-gray-50 dark:bg-gray-700 border dark:border-gray-600 rounded-lg text-xs dark:text-white cursor-pointer"
+                                        aria-label="Filtrar por Mês"></select>
+                                    <select id="payment-status-filter"
+                                        class="px-2 py-1 bg-gray-50 dark:bg-gray-700 border dark:border-gray-600 rounded-lg text-xs dark:text-white cursor-pointer"
+                                        aria-label="Filtrar por Status">
+                                        <option value="">Todas</option>
+                                        <option value="pending">🟡 Pendentes</option>
+                                        <option value="paid">🟢 Pagas</option>
+                                    </select>
+                                    <select id="history-source-filter"
+                                        class="px-2 py-1 bg-gray-50 dark:bg-gray-700 border dark:border-gray-600 rounded-lg text-xs dark:text-white cursor-pointer max-w-[120px]"
+                                        aria-label="Filtrar por Fonte">
+                                        <option value="">Todas as Fontes</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-left">
+                                <tbody id="transaction-list" class="divide-y divide-gray-100 dark:divide-gray-700"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Hidden containers for setup functions -->
+            <div id="cards-container" class="hidden"></div>
+            <div id="accounts-container" class="hidden"></div>
+            <div id="debts-container" class="hidden"></div>
+            <div id="goals-container" class="hidden"></div>
+
+            <!-- Goals Section -->
+            <div id="section-goals" class="section-content">
+                <div class="mb-6 flex items-center justify-between">
+                    <div>
+                        <h2 class="text-2xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
+                            <i data-lucide="target" class="w-6 h-6 text-indigo-500"></i> Metas do Casal
+                        </h2>
+                        <p class="text-gray-500 dark:text-gray-400 text-sm mt-1">Gerencie suas metas e acompanhe o progresso</p>
+                    </div>
+                    <button onclick="abrirModalMeta()" id="add-goal-btn-section"
+                        class="px-4 py-2 bg-indigo-600 text-white rounded-lg font-bold hover:bg-indigo-700 transition flex items-center gap-2">
+                        <i data-lucide="plus" class="w-4 h-4"></i> Nova Meta
+                    </button>
+                </div>
+                <div id="goals-container-section" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                    <!-- Metas aparecerão aqui -->
+                </div>
+            </div>
+
+            <!-- Accounts Section -->
+            <div id="section-accounts" class="section-content">
+                <div class="mb-6 flex items-center justify-between">
+                    <div>
+                        <h2 class="text-2xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
+                            <i data-lucide="building-2" class="w-6 h-6 text-indigo-500"></i> Minhas Contas
+                        </h2>
+                        <p class="text-gray-500 dark:text-gray-400 text-sm mt-1">Gerencie contas bancárias e despesas fixas</p>
+                    </div>
+                    <button onclick="abrirModalConta()"
+                        class="px-4 py-2 bg-indigo-600 text-white rounded-lg font-bold hover:bg-indigo-700 transition flex items-center gap-2">
+                        <i data-lucide="plus" class="w-4 h-4"></i> Nova Conta
+                    </button>
+                </div>
+                <div id="accounts-container-section" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                    <!-- Contas aparecerão aqui -->
+                </div>
+                
+                <!-- Account Transactions -->
+                <div class="mt-8 bg-white dark:bg-darkcard p-6 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700">
+                    <div class="flex flex-wrap justify-between items-center gap-4 mb-4">
+                        <h3 class="text-lg font-bold text-gray-900 dark:text-white flex items-center gap-2">
+                            <i data-lucide="list" class="w-5 h-5 text-indigo-500"></i> Movimentações das Contas
+                        </h3>
                         <div class="flex flex-wrap items-center gap-2">
                             <div class="relative">
                                 <i data-lucide="search"
                                     class="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"></i>
-                                <input type="text" id="search-input" placeholder="Buscar..."
+                                <input type="text" id="accounts-search-input" placeholder="Buscar..."
                                     class="pl-9 pr-3 py-1 bg-gray-50 dark:bg-gray-700 border dark:border-gray-600 rounded-lg text-sm dark:text-white focus:ring-2 focus:ring-indigo-500 outline-none w-32 sm:w-40 transition-all focus:w-48 sm:focus:w-60">
                             </div>
                             <div class="flex gap-2">
-                                <select id="month-filter"
+                                <select id="accounts-month-filter"
                                     class="px-2 py-1 bg-gray-50 dark:bg-gray-700 border dark:border-gray-600 rounded-lg text-xs dark:text-white cursor-pointer"
                                     aria-label="Filtrar por Mês"></select>
-                                <select id="payment-status-filter"
+                                <select id="accounts-account-filter"
+                                    class="px-2 py-1 bg-gray-50 dark:bg-gray-700 border dark:border-gray-600 rounded-lg text-xs dark:text-white cursor-pointer"
+                                    aria-label="Filtrar por Conta">
+                                    <option value="">Todas as Contas</option>
+                                </select>
+                                <select id="accounts-status-filter"
                                     class="px-2 py-1 bg-gray-50 dark:bg-gray-700 border dark:border-gray-600 rounded-lg text-xs dark:text-white cursor-pointer"
                                     aria-label="Filtrar por Status">
                                     <option value="">Todas</option>
                                     <option value="pending">🟡 Pendentes</option>
                                     <option value="paid">🟢 Pagas</option>
                                 </select>
-                                <select id="history-source-filter"
-                                    class="px-2 py-1 bg-gray-50 dark:bg-gray-700 border dark:border-gray-600 rounded-lg text-xs dark:text-white cursor-pointer max-w-[120px]"
-                                    aria-label="Filtrar por Fonte">
-                                    <option value="">Todas as Fontes</option>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left">
+                            <thead>
+                                <tr class="border-b border-gray-200 dark:border-gray-700">
+                                    <th class="pb-3 text-xs font-bold text-gray-500 dark:text-gray-400 uppercase">Data</th>
+                                    <th class="pb-3 text-xs font-bold text-gray-500 dark:text-gray-400 uppercase">Descrição</th>
+                                    <th class="pb-3 text-xs font-bold text-gray-500 dark:text-gray-400 uppercase">Conta</th>
+                                    <th class="pb-3 text-xs font-bold text-gray-500 dark:text-gray-400 uppercase text-right">Valor</th>
+                                    <th class="pb-3 text-xs font-bold text-gray-500 dark:text-gray-400 uppercase text-center">Status</th>
+                                </tr>
+                            </thead>
+                            <tbody id="account-transactions-list" class="divide-y divide-gray-100 dark:divide-gray-700">
+                                <!-- Movimentações aparecerão aqui -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Cards Section -->
+            <div id="section-cards" class="section-content">
+                <div class="mb-6 flex items-center justify-between">
+                    <div>
+                        <h2 class="text-2xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
+                            <i data-lucide="credit-card" class="w-6 h-6 text-indigo-500"></i> Meus Cartões
+                        </h2>
+                        <p class="text-gray-500 dark:text-gray-400 text-sm mt-1">Gerencie cartões de crédito e acompanhe faturas</p>
+                    </div>
+                    <button onclick="abrirModalCartao()"
+                        class="px-4 py-2 bg-indigo-600 text-white rounded-lg font-bold hover:bg-indigo-700 transition flex items-center gap-2">
+                        <i data-lucide="plus" class="w-4 h-4"></i> Novo Cartão
+                    </button>
+                </div>
+                <div id="cards-container-section" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                    <!-- Cartões aparecerão aqui -->
+                </div>
+                
+                <!-- Card Transactions -->
+                <div class="mt-8 bg-white dark:bg-darkcard p-6 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700">
+                    <div class="flex flex-wrap justify-between items-center gap-4 mb-4">
+                        <h3 class="text-lg font-bold text-gray-900 dark:text-white flex items-center gap-2">
+                            <i data-lucide="receipt" class="w-5 h-5 text-indigo-500"></i> Faturas dos Cartões
+                        </h3>
+                        <div class="flex flex-wrap items-center gap-2">
+                            <div class="relative">
+                                <i data-lucide="search"
+                                    class="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"></i>
+                                <input type="text" id="cards-search-input" placeholder="Buscar..."
+                                    class="pl-9 pr-3 py-1 bg-gray-50 dark:bg-gray-700 border dark:border-gray-600 rounded-lg text-sm dark:text-white focus:ring-2 focus:ring-indigo-500 outline-none w-32 sm:w-40 transition-all focus:w-48 sm:focus:w-60">
+                            </div>
+                            <div class="flex gap-2">
+                                <select id="cards-month-filter"
+                                    class="px-2 py-1 bg-gray-50 dark:bg-gray-700 border dark:border-gray-600 rounded-lg text-xs dark:text-white cursor-pointer"
+                                    aria-label="Filtrar por Mês"></select>
+                                <select id="cards-card-filter"
+                                    class="px-2 py-1 bg-gray-50 dark:bg-gray-700 border dark:border-gray-600 rounded-lg text-xs dark:text-white cursor-pointer"
+                                    aria-label="Filtrar por Cartão">
+                                    <option value="">Todos os Cartões</option>
                                 </select>
                             </div>
                         </div>
                     </div>
                     <div class="overflow-x-auto">
                         <table class="w-full text-left">
-                            <tbody id="transaction-list" class="divide-y divide-gray-100 dark:divide-gray-700"></tbody>
+                            <thead>
+                                <tr class="border-b border-gray-200 dark:border-gray-700">
+                                    <th class="pb-3 text-xs font-bold text-gray-500 dark:text-gray-400 uppercase">Data</th>
+                                    <th class="pb-3 text-xs font-bold text-gray-500 dark:text-gray-400 uppercase">Descrição</th>
+                                    <th class="pb-3 text-xs font-bold text-gray-500 dark:text-gray-400 uppercase">Cartão</th>
+                                    <th class="pb-3 text-xs font-bold text-gray-500 dark:text-gray-400 uppercase">Parcela</th>
+                                    <th class="pb-3 text-xs font-bold text-gray-500 dark:text-gray-400 uppercase text-right">Valor</th>
+                                </tr>
+                            </thead>
+                            <tbody id="card-transactions-list" class="divide-y divide-gray-100 dark:divide-gray-700">
+                                <!-- Movimentações aparecerão aqui -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Debts Section -->
+            <div id="section-debts" class="section-content">
+                <div class="mb-6 flex items-center justify-between">
+                    <div>
+                        <h2 class="text-2xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
+                            <i data-lucide="trending-down" class="w-6 h-6 text-red-500"></i> Minhas Dívidas
+                        </h2>
+                        <p class="text-gray-500 dark:text-gray-400 text-sm mt-1">Gerencie dívidas e acompanhe pagamentos</p>
+                    </div>
+                    <button onclick="abrirModalDivida()" id="add-debt-btn-section"
+                        class="px-4 py-2 bg-indigo-600 text-white rounded-lg font-bold hover:bg-indigo-700 transition flex items-center gap-2">
+                        <i data-lucide="plus" class="w-4 h-4"></i> Nova Dívida
+                    </button>
+                </div>
+                <div id="debts-container-section" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                    <!-- Dívidas aparecerão aqui -->
+                </div>
+                
+                <!-- Debt Transactions -->
+                <div class="mt-8 bg-white dark:bg-darkcard p-6 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700">
+                    <h3 class="text-lg font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
+                        <i data-lucide="calendar-check" class="w-5 h-5 text-indigo-500"></i> Pagamentos de Dívidas
+                    </h3>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left">
+                            <thead>
+                                <tr class="border-b border-gray-200 dark:border-gray-700">
+                                    <th class="pb-3 text-xs font-bold text-gray-500 dark:text-gray-400 uppercase">Data</th>
+                                    <th class="pb-3 text-xs font-bold text-gray-500 dark:text-gray-400 uppercase">Dívida</th>
+                                    <th class="pb-3 text-xs font-bold text-gray-500 dark:text-gray-400 uppercase">Parcela</th>
+                                    <th class="pb-3 text-xs font-bold text-gray-500 dark:text-gray-400 uppercase text-right">Valor</th>
+                                    <th class="pb-3 text-xs font-bold text-gray-500 dark:text-gray-400 uppercase text-center">Status</th>
+                                </tr>
+                            </thead>
+                            <tbody id="debt-transactions-list" class="divide-y divide-gray-100 dark:divide-gray-700">
+                                <!-- Movimentações aparecerão aqui -->
+                            </tbody>
                         </table>
                     </div>
                 </div>

@@ -320,6 +320,7 @@ export async function processarPagamento(activeWalletId, currentUser, allCards, 
             date: dateVal,
             category: 'other',
             source: accountId,
+            targetId: targetId,
             createdAt: new Date(),
             isPayment: true,
             paid: true

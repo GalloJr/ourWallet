@@ -311,6 +311,12 @@ export function renderCards(cards, cardsContainer, colorStyles, flagLogos, editC
 
     window.prepararEdicaoCartao = editCardCallback;
     window.deletarCartao = deleteCardCallback;
+    
+    // Sync with section container
+    const sectionContainer = document.getElementById('cards-container-section');
+    if (sectionContainer) {
+        sectionContainer.innerHTML = cardsContainer.innerHTML;
+    }
 }
 
 export function renderAccounts(accounts, accountsContainer, colorStyles, editAccountCallback, deleteAccountCallback) {
@@ -352,6 +358,12 @@ export function renderAccounts(accounts, accountsContainer, colorStyles, editAcc
 
     window.prepararEdicaoConta = editAccountCallback;
     window.deletarConta = deleteAccountCallback;
+    
+    // Sync with section container
+    const sectionContainer = document.getElementById('accounts-container-section');
+    if (sectionContainer) {
+        sectionContainer.innerHTML = accountsContainer.innerHTML;
+    }
 }
 
 export function renderDebts(debts, debtsContainer, colorStyles, editDebtCallback, deleteDebtCallback) {
@@ -391,6 +403,12 @@ export function renderDebts(debts, debtsContainer, colorStyles, editDebtCallback
 
     window.prepararEdicaoDivida = editDebtCallback;
     window.deletarDivida = deleteDebtCallback;
+    
+    // Sync with section container
+    const sectionContainer = document.getElementById('debts-container-section');
+    if (sectionContainer) {
+        sectionContainer.innerHTML = debtsContainer.innerHTML;
+    }
 }
 
 export function renderGoals(goals, goalsContainer, deleteGoalCallback) {
@@ -435,4 +453,10 @@ export function renderGoals(goals, goalsContainer, deleteGoalCallback) {
 
     if (window.lucide) lucide.createIcons();
     window.deletarMeta = deleteGoalCallback;
+    
+    // Sync with section container
+    const sectionContainer = document.getElementById('goals-container-section');
+    if (sectionContainer) {
+        sectionContainer.innerHTML = goalsContainer.innerHTML;
+    }
 }

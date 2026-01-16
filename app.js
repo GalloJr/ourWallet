@@ -11,6 +11,7 @@ import { processarPagamento } from "./modules/transactions.js";
 import { collection, addDoc, onSnapshot, query, where, updateDoc } from "./firebase.js";
 import { showToast } from "./modules/dialogs.js";
 import { initErrorLogger } from "./modules/errorLogger.js";
+import { setupNavigation, navigateToSection, renderSectionContent } from "./modules/navigation.js";
 
 // Global variables to maintain compatibility with DOM event listeners
 window.formatarMoedaInput = formatarMoedaInput;
@@ -344,6 +345,21 @@ setupAuth(loginBtn, logoutBtn, appScreen, loginScreen, userNameDisplay, async (u
         });
 
         appState._u.g = setupGoals(appState.walletId, goalsContainer);
+
+        // Setup navigation
+        setupNavigation();
+        
+        // Listen for section changes and update content
+        window.addEventListener('section-changed', (e) => {
+            const section = e.detail.section;
+            renderSectionContent(section, {
+                transactions: appState.transactions,
+                cards: appState.cards,
+                accounts: appState.accounts,
+                debts: appState.debts,
+                goals: appState.goals
+            });
+        });
 
         // Gerar link de indicação
         const refLinkInput = document.getElementById('referral-link');
@@ -818,6 +834,10 @@ function renderSummary() {
     renderList(appState.filteredTrans, listElement, appState.cards, appState.accounts, appState.debts, formatarData, window.prepararEdicao, window.deletarItem);
     renderValues(appState.filteredTrans, appState.transactions, monthFilter.value);
     renderCharts(appState.filteredTrans, monthFilter.value);
+    
+    // Update section content when data changes
+    const event = new CustomEvent('section-changed', { detail: { section: 'current' } });
+    window.dispatchEvent(event);
 }
 
 // Auxiliares de Cópia
