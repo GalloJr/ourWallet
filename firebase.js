@@ -10,12 +10,28 @@ import { firebaseConfig, recaptchaSiteKey } from "./firebase.config.js";
 // O arquivo firebase.config.js é gerado durante o build a partir do .env
 const app = initializeApp(firebaseConfig);
 
-// Inicializar App Check com reCAPTCHA v3
+// Inicializar App Check com reCAPTCHA v3 (apenas em produção)
 // IMPORTANTE: A chave site key é pública e vem do firebase.config.js
-const appCheck = initializeAppCheck(app, {
-  provider: new ReCaptchaV3Provider(recaptchaSiteKey),
-  isTokenAutoRefreshEnabled: true
-});
+let appCheck;
+const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+
+if (!isLocalhost && recaptchaSiteKey) {
+  try {
+    appCheck = initializeAppCheck(app, {
+      provider: new ReCaptchaV3Provider(recaptchaSiteKey),
+      isTokenAutoRefreshEnabled: true
+    });
+    console.log('✅ App Check inicializado');
+  } catch (error) {
+    console.warn('⚠️ Erro ao inicializar App Check (não crítico):', error.message);
+  }
+} else {
+  console.log('⚠️ App Check desabilitado em localhost');
+  // Em desenvolvimento local, usar debug token
+  if (typeof self !== 'undefined') {
+    self.FIREBASE_APPCHECK_DEBUG_TOKEN = true;
+  }
+}
 
 // Inicializar Performance Monitoring
 const performance = getPerformance(app);

@@ -4,8 +4,10 @@
   "description": "Aplicação web profissional para controle de finanças pessoais (SaaS). O sistema permite gerenciar entradas e saídas, visualizar saldo em tempo real e analisar gastos através de gráficos dinâmicos.",
   "main": "app.js",
   "scripts": {
+    "dev": "npx serve -l 3000",
     "build:css": "npx tailwindcss -i ./src/input.css -o ./css/output.css --minify",
     "watch:css": "npx tailwindcss -i ./src/input.css -o ./css/output.css --watch",
+    "build": "bash build-and-deploy.sh",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {

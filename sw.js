@@ -1,9 +1,10 @@
-const CACHE_NAME = 'ourwallet-v2'; // Incrementado para v2 para forçar atualização
+const CACHE_NAME = 'ourwallet-v3'; // Incrementado para v3 para forçar atualização após fix da API key
 const ASSETS = [
     '/',
     '/index.html',
     '/app.js',
     '/firebase.js',
+    '/firebase.config.js',
     '/modules/auth.js',
     '/modules/cards.js',
     '/modules/constants.js',

@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Limpar Service Worker - OurWallet</title>
+    <style>
+        body {
+            font-family: system-ui, -apple-system, sans-serif;
+            max-width: 600px;
+            margin: 50px auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .card {
+            background: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        button {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 10px 5px;
+        }
+        button:hover {
+            background: #0056b3;
+        }
+        .success {
+            background: #28a745;
+            color: white;
+            padding: 15px;
+            border-radius: 4px;
+            margin: 15px 0;
+            display: none;
+        }
+        .info {
+            background: #17a2b8;
+            color: white;
+            padding: 15px;
+            border-radius: 4px;
+            margin: 15px 0;
+        }
+        pre {
+            background: #f4f4f4;
+            padding: 15px;
+            border-radius: 4px;
+            overflow-x: auto;
+        }
+        .status {
+            margin: 20px 0;
+            padding: 15px;
+            background: #f8f9fa;
+            border-left: 4px solid #007bff;
+        }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <h1>🔧 Service Worker - Forçar Atualização</h1>
+        
+        <div class="info">
+            ⚠️ Use esta página para forçar a atualização do Service Worker após mudanças críticas.
+        </div>
+
+        <div class="status" id="status">
+            <strong>Status:</strong> <span id="sw-status">Verificando...</span>
+        </div>
+
+        <button onclick="unregisterAllSW()">🗑️ Desregistrar Todos os Service Workers</button>
+        <button onclick="clearAllCache()">🧹 Limpar Todo o Cache</button>
+        <button onclick="forceUpdate()">🔄 Forçar Atualização</button>
+        <button onclick="checkStatus()">📊 Verificar Status</button>
+
+        <div class="success" id="success"></div>
+
+        <h3>Informações do Service Worker:</h3>
+        <pre id="info">Carregando...</pre>
+
+        <h3>Cache Storage:</h3>
+        <pre id="cache-info">Carregando...</pre>
+
+        <hr>
+        <p><a href="/">← Voltar para o app</a></p>
+    </div>
+
+    <script>
+        async function unregisterAllSW() {
+            const registrations = await navigator.serviceWorker.getRegistrations();
+            console.log('Service Workers encontrados:', registrations.length);
+            
+            for (let registration of registrations) {
+                const success = await registration.unregister();
+                console.log('Desregistrado:', success);
+            }
+            
+            showSuccess('✅ Todos os Service Workers foram desregistrados!');
+            setTimeout(checkStatus, 500);
+        }
+
+        async function clearAllCache() {
+            const cacheNames = await caches.keys();
+            console.log('Caches encontrados:', cacheNames);
+            
+            for (let cacheName of cacheNames) {
+                await caches.delete(cacheName);
+                console.log('Cache deletado:', cacheName);
+            }
+            
+            showSuccess('✅ Todo o cache foi limpo!');
+            setTimeout(checkStatus, 500);
+        }
+
+        async function forceUpdate() {
+            const registrations = await navigator.serviceWorker.getRegistrations();
+            
+            for (let registration of registrations) {
+                await registration.update();
+                console.log('Update forçado');
+            }
+            
+            showSuccess('✅ Atualização forçada! Recarregando em 2 segundos...');
+            setTimeout(() => window.location.reload(true), 2000);
+        }
+
+        async function checkStatus() {
+            const info = document.getElementById('info');
+            const cacheInfo = document.getElementById('cache-info');
+            const swStatus = document.getElementById('sw-status');
+            
+            // Service Worker info
+            const registrations = await navigator.serviceWorker.getRegistrations();
+            if (registrations.length === 0) {
+                info.textContent = 'Nenhum Service Worker registrado.';
+                swStatus.textContent = '✅ Limpo (nenhum SW ativo)';
+                swStatus.style.color = 'green';
+            } else {
+                info.textContent = JSON.stringify(registrations.map(reg => ({
+                    scope: reg.scope,
+                    active: reg.active ? 'Sim' : 'Não',
+                    waiting: reg.waiting ? 'Sim' : 'Não',
+                    installing: reg.installing ? 'Sim' : 'Não'
+                })), null, 2);
+                swStatus.textContent = `⚠️ ${registrations.length} Service Worker(s) ativo(s)`;
+                swStatus.style.color = 'orange';
+            }
+            
+            // Cache info
+            const cacheNames = await caches.keys();
+            if (cacheNames.length === 0) {
+                cacheInfo.textContent = 'Nenhum cache encontrado.';
+            } else {
+                let cacheDetails = 'Caches encontrados:\n\n';
+                for (let cacheName of cacheNames) {
+                    const cache = await caches.open(cacheName);
+                    const keys = await cache.keys();
+                    cacheDetails += `${cacheName}: ${keys.length} arquivo(s)\n`;
+                }
+                cacheInfo.textContent = cacheDetails;
+            }
+        }
+
+        function showSuccess(message) {
+            const successDiv = document.getElementById('success');
+            successDiv.textContent = message;
+            successDiv.style.display = 'block';
+            setTimeout(() => {
+                successDiv.style.display = 'none';
+            }, 5000);
+        }
+
+        // Carregar informações ao abrir a página
+        checkStatus();
+
+        // Verificar mudanças a cada 2 segundos
+        setInterval(checkStatus, 2000);
+    </script>
+</body>
+</html>
