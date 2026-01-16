@@ -30,7 +30,24 @@ if %ERRORLEVEL% neq 0 (
 echo ✓ Firebase CLI instalado
 echo.
 
-REM 3. Verificar autenticação
+REM 3. Gerar configuração do Firebase a partir do .env
+echo 🔧 Gerando configuração do Firebase...
+if not exist ".env" (
+    echo ❌ Arquivo .env não encontrado!
+    echo Copie .env.example para .env e configure suas credenciais.
+    exit /b 1
+)
+
+REM Ler variáveis do .env e gerar firebase.config.js
+powershell -Command "& {$content = Get-Content firebase.config.template.js -Raw; foreach($line in Get-Content .env) {if($line -match '^VITE_FIREBASE_API_KEY=(.*)$') {$content = $content -replace '__VITE_FIREBASE_API_KEY__', $matches[1]}; if($line -match '^VITE_FIREBASE_AUTH_DOMAIN=(.*)$') {$content = $content -replace '__VITE_FIREBASE_AUTH_DOMAIN__', $matches[1]}; if($line -match '^VITE_FIREBASE_PROJECT_ID=(.*)$') {$content = $content -replace '__VITE_FIREBASE_PROJECT_ID__', $matches[1]}; if($line -match '^VITE_FIREBASE_STORAGE_BUCKET=(.*)$') {$content = $content -replace '__VITE_FIREBASE_STORAGE_BUCKET__', $matches[1]}; if($line -match '^VITE_FIREBASE_MESSAGING_SENDER_ID=(.*)$') {$content = $content -replace '__VITE_FIREBASE_MESSAGING_SENDER_ID__', $matches[1]}; if($line -match '^VITE_FIREBASE_APP_ID=(.*)$') {$content = $content -replace '__VITE_FIREBASE_APP_ID__', $matches[1]}; if($line -match '^VITE_FIREBASE_RECAPTCHA_SITE_KEY=(.*)$') {$content = $content -replace '__VITE_FIREBASE_RECAPTCHA_SITE_KEY__', $matches[1]}}; $content | Set-Content firebase.config.js}"
+if %ERRORLEVEL% neq 0 (
+    echo ❌ Erro ao gerar configuração
+    exit /b 1
+)
+echo ✓ Configuração gerada com sucesso
+echo.
+
+REM 4. Verificar autenticação
 echo 🔐 Verificando autenticação...
 firebase projects:list >nul 2>&1
 if %ERRORLEVEL% neq 0 (
@@ -41,7 +58,7 @@ if %ERRORLEVEL% neq 0 (
 echo ✓ Autenticado no Firebase
 echo.
 
-REM 4. Backup das regras atuais
+REM 5. Backup das regras atuais
 echo 💾 Fazendo backup das regras atuais...
 set BACKUP_DIR=backups\%date:~-4,4%%date:~-7,2%%date:~-10,2%_%time:~0,2%%time:~3,2%%time:~6,2%
 set BACKUP_DIR=%BACKUP_DIR: =0%
@@ -51,7 +68,7 @@ if exist "storage.rules" copy "storage.rules" "%BACKUP_DIR%\" >nul
 echo ✓ Backup salvo em %BACKUP_DIR%
 echo.
 
-REM 5. Validar regras do Firestore
+REM 6. Validar regras do Firestore
 echo ✅ Validando regras do Firestore...
 firebase firestore:rules:validate firestore.rules >nul 2>&1
 if %ERRORLEVEL% neq 0 (
@@ -61,7 +78,7 @@ if %ERRORLEVEL% neq 0 (
 echo ✓ Regras do Firestore válidas
 echo.
 
-REM 6. Instalar dependências das functions
+REM 7. Instalar dependências das functions
 echo 📦 Instalando dependências das Cloud Functions...
 if exist "functions" (
     cd functions
@@ -78,7 +95,7 @@ if exist "functions" (
 )
 echo.
 
-REM 7. Perguntar o que deployar
+REM 8. Perguntar o que deployar
 echo 🎯 O que você deseja deployar?
 echo 1) Tudo (rules + functions + hosting)
 echo 2) Apenas regras Firestore
@@ -99,7 +116,7 @@ if "%DEPLOY_TARGET%"=="" (
     exit /b 1
 )
 
-REM 8. Confirmar deploy
+REM 9. Confirmar deploy
 echo.
 echo ⚠️  ATENÇÃO: Você está prestes a fazer deploy para PRODUÇÃO
 set /p CONFIRM="Confirmar deploy? (digite 'sim' para confirmar): "
@@ -108,7 +125,7 @@ if not "%CONFIRM%"=="sim" (
     exit /b 0
 )
 
-REM 9. Fazer deploy
+REM 10. Fazer deploy
 echo.
 echo 🚀 Iniciando deploy...
 echo Target: %DEPLOY_TARGET%
@@ -126,13 +143,13 @@ if %ERRORLEVEL% neq 0 (
 echo ✓ Deploy concluído com sucesso!
 echo.
 
-REM 10. Verificações pós-deploy
+REM 11. Verificações pós-deploy
 echo 🔍 Executando verificações pós-deploy...
 echo Aguardando propagação...
 timeout /t 10 /nobreak >nul
 echo.
 
-REM 11. Resumo final
+REM 12. Resumo final
 echo ========================================
 echo ✨ Deploy Finalizado!
 echo ========================================
