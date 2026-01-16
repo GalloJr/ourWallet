@@ -721,6 +721,62 @@
         </div>
     </div>
 
+    <!-- Fixed Expense Modal -->
+    <div id="fixed-expense-modal"
+        class="hidden fixed inset-0 z-[70] bg-black/50 flex items-center justify-center backdrop-blur-sm">
+        <div class="bg-white dark:bg-darkcard p-6 rounded-2xl w-full max-w-md shadow-2xl m-4 fade-in">
+            <h3 class="text-xl font-bold mb-4 flex items-center gap-2 text-emerald-600 dark:text-emerald-400"><i
+                    data-lucide="repeat"></i> Nova Despesa Fixa</h3>
+            <form id="fixed-expense-form" class="space-y-4">
+                <div>
+                    <label for="fixed-expense-desc" class="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase">Descrição</label>
+                    <input type="text" id="fixed-expense-desc" placeholder="Ex: IPVA, Seguro, Aluguel"
+                        class="w-full p-3 bg-gray-50 dark:bg-gray-700 border dark:border-gray-600 rounded-xl dark:text-white"
+                        required>
+                </div>
+                <div>
+                    <label for="fixed-expense-account" class="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase">Conta</label>
+                    <select id="fixed-expense-account"
+                        class="w-full p-3 bg-gray-50 dark:bg-gray-700 border dark:border-gray-600 rounded-xl dark:text-white cursor-pointer"
+                        required>
+                        <!-- Populado via JS -->
+                    </select>
+                </div>
+                <div>
+                    <label for="fixed-expense-amount" class="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase">Valor da Parcela</label>
+                    <input type="text" id="fixed-expense-amount" placeholder="R$ 0,00" onkeyup="formatarMoedaInput(this)"
+                        class="w-full p-3 bg-gray-50 dark:bg-gray-700 border dark:border-gray-600 rounded-xl dark:text-white"
+                        required>
+                </div>
+                <div>
+                    <label for="fixed-expense-due-day" class="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase">Dia do Vencimento</label>
+                    <input type="number" id="fixed-expense-due-day" placeholder="Ex: 10" min="1" max="31"
+                        class="w-full p-3 bg-gray-50 dark:bg-gray-700 border dark:border-gray-600 rounded-xl dark:text-white"
+                        required>
+                </div>
+                <div>
+                    <label for="fixed-expense-months" class="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase">Número de Meses</label>
+                    <input type="number" id="fixed-expense-months" placeholder="Ex: 5 (para IPVA)" min="1" max="12" value="1"
+                        class="w-full p-3 bg-gray-50 dark:bg-gray-700 border dark:border-gray-600 rounded-xl dark:text-white"
+                        required>
+                    <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Ex: 5 meses para IPVA, 10 meses para seguros</p>
+                </div>
+                <div>
+                    <label for="fixed-expense-start-month" class="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase">Mês de Início</label>
+                    <input type="month" id="fixed-expense-start-month"
+                        class="w-full p-3 bg-gray-50 dark:bg-gray-700 border dark:border-gray-600 rounded-xl dark:text-white"
+                        required>
+                </div>
+                <div class="flex gap-3 mt-6">
+                    <button type="button" onclick="fecharModalDespesaFixa()"
+                        class="flex-1 py-3 bg-gray-200 dark:bg-gray-600 rounded-xl hover:bg-gray-300 dark:hover:bg-gray-500 transition">Cancelar</button>
+                    <button type="submit" id="fixed-expense-submit-btn"
+                        class="flex-1 py-3 bg-emerald-600 text-white rounded-xl hover:bg-emerald-700 transition font-bold">Criar Despesa Fixa</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
     <div id="account-modal"
         class="hidden fixed inset-0 z-[70] bg-black/50 flex items-center justify-center backdrop-blur-sm">
         <div class="bg-white dark:bg-darkcard p-6 rounded-2xl w-full max-w-md shadow-2xl m-4 fade-in">
@@ -1329,10 +1385,16 @@
                         </h2>
                         <p class="text-gray-500 dark:text-gray-400 text-sm mt-1">Gerencie contas bancárias e despesas fixas</p>
                     </div>
-                    <button onclick="abrirModalConta()"
-                        class="px-4 py-2 bg-indigo-600 text-white rounded-lg font-bold hover:bg-indigo-700 transition flex items-center gap-2">
-                        <i data-lucide="plus" class="w-4 h-4"></i> Nova Conta
-                    </button>
+                    <div class="flex gap-2">
+                        <button onclick="abrirModalDespesaFixa()"
+                            class="px-4 py-2 bg-emerald-600 text-white rounded-lg font-bold hover:bg-emerald-700 transition flex items-center gap-2 shadow-md">
+                            <i data-lucide="repeat" class="w-4 h-4"></i> Despesa Fixa
+                        </button>
+                        <button onclick="abrirModalConta()"
+                            class="px-4 py-2 bg-indigo-600 text-white rounded-lg font-bold hover:bg-indigo-700 transition flex items-center gap-2">
+                            <i data-lucide="plus" class="w-4 h-4"></i> Nova Conta
+                        </button>
+                    </div>
                 </div>
                 <div id="accounts-container-section" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                     <!-- Contas aparecerão aqui -->

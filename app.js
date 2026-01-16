@@ -6,7 +6,7 @@ import { setupGoals, salvarMeta, deletarMeta } from "./modules/goals.js";
 import { setupAccounts, salvarConta, editarConta } from "./modules/accounts.js";
 import { setupDebts, salvarDivida, editarDivida } from "./modules/debts.js";
 import { updateThemeIcon, toggleLoading, popularSeletorMeses, renderCharts, renderList, renderValues, renderCards, renderAccounts, renderDebts, renderGoals } from "./modules/ui.js";
-import { formatarMoedaInput, formatarData } from "./modules/utils.js";
+import { formatarMoedaInput, formatarData, limparValorMoeda } from "./modules/utils.js";
 import { processarPagamento } from "./modules/transactions.js";
 import { collection, addDoc, onSnapshot, query, where, updateDoc } from "./firebase.js";
 import { showToast } from "./modules/dialogs.js";
@@ -32,6 +32,18 @@ window.fecharModalEdicaoConta = () => document.getElementById('edit-account-moda
 window.abrirModalDivida = () => document.getElementById('debt-modal').classList.remove('hidden');
 window.fecharModalDivida = () => document.getElementById('debt-modal').classList.add('hidden');
 window.fecharModalEdicaoDivida = () => document.getElementById('edit-debt-modal').classList.add('hidden');
+window.abrirModalDespesaFixa = () => {
+    popularSelectDespesaFixa();
+    document.getElementById('fixed-expense-modal').classList.remove('hidden');
+    // Define mês atual como padrão
+    const hoje = new Date();
+    const mesAtual = `${hoje.getFullYear()}-${String(hoje.getMonth() + 1).padStart(2, '0')}`;
+    document.getElementById('fixed-expense-start-month').value = mesAtual;
+};
+window.fecharModalDespesaFixa = () => {
+    document.getElementById('fixed-expense-modal').classList.add('hidden');
+    document.getElementById('fixed-expense-form').reset();
+};
 
 window.abrirModalPagamento = (targetId = null) => {
     const modal = document.getElementById('payment-modal');
@@ -446,6 +458,12 @@ document.getElementById('edit-debt-form').addEventListener('submit', async (e) =
     await editarDivida(e.target, window.fecharModalEdicaoDivida);
 });
 
+// Fixed Expense Form
+document.getElementById('fixed-expense-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    await criarDespesaFixa();
+});
+
 // Edit Transaction Form
 document.getElementById('edit-form').addEventListener('submit', async (e) => {
     e.preventDefault();
@@ -506,6 +524,78 @@ function popularSelectPagamento() {
         targetOptions += '</optgroup>';
     }
     payTarget.innerHTML = targetOptions;
+}
+
+function popularSelectDespesaFixa() {
+    const accountSelect = document.getElementById('fixed-expense-account');
+    if (!accountSelect) return;
+    
+    let options = '';
+    appState.accounts.forEach(acc => {
+        options += `<option value="${acc.id}">🏦 ${acc.name}</option>`;
+    });
+    accountSelect.innerHTML = options;
+}
+
+async function criarDespesaFixa() {
+    // Prevenir execução múltipla
+    const submitBtn = document.getElementById('fixed-expense-submit-btn');
+    if (submitBtn.disabled) return;
+    submitBtn.disabled = true;
+    submitBtn.textContent = 'Criando...';
+    
+    const desc = document.getElementById('fixed-expense-desc').value;
+    const accountId = document.getElementById('fixed-expense-account').value;
+    const amountInput = document.getElementById('fixed-expense-amount').value;
+    const dueDay = parseInt(document.getElementById('fixed-expense-due-day').value);
+    const numMonths = parseInt(document.getElementById('fixed-expense-months').value);
+    const startMonth = document.getElementById('fixed-expense-start-month').value; // formato: YYYY-MM
+    
+    // Converter valor usando a função limparValorMoeda
+    const amountPerMonth = limparValorMoeda(amountInput);
+    if (isNaN(amountPerMonth) || amountPerMonth <= 0) {
+        alert('Valor inválido');
+        submitBtn.disabled = false;
+        submitBtn.textContent = 'Criar Despesa Fixa';
+        return;
+    }
+    
+    try {
+        const [year, month] = startMonth.split('-').map(Number);
+        
+        for (let i = 0; i < numMonths; i++) {
+            const currentDate = new Date(year, month - 1 + i, dueDay);
+            const dateStr = currentDate.toISOString().split('T')[0];
+            
+            const description = numMonths > 1 
+                ? `${desc} (${i + 1}/${numMonths})`
+                : desc;
+            
+            await addDoc(collection(db, "transactions"), {
+                uid: appState.walletId,
+                owner: appState.user.uid,
+                ownerName: appState.user.displayName || "Usuário",
+                desc: description,
+                description: description,
+                amount: -Math.abs(amountPerMonth),
+                date: dateStr,
+                category: 'other',
+                source: accountId,
+                paid: false,
+                createdAt: new Date(),
+                isFixedExpense: true
+            });
+        }
+        
+        showToast(`${numMonths} despesa(s) fixa(s) criada(s)!`);
+        window.fecharModalDespesaFixa();
+    } catch (e) {
+        console.error(e);
+        alert('Erro ao criar despesas fixas');
+    } finally {
+        submitBtn.disabled = false;
+        submitBtn.textContent = 'Criar Despesa Fixa';
+    }
 }
 
 // Upgrade Premium Logic
