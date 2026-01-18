@@ -38,8 +38,8 @@ export function setupInvestments(uid, container, callback) {
                 invData.transactions = [];
             }
             
-            // Calcular valores consolidados
-            invData.consolidated = calcularConsolidado(invData.transactions);
+            // Calcular valores consolidados (passar cotação atual se disponível)
+            invData.consolidated = calcularConsolidado(invData.transactions, invData.currentPrice);
             
             investments.push(invData);
         }
@@ -63,40 +63,46 @@ export function setupInvestments(uid, container, callback) {
 /**
  * Calcula valores consolidados a partir das transações
  */
-function calcularConsolidado(transactions) {
+function calcularConsolidado(transactions, cotacaoAtual = null) {
     let quantidadeTotal = 0;
     let totalInvestido = 0;
     let totalDividendos = 0;
     let totalVendido = 0;
     let custoTotalCompras = 0;
+    let cotacaoMaisRecente = cotacaoAtual;
     
     transactions.forEach(t => {
-        if (t.type === 'compra') {
-            quantidadeTotal += t.quantity;
-            const valorTotal = t.quantity * t.price;
+        if (t.type === 'compra' || t.type === 'saldo-inicial') {
+            quantidadeTotal += t.quantity || 0;
+            const valorTotal = (t.quantity || 0) * (t.price || 0);
             totalInvestido += valorTotal;
             custoTotalCompras += valorTotal;
+            
+            // Atualizar cotação mais recente se disponível
+            if (t.currentPrice && !cotacaoMaisRecente) {
+                cotacaoMaisRecente = t.currentPrice;
+            }
         } else if (t.type === 'venda') {
-            quantidadeTotal -= t.quantity;
-            totalVendido += t.quantity * t.price;
+            quantidadeTotal -= t.quantity || 0;
+            totalVendido += (t.quantity || 0) * (t.price || 0);
         } else if (t.type === 'dividendo') {
-            totalDividendos += t.amount;
+            totalDividendos += t.amount || 0;
         }
     });
     
-    const precoMedio = quantidadeTotal > 0 ? (custoTotalCompras - totalVendido) / quantidadeTotal : 0;
-    const valorAtual = quantidadeTotal > 0 && transactions.length > 0 
-        ? quantidadeTotal * (transactions[0].currentPrice || precoMedio) 
-        : 0;
+    const precoMedio = quantidadeTotal > 0 ? custoTotalCompras / quantidadeTotal : 0;
+    const precoAtual = cotacaoMaisRecente || precoMedio;
+    const valorAtual = quantidadeTotal > 0 ? quantidadeTotal * precoAtual : 0;
     
     const lucroNaoRealizado = valorAtual - (precoMedio * quantidadeTotal);
-    const lucroRealizado = totalVendido - (totalVendido > 0 ? totalInvestido * (totalVendido / valorAtual) : 0);
+    const lucroRealizado = totalVendido > 0 ? totalVendido - (custoTotalCompras * (totalVendido / (custoTotalCompras + totalDividendos))) : 0;
     const lucroTotal = lucroNaoRealizado + lucroRealizado + totalDividendos;
     const rentabilidade = totalInvestido > 0 ? (lucroTotal / totalInvestido) * 100 : 0;
     
     return {
         quantidade: quantidadeTotal,
         precoMedio,
+        precoAtual,
         totalInvestido,
         totalAtual: valorAtual,
         totalDividendos,
@@ -128,6 +134,7 @@ export async function salvarInvestimento(activeWalletId, form, fecharModal) {
             ticker: ticker.toUpperCase(),
             type: tipo,
             color: cor,
+            currentPrice: 0,
             createdAt: new Date()
         });
         
@@ -154,7 +161,8 @@ export async function adicionarTransacao(investmentId, transactionData) {
         const typeLabels = {
             'compra': 'Compra',
             'venda': 'Venda',
-            'dividendo': 'Dividendo'
+            'dividendo': 'Dividendo',
+            'saldo-inicial': 'Saldo Inicial'
         };
         
         showToast(`✅ ${typeLabels[transactionData.type]} registrada!`, "success");
@@ -162,6 +170,25 @@ export async function adicionarTransacao(investmentId, transactionData) {
     } catch (e) {
         console.error("Erro ao adicionar transação:", e);
         showToast("❌ Erro ao registrar transação", "error");
+        return false;
+    }
+}
+
+/**
+ * Atualiza cotação atual de um investimento
+ */
+export async function atualizarCotacao(investmentId, novaCotacao) {
+    try {
+        await updateDoc(doc(db, "investments", investmentId), {
+            currentPrice: novaCotacao,
+            lastPriceUpdate: new Date()
+        });
+        
+        showToast("✅ Cotação atualizada!", "success");
+        return true;
+    } catch (e) {
+        console.error("Erro ao atualizar cotação:", e);
+        showToast("❌ Erro ao atualizar cotação", "error");
         return false;
     }
 }
@@ -246,6 +273,126 @@ export async function editarInvestimento(editForm, fecharModal) {
     } catch (e) {
         console.error("Erro ao editar investimento:", e);
         alert("Erro ao editar investimento.");
+    }
+}
+
+/**
+ * Busca cotação em tempo real via APIs públicas
+ */
+export async function buscarCotacaoAutomatica(ticker, tipo) {
+    if (!ticker) {
+        showToast("⚠️ Ticker não informado", "warning");
+        return null;
+    }
+
+    try {
+        // Para criptomoedas, usar CoinGecko API
+        if (tipo === 'cripto') {
+            return await buscarCotacaoCripto(ticker);
+        }
+        
+        // Para ações/FIIs/ETFs, usar Brapi (API brasileira gratuita)
+        if (tipo === 'acoes' || tipo === 'fiis' || tipo === 'etf') {
+            return await buscarCotacaoAcao(ticker);
+        }
+        
+        showToast("⚠️ Tipo de ativo não suportado para atualização automática", "warning");
+        return null;
+    } catch (error) {
+        console.error("Erro ao buscar cotação:", error);
+        showToast("❌ Erro ao buscar cotação", "error");
+        return null;
+    }
+}
+
+/**
+ * Busca cotação de criptomoedas via CoinGecko
+ */
+async function buscarCotacaoCripto(ticker) {
+    // Mapa de tickers para IDs do CoinGecko
+    const cryptoMap = {
+        'BTC': 'bitcoin',
+        'ETH': 'ethereum',
+        'BNB': 'binancecoin',
+        'ADA': 'cardano',
+        'SOL': 'solana',
+        'XRP': 'ripple',
+        'DOT': 'polkadot',
+        'DOGE': 'dogecoin',
+        'MATIC': 'matic-network',
+        'AVAX': 'avalanche-2',
+        'LINK': 'chainlink',
+        'UNI': 'uniswap',
+        'ATOM': 'cosmos',
+        'LTC': 'litecoin',
+        'BCH': 'bitcoin-cash',
+        'ALGO': 'algorand',
+        'VET': 'vechain',
+        'ICP': 'internet-computer',
+        'FIL': 'filecoin',
+        'USDT': 'tether',
+        'USDC': 'usd-coin'
+    };
+
+    const coinId = cryptoMap[ticker.toUpperCase()] || ticker.toLowerCase();
+    const url = `https://api.coingecko.com/api/v3/simple/price?ids=${coinId}&vs_currencies=brl`;
+    
+    const response = await fetch(url);
+    if (!response.ok) throw new Error('Erro na requisição CoinGecko');
+    
+    const data = await response.json();
+    const price = data[coinId]?.brl;
+    
+    if (!price) {
+        showToast("❌ Criptomoeda não encontrada. Tente: BTC, ETH, BNB, etc.", "error");
+        return null;
+    }
+    
+    return price;
+}
+
+/**
+ * Busca cotação de ações brasileiras via Brapi
+ */
+async function buscarCotacaoAcao(ticker) {
+    // Normalizar ticker (adicionar .SA se for ação brasileira sem sufixo)
+    let normalizedTicker = ticker.toUpperCase();
+    if (!normalizedTicker.includes('.') && !normalizedTicker.includes(':')) {
+        normalizedTicker = `${normalizedTicker}.SA`;
+    }
+    
+    const url = `https://brapi.dev/api/quote/${normalizedTicker}?token=demo`;
+    
+    const response = await fetch(url);
+    if (!response.ok) throw new Error('Erro na requisição Brapi');
+    
+    const data = await response.json();
+    const result = data.results?.[0];
+    
+    if (!result || !result.regularMarketPrice) {
+        showToast("❌ Ação não encontrada. Verifique o ticker (ex: PETR4, VALE3)", "error");
+        return null;
+    }
+    
+    return result.regularMarketPrice;
+}
+
+/**
+ * Atualiza cotação automaticamente usando APIs
+ */
+export async function atualizarCotacaoAutomatica(investmentId, ticker, tipo) {
+    try {
+        showToast("🔄 Buscando cotação...", "info");
+        
+        const novaCotacao = await buscarCotacaoAutomatica(ticker, tipo);
+        
+        if (novaCotacao) {
+            await atualizarCotacao(investmentId, novaCotacao);
+            showToast(`✅ Cotação atualizada: R$ ${novaCotacao.toFixed(2)}`, "success");
+        }
+    } catch (error) {
+        console.error("Erro ao atualizar cotação:", error);
+        showToast("❌ Erro ao atualizar cotação", "error");
     }
 }
 

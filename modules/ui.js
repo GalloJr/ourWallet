@@ -525,6 +525,11 @@ export function renderInvestments(investments, container, editCallback, deleteCa
                             <p class="text-xs opacity-80 mt-1">${typeLabel}</p>
                         </div>
                         <div class="flex gap-1">
+                            <button onclick="window.atualizarCotacaoAuto('${inv.id}', '${inv.ticker || ''}', '${inv.type}')" 
+                                class="p-2 bg-white/20 hover:bg-white/30 rounded-lg transition" 
+                                title="Atualizar Cotação">
+                                <i data-lucide="refresh-cw" class="w-4 h-4"></i>
+                            </button>
                             <button onclick="window.abrirModalTransacao('${inv.id}')" 
                                 class="p-2 bg-white/20 hover:bg-white/30 rounded-lg transition" 
                                 title="Adicionar Operação">

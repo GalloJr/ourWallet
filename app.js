@@ -5,7 +5,7 @@ import { setupTransactions, salvarTransacao, editarTransacao, deletarTransacao, 
 import { setupGoals, salvarMeta, deletarMeta } from "./modules/goals.js";
 import { setupAccounts, salvarConta, editarConta } from "./modules/accounts.js";
 import { setupDebts, salvarDivida, editarDivida } from "./modules/debts.js";
-import { setupInvestments, salvarInvestimento, editarInvestimento, deletarInvestimento, popularFormularioEdicao, calcularEstatisticasInvestimentos, adicionarTransacao, deletarTransacaoInvestimento } from "./modules/investments.js";
+import { setupInvestments, salvarInvestimento, editarInvestimento, deletarInvestimento, popularFormularioEdicao, calcularEstatisticasInvestimentos, adicionarTransacao, deletarTransacaoInvestimento, atualizarCotacaoAutomatica } from "./modules/investments.js";
 import { updateThemeIcon, toggleLoading, popularSeletorMeses, renderCharts, renderList, renderValues, renderCards, renderAccounts, renderDebts, renderGoals, renderInvestments } from "./modules/ui.js";
 import { formatarMoedaInput, formatarData, limparValorMoeda } from "./modules/utils.js";
 import { processarPagamento } from "./modules/transactions.js";
@@ -465,12 +465,14 @@ window.selecionarTipoTransacao = (tipo) => {
     tipoTransacaoSelecionado = tipo;
     
     // Atualiza visual dos botões
-    ['compra', 'venda', 'dividendo'].forEach(t => {
+    ['saldo-inicial', 'compra', 'venda', 'dividendo'].forEach(t => {
         const btn = document.getElementById(`tipo-${t}`);
-        if (t === tipo) {
-            btn.classList.add('border-indigo-500', 'bg-indigo-50', 'dark:bg-indigo-900/20');
-        } else {
-            btn.classList.remove('border-indigo-500', 'bg-indigo-50', 'dark:bg-indigo-900/20');
+        if (btn) {
+            if (t === tipo) {
+                btn.classList.add('border-indigo-500', 'bg-indigo-50', 'dark:bg-indigo-900/20');
+            } else {
+                btn.classList.remove('border-indigo-500', 'bg-indigo-50', 'dark:bg-indigo-900/20');
+            }
         }
     });
     
@@ -627,6 +629,10 @@ window.mostrarTransacoes = (investmentId) => {
     
     if (window.lucide) lucide.createIcons();
 };
+
+// Expor função deletarInvestimento
+window.deletarInvestimento = deletarInvestimento;
+window.atualizarCotacaoAuto = atualizarCotacaoAutomatica;
 
 // Edit Investment Form
 const editInvestimentoForm = document.getElementById('edit-investimento-form');

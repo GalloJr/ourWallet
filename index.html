@@ -2001,20 +2001,25 @@
                     <label class="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase mb-2 block">
                         Tipo de Operação
                     </label>
-                    <div class="grid grid-cols-3 gap-2">
+                    <div class="grid grid-cols-4 gap-2">
+                        <button type="button" onclick="selecionarTipoTransacao('saldo-inicial')" id="tipo-saldo-inicial"
+                            class="p-2 border-2 border-gray-300 dark:border-gray-600 rounded-lg hover:border-purple-500 transition flex flex-col items-center gap-1">
+                            <i data-lucide="package-plus" class="w-4 h-4 text-purple-600"></i>
+                            <span class="text-xs font-bold">Saldo</span>
+                        </button>
                         <button type="button" onclick="selecionarTipoTransacao('compra')" id="tipo-compra"
-                            class="p-3 border-2 border-gray-300 dark:border-gray-600 rounded-lg hover:border-green-500 transition flex flex-col items-center gap-1">
-                            <i data-lucide="arrow-down-circle" class="w-5 h-5 text-green-600"></i>
+                            class="p-2 border-2 border-gray-300 dark:border-gray-600 rounded-lg hover:border-green-500 transition flex flex-col items-center gap-1">
+                            <i data-lucide="arrow-down-circle" class="w-4 h-4 text-green-600"></i>
                             <span class="text-xs font-bold">Compra</span>
                         </button>
                         <button type="button" onclick="selecionarTipoTransacao('venda')" id="tipo-venda"
-                            class="p-3 border-2 border-gray-300 dark:border-gray-600 rounded-lg hover:border-red-500 transition flex flex-col items-center gap-1">
-                            <i data-lucide="arrow-up-circle" class="w-5 h-5 text-red-600"></i>
+                            class="p-2 border-2 border-gray-300 dark:border-gray-600 rounded-lg hover:border-red-500 transition flex flex-col items-center gap-1">
+                            <i data-lucide="arrow-up-circle" class="w-4 h-4 text-red-600"></i>
                             <span class="text-xs font-bold">Venda</span>
                         </button>
                         <button type="button" onclick="selecionarTipoTransacao('dividendo')" id="tipo-dividendo"
-                            class="p-3 border-2 border-gray-300 dark:border-gray-600 rounded-lg hover:border-blue-500 transition flex flex-col items-center gap-1">
-                            <i data-lucide="dollar-sign" class="w-5 h-5 text-blue-600"></i>
+                            class="p-2 border-2 border-gray-300 dark:border-gray-600 rounded-lg hover:border-blue-500 transition flex flex-col items-center gap-1">
+                            <i data-lucide="dollar-sign" class="w-4 h-4 text-blue-600"></i>
                             <span class="text-xs font-bold">Dividendo</span>
                         </button>
                     </div>
