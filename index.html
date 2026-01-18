@@ -11,8 +11,8 @@
     <link href="./css/output.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/lucide@latest"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.0.0"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0/dist/chartjs-plugin-datalabels.min.js" crossorigin="anonymous"></script>
     <!-- Bibliotecas para geração de PDF -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.7/pdfmake.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.7/vfs_fonts.js"></script>
@@ -1881,7 +1881,7 @@
                     </div>
                     <button onclick="abrirModalInvestimento()" id="add-investment-btn-section"
                         class="px-4 py-2 bg-indigo-600 text-white rounded-lg font-bold hover:bg-indigo-700 transition flex items-center gap-2">
-                        <i data-lucide="plus" class="w-4 h-4"></i> Novo Investimento
+                        <i data-lucide="plus" class="w-4 h-4"></i> Novo Ativo
                     </button>
                 </div>
 
@@ -1912,21 +1912,29 @@
         </main>
     </div>
 
-    <!-- Investment Modal (Create) -->
+    <!-- Investment Modal (Create Ativo) -->
     <div id="investimento-modal"
         class="hidden fixed inset-0 z-[70] bg-black/50 flex items-center justify-center backdrop-blur-sm">
         <div class="bg-white dark:bg-darkcard p-6 rounded-2xl w-full max-w-md shadow-2xl m-4 fade-in">
             <h3 class="text-xl font-bold mb-4 flex items-center gap-2 text-emerald-600 dark:text-emerald-400">
-                <i data-lucide="trending-up"></i> Novo Investimento
+                <i data-lucide="trending-up"></i> Novo Ativo
             </h3>
             <form id="investimento-form" class="space-y-4">
                 <div>
                     <label for="inv-name" class="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase">
-                        Nome do Investimento
+                        Nome do Ativo
                     </label>
-                    <input type="text" id="inv-name" placeholder="Ex: Tesouro Direto IPCA+ 2035"
+                    <input type="text" id="inv-name" placeholder="Ex: Vale3, Bitcoin, Tesouro IPCA+"
                         class="w-full p-3 bg-gray-50 dark:bg-gray-700 border dark:border-gray-600 rounded-xl dark:text-white"
                         required>
+                </div>
+                
+                <div>
+                    <label for="inv-ticker" class="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase">
+                        Ticker/Código (Opcional)
+                    </label>
+                    <input type="text" id="inv-ticker" placeholder="Ex: VALE3, BTC, IPCA35"
+                        class="w-full p-3 bg-gray-50 dark:bg-gray-700 border dark:border-gray-600 rounded-xl dark:text-white uppercase">
                 </div>
                 
                 <div>
@@ -1935,31 +1943,13 @@
                     </label>
                     <select id="inv-type"
                         class="w-full p-3 bg-gray-50 dark:bg-gray-700 border dark:border-gray-600 rounded-xl dark:text-white cursor-pointer">
+                        <option value="acoes">Ações</option>
+                        <option value="fiis">Fundos Imobiliários</option>
                         <option value="renda-fixa">Renda Fixa</option>
-                        <option value="renda-variavel">Renda Variável</option>
                         <option value="cripto">Criptomoedas</option>
-                        <option value="imoveis">Imóveis</option>
-                        <option value="fundos">Fundos de Investimento</option>
+                        <option value="etf">ETFs</option>
+                        <option value="outros">Outros</option>
                     </select>
-                </div>
-                
-                <div class="grid grid-cols-2 gap-4">
-                    <div>
-                        <label for="inv-amount" class="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase">
-                            Valor Investido
-                        </label>
-                        <input type="text" id="inv-amount" placeholder="R$ 0,00" onkeyup="formatarMoedaInput(this)"
-                            class="w-full p-3 bg-gray-50 dark:bg-gray-700 border dark:border-gray-600 rounded-xl dark:text-white"
-                            required>
-                    </div>
-                    <div>
-                        <label for="inv-current" class="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase">
-                            Valor Atual
-                        </label>
-                        <input type="text" id="inv-current" placeholder="R$ 0,00" onkeyup="formatarMoedaInput(this)"
-                            class="w-full p-3 bg-gray-50 dark:bg-gray-700 border dark:border-gray-600 rounded-xl dark:text-white"
-                            required>
-                    </div>
                 </div>
 
                 <div>
@@ -1977,14 +1967,119 @@
                     </select>
                 </div>
                 
+                <div class="bg-blue-50 dark:bg-blue-900/20 p-3 rounded-lg">
+                    <p class="text-xs text-blue-700 dark:text-blue-400">
+                        💡 Após criar o ativo, você poderá adicionar compras, vendas e dividendos.
+                    </p>
+                </div>
+                
                 <div class="flex gap-3 mt-6">
                     <button type="button" onclick="fecharModalInvestimento()"
-                        class="flex-1 py-3 bg-gray-200 dark:bg-gray-600 rounded-xl hover:bg-gray-300 transition">
+                        class="flex-1 py-3 bg-gray-200 dark:bg-gray-600 rounded-xl hover:bg-gray-300 dark:hover:bg-gray-700 transition">
                         Cancelar
                     </button>
                     <button type="submit"
                         class="flex-1 py-3 bg-emerald-600 text-white rounded-xl hover:bg-emerald-700 transition">
-                        Criar Investimento
+                        Criar Ativo
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Transaction Modal (Compra/Venda/Dividendo) -->
+    <div id="transacao-modal"
+        class="hidden fixed inset-0 z-[70] bg-black/50 flex items-center justify-center backdrop-blur-sm">
+        <div class="bg-white dark:bg-darkcard p-6 rounded-2xl w-full max-w-md shadow-2xl m-4 fade-in">
+            <h3 class="text-xl font-bold mb-4 flex items-center gap-2 text-indigo-600 dark:text-indigo-400">
+                <i data-lucide="arrow-right-left"></i> Nova Operação
+            </h3>
+            <form id="transacao-form" class="space-y-4">
+                <input type="hidden" id="trans-investment-id">
+                
+                <div>
+                    <label class="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase mb-2 block">
+                        Tipo de Operação
+                    </label>
+                    <div class="grid grid-cols-3 gap-2">
+                        <button type="button" onclick="selecionarTipoTransacao('compra')" id="tipo-compra"
+                            class="p-3 border-2 border-gray-300 dark:border-gray-600 rounded-lg hover:border-green-500 transition flex flex-col items-center gap-1">
+                            <i data-lucide="arrow-down-circle" class="w-5 h-5 text-green-600"></i>
+                            <span class="text-xs font-bold">Compra</span>
+                        </button>
+                        <button type="button" onclick="selecionarTipoTransacao('venda')" id="tipo-venda"
+                            class="p-3 border-2 border-gray-300 dark:border-gray-600 rounded-lg hover:border-red-500 transition flex flex-col items-center gap-1">
+                            <i data-lucide="arrow-up-circle" class="w-5 h-5 text-red-600"></i>
+                            <span class="text-xs font-bold">Venda</span>
+                        </button>
+                        <button type="button" onclick="selecionarTipoTransacao('dividendo')" id="tipo-dividendo"
+                            class="p-3 border-2 border-gray-300 dark:border-gray-600 rounded-lg hover:border-blue-500 transition flex flex-col items-center gap-1">
+                            <i data-lucide="dollar-sign" class="w-5 h-5 text-blue-600"></i>
+                            <span class="text-xs font-bold">Dividendo</span>
+                        </button>
+                    </div>
+                </div>
+
+                <div id="trans-date-field">
+                    <label for="trans-date" class="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase">
+                        Data da Operação
+                    </label>
+                    <input type="date" id="trans-date" 
+                        class="w-full p-3 bg-gray-50 dark:bg-gray-700 border dark:border-gray-600 rounded-xl dark:text-white"
+                        required>
+                </div>
+
+                <!-- Campos para Compra/Venda -->
+                <div id="trans-compra-venda-fields" class="space-y-4">
+                    <div>
+                        <label for="trans-quantity" class="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase">
+                            Quantidade
+                        </label>
+                        <input type="number" id="trans-quantity" placeholder="0" step="0.0001"
+                            class="w-full p-3 bg-gray-50 dark:bg-gray-700 border dark:border-gray-600 rounded-xl dark:text-white">
+                    </div>
+                    
+                    <div>
+                        <label for="trans-price" class="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase">
+                            Preço Unitário
+                        </label>
+                        <input type="text" id="trans-price" placeholder="R$ 0,00" onkeyup="formatarMoedaInput(this)"
+                            class="w-full p-3 bg-gray-50 dark:bg-gray-700 border dark:border-gray-600 rounded-xl dark:text-white">
+                    </div>
+
+                    <div class="bg-gray-50 dark:bg-gray-800 p-3 rounded-lg">
+                        <p class="text-xs text-gray-500 dark:text-gray-400 mb-1">Valor Total</p>
+                        <p id="trans-total" class="text-xl font-bold text-gray-900 dark:text-white">R$ 0,00</p>
+                    </div>
+                </div>
+
+                <!-- Campos para Dividendo -->
+                <div id="trans-dividendo-fields" class="hidden space-y-4">
+                    <div>
+                        <label for="trans-dividendo-amount" class="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase">
+                            Valor do Dividendo
+                        </label>
+                        <input type="text" id="trans-dividendo-amount" placeholder="R$ 0,00" onkeyup="formatarMoedaInput(this)"
+                            class="w-full p-3 bg-gray-50 dark:bg-gray-700 border dark:border-gray-600 rounded-xl dark:text-white">
+                    </div>
+                </div>
+
+                <div>
+                    <label for="trans-notes" class="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase">
+                        Observações (Opcional)
+                    </label>
+                    <textarea id="trans-notes" placeholder="Ex: Dividendo de janeiro, compra via XP..."
+                        class="w-full p-3 bg-gray-50 dark:bg-gray-700 border dark:border-gray-600 rounded-xl dark:text-white h-20 resize-none"></textarea>
+                </div>
+                
+                <div class="flex gap-3 mt-6">
+                    <button type="button" onclick="fecharModalTransacao()"
+                        class="flex-1 py-3 bg-gray-200 dark:bg-gray-600 rounded-xl hover:bg-gray-300 dark:hover:bg-gray-700 transition">
+                        Cancelar
+                    </button>
+                    <button type="submit" id="trans-submit-btn"
+                        class="flex-1 py-3 bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 transition">
+                        Registrar
                     </button>
                 </div>
             </form>

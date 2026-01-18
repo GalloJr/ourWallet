@@ -5,13 +5,13 @@ import { setupTransactions, salvarTransacao, editarTransacao, deletarTransacao, 
 import { setupGoals, salvarMeta, deletarMeta } from "./modules/goals.js";
 import { setupAccounts, salvarConta, editarConta } from "./modules/accounts.js";
 import { setupDebts, salvarDivida, editarDivida } from "./modules/debts.js";
-import { setupInvestments, salvarInvestimento, editarInvestimento, deletarInvestimento, popularFormularioEdicao, calcularEstatisticasInvestimentos } from "./modules/investments.js";
+import { setupInvestments, salvarInvestimento, editarInvestimento, deletarInvestimento, popularFormularioEdicao, calcularEstatisticasInvestimentos, adicionarTransacao, deletarTransacaoInvestimento } from "./modules/investments.js";
 import { updateThemeIcon, toggleLoading, popularSeletorMeses, renderCharts, renderList, renderValues, renderCards, renderAccounts, renderDebts, renderGoals, renderInvestments } from "./modules/ui.js";
 import { formatarMoedaInput, formatarData, limparValorMoeda } from "./modules/utils.js";
 import { processarPagamento } from "./modules/transactions.js";
 import { gerarRelatorioMensalIA } from "./modules/reports.js";
 import { collection, addDoc, onSnapshot, query, where, updateDoc } from "./firebase.js";
-import { showToast } from "./modules/dialogs.js";
+import { showToast, showDialog } from "./modules/dialogs.js";
 import { initErrorLogger } from "./modules/errorLogger.js";
 import { setupNavigation, navigateToSection, renderSectionContent } from "./modules/navigation.js";
 
@@ -365,9 +365,15 @@ setupAuth(loginBtn, logoutBtn, appScreen, loginScreen, userNameDisplay, async (u
             popularHistorySourceFilter();
         });
 
-        appState._u.i = setupInvestments(appState.walletId, document.getElementById('investments-container'), (investments) => {
+        appState._u.i = setupInvestments(appState.walletId, document.getElementById('investments-container-section'), (investments) => {
             appState.investments = investments;
             atualizarEstatisticasInvestimentos(investments);
+            
+            // Atualizar também o widget do dashboard
+            const investCont = document.getElementById('investments-container');
+            if (investCont) {
+                renderInvestments(investments, investCont, editarInvestimento, deletarInvestimento);
+            }
         });
 
         appState._u.g = setupGoals(appState.walletId, goalsContainer);
@@ -450,6 +456,177 @@ if (investimentoForm) {
         await salvarInvestimento(appState.walletId, investimentoForm, window.fecharModalInvestimento);
     });
 }
+
+// Transaction Form
+const transacaoForm = document.getElementById('transacao-form');
+let tipoTransacaoSelecionado = null;
+
+window.selecionarTipoTransacao = (tipo) => {
+    tipoTransacaoSelecionado = tipo;
+    
+    // Atualiza visual dos botões
+    ['compra', 'venda', 'dividendo'].forEach(t => {
+        const btn = document.getElementById(`tipo-${t}`);
+        if (t === tipo) {
+            btn.classList.add('border-indigo-500', 'bg-indigo-50', 'dark:bg-indigo-900/20');
+        } else {
+            btn.classList.remove('border-indigo-500', 'bg-indigo-50', 'dark:bg-indigo-900/20');
+        }
+    });
+    
+    // Mostra/esconde campos apropriados
+    const compraVendaFields = document.getElementById('trans-compra-venda-fields');
+    const dividendoFields = document.getElementById('trans-dividendo-fields');
+    
+    if (tipo === 'dividendo') {
+        compraVendaFields.classList.add('hidden');
+        dividendoFields.classList.remove('hidden');
+    } else {
+        compraVendaFields.classList.remove('hidden');
+        dividendoFields.classList.add('hidden');
+    }
+};
+
+// Atualizar total da transação
+if (transacaoForm) {
+    const quantityInput = document.getElementById('trans-quantity');
+    const priceInput = document.getElementById('trans-price');
+    const totalDisplay = document.getElementById('trans-total');
+    
+    const atualizarTotal = () => {
+        const quantity = parseFloat(quantityInput.value) || 0;
+        const price = limparValorMoeda(priceInput.value);
+        const total = quantity * price;
+        totalDisplay.textContent = `R$ ${total.toFixed(2).replace('.', ',')}`;
+    };
+    
+    quantityInput?.addEventListener('input', atualizarTotal);
+    priceInput?.addEventListener('input', atualizarTotal);
+    
+    transacaoForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        
+        if (!tipoTransacaoSelecionado) {
+            showToast("⚠️ Selecione o tipo de operação", "error");
+            return;
+        }
+        
+        const investmentId = document.getElementById('trans-investment-id').value;
+        const date = document.getElementById('trans-date').value;
+        const notes = document.getElementById('trans-notes').value;
+        
+        let transactionData = {
+            type: tipoTransacaoSelecionado,
+            date: new Date(date + 'T12:00:00'),
+            notes: notes || ''
+        };
+        
+        if (tipoTransacaoSelecionado === 'dividendo') {
+            const amount = limparValorMoeda(document.getElementById('trans-dividendo-amount').value);
+            if (amount <= 0) {
+                showToast("⚠️ Digite o valor do dividendo", "error");
+                return;
+            }
+            transactionData.amount = amount;
+        } else {
+            const quantity = parseFloat(document.getElementById('trans-quantity').value);
+            const price = limparValorMoeda(document.getElementById('trans-price').value);
+            
+            if (!quantity || quantity <= 0) {
+                showToast("⚠️ Digite a quantidade", "error");
+                return;
+            }
+            if (!price || price <= 0) {
+                showToast("⚠️ Digite o preço unitário", "error");
+                return;
+            }
+            
+            transactionData.quantity = quantity;
+            transactionData.price = price;
+            transactionData.currentPrice = price; // Preço atual é o da transação por padrão
+        }
+        
+        const success = await adicionarTransacao(investmentId, transactionData);
+        if (success) {
+            window.fecharModalTransacao();
+        }
+    });
+}
+
+window.abrirModalTransacao = (investmentId) => {
+    document.getElementById('trans-investment-id').value = investmentId;
+    document.getElementById('trans-date').valueAsDate = new Date();
+    tipoTransacaoSelecionado = null;
+    
+    // Reset visual
+    ['compra', 'venda', 'dividendo'].forEach(t => {
+        const btn = document.getElementById(`tipo-${t}`);
+        btn?.classList.remove('border-indigo-500', 'bg-indigo-50', 'dark:bg-indigo-900/20');
+    });
+    
+    // Mostra campos de compra/venda por padrão
+    document.getElementById('trans-compra-venda-fields').classList.remove('hidden');
+    document.getElementById('trans-dividendo-fields').classList.add('hidden');
+    
+    document.getElementById('transacao-modal').classList.remove('hidden');
+    if (window.lucide) lucide.createIcons();
+};
+
+window.fecharModalTransacao = () => {
+    document.getElementById('transacao-modal').classList.add('hidden');
+    document.getElementById('transacao-form').reset();
+    tipoTransacaoSelecionado = null;
+};
+
+window.mostrarTransacoes = (investmentId) => {
+    const investment = appState.investments.find(inv => inv.id === investmentId);
+    if (!investment || !investment.transactions) return;
+    
+    const transactionsHtml = investment.transactions.map(t => {
+        const typeIcons = {
+            'compra': { icon: 'arrow-down-circle', color: 'text-green-600' },
+            'venda': { icon: 'arrow-up-circle', color: 'text-red-600' },
+            'dividendo': { icon: 'dollar-sign', color: 'text-blue-600' }
+        };
+        
+        const typeInfo = typeIcons[t.type] || typeIcons.compra;
+        const dateObj = t.date.toDate ? t.date.toDate() : new Date(t.date);
+        const dateStr = dateObj.toLocaleDateString('pt-BR');
+        
+        let detailsHtml = '';
+        if (t.type === 'dividendo') {
+            detailsHtml = `<p class="text-sm">Valor: <strong>R$ ${t.amount.toFixed(2).replace('.', ',')}</strong></p>`;
+        } else {
+            const total = t.quantity * t.price;
+            detailsHtml = `
+                <p class="text-sm">Qtd: <strong>${t.quantity.toFixed(4)}</strong></p>
+                <p class="text-sm">Preço: <strong>R$ ${t.price.toFixed(2).replace('.', ',')}</strong></p>
+                <p class="text-sm">Total: <strong>R$ ${total.toFixed(2).replace('.', ',')}</strong></p>
+            `;
+        }
+        
+        return `
+            <div class="border-b border-gray-200 dark:border-gray-700 pb-3 mb-3">
+                <div class="flex items-center gap-2 mb-2">
+                    <i data-lucide="${typeInfo.icon}" class="w-4 h-4 ${typeInfo.color}"></i>
+                    <strong class="capitalize">${t.type}</strong>
+                    <span class="text-xs text-gray-500 ml-auto">${dateStr}</span>
+                </div>
+                ${detailsHtml}
+                ${t.notes ? `<p class="text-xs text-gray-500 mt-1">${t.notes}</p>` : ''}
+            </div>
+        `;
+    }).join('');
+    
+    showDialog(`
+        <h3 class="font-bold text-lg mb-4">${investment.name} - Histórico</h3>
+        <div class="max-h-96 overflow-y-auto">
+            ${transactionsHtml}
+        </div>
+    `, 'info');
+    
+    if (window.lucide) lucide.createIcons();
+};
 
 // Edit Investment Form
 const editInvestimentoForm = document.getElementById('edit-investimento-form');

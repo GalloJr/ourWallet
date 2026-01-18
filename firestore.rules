@@ -138,12 +138,21 @@ service cloud.firestore {
       allow read: if isWalletMember(dataOwner()) && isPremium(dataOwner());
       allow create: if isWalletMember(request.resource.data.uid) && 
                        isPremium(request.resource.data.uid) &&
-                       request.resource.data.keys().hasAll(['name', 'type', 'amount', 'currentValue']) &&
+                       request.resource.data.keys().hasAll(['name', 'type']) &&
                        isValidString(request.resource.data.name, 1, 100) &&
-                       isValidString(request.resource.data.type, 1, 50) &&
-                       isValidMoney(request.resource.data.amount) &&
-                       isValidMoney(request.resource.data.currentValue);
+                       isValidString(request.resource.data.type, 1, 50);
       allow update, delete: if isWalletMember(resource.data.uid) && isPremium(resource.data.uid);
+    }
+
+    // Regras para Transações de Investimentos (Requer Premium/Trial)
+    match /investment-transactions/{transactionId} {
+      allow read: if request.auth != null && isPremium(request.auth.uid);
+      allow create: if request.auth != null && 
+                       isPremium(request.auth.uid) &&
+                       request.resource.data.keys().hasAll(['investmentId', 'type', 'date']) &&
+                       isValidString(request.resource.data.investmentId, 1, 100) &&
+                       request.resource.data.type in ['compra', 'venda', 'dividendo'];
+      allow update, delete: if request.auth != null && isPremium(request.auth.uid);
     }
 
     // Regras para Pedidos Premium

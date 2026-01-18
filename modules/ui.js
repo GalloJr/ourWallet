@@ -44,6 +44,17 @@ let donutChartInstance = null;
 let lineChartInstance = null;
 
 export function renderCharts(transactions, monthFilterValue) {
+    // Verificar se Chart.js está carregado
+    if (typeof Chart === 'undefined') {
+        console.warn('Chart.js não foi carregado. Gráficos não serão exibidos.');
+        const noDataMsg = document.getElementById('no-data-msg');
+        if (noDataMsg) {
+            noDataMsg.textContent = 'Gráficos temporariamente indisponíveis';
+            noDataMsg.classList.remove('hidden');
+        }
+        return;
+    }
+    
     const isDark = document.documentElement.classList.contains('dark');
     const textColor = isDark ? '#e5e7eb' : '#374151';
     const gridColor = isDark ? '#374151' : '#e5e7eb';
@@ -477,94 +488,124 @@ export function renderInvestments(investments, container, editCallback, deleteCa
     }
 
     const colorMap = {
-        blue: { from: 'blue-500', to: 'blue-700' },
-        green: { from: 'emerald-500', to: 'emerald-700' },
-        purple: { from: 'purple-500', to: 'purple-700' },
-        yellow: { from: 'yellow-500', to: 'yellow-700' },
-        red: { from: 'red-500', to: 'red-700' },
-        indigo: { from: 'indigo-500', to: 'indigo-700' }
+        blue: { from: 'blue-500', to: 'blue-700', text: 'blue-100' },
+        green: { from: 'emerald-500', to: 'emerald-700', text: 'emerald-100' },
+        purple: { from: 'purple-500', to: 'purple-700', text: 'purple-100' },
+        yellow: { from: 'yellow-500', to: 'yellow-700', text: 'yellow-100' },
+        red: { from: 'red-500', to: 'red-700', text: 'red-100' },
+        indigo: { from: 'indigo-500', to: 'indigo-700', text: 'indigo-100' }
     };
 
     const typeLabels = {
         'renda-fixa': 'Renda Fixa',
-        'renda-variavel': 'Renda Variável',
-        'cripto': 'Criptomoedas',
-        'imoveis': 'Imóveis',
-        'fundos': 'Fundos'
+        'acoes': 'Ações',
+        'fiis': 'FIIs',
+        'cripto': 'Cripto',
+        'etf': 'ETFs',
+        'outros': 'Outros'
     };
 
     investments.forEach(inv => {
         const colors = colorMap[inv.color] || colorMap.blue;
-        const rendimento = inv.currentValue - inv.amount;
-        const rentabilidade = inv.amount > 0 ? ((rendimento / inv.amount) * 100) : 0;
+        const cons = inv.consolidated || {};
+        const rendimento = (cons.lucroTotal || 0);
+        const rentabilidade = cons.rentabilidade || 0;
         const isPositive = rendimento >= 0;
         const typeLabel = typeLabels[inv.type] || inv.type;
+        const hasTransactions = inv.transactions && inv.transactions.length > 0;
 
         const investmentHtml = `
-            <div class="bg-gradient-to-br from-${colors.from} to-${colors.to} rounded-2xl p-5 text-white shadow-lg hover:scale-105 transition duration-300 relative overflow-hidden">
-                <div class="absolute right-0 top-0 opacity-10 transform translate-x-4 -translate-y-4">
-                    <i data-lucide="trending-up" class="w-24 h-24"></i>
-                </div>
-                <div class="relative z-10">
-                    <div class="flex justify-between items-start mb-3">
+            <div class="bg-white dark:bg-darkcard rounded-2xl shadow-lg hover:shadow-xl transition duration-300 overflow-hidden border border-gray-200 dark:border-gray-700">
+                <!-- Header com gradiente -->
+                <div class="bg-gradient-to-br from-${colors.from} to-${colors.to} p-4 text-white">
+                    <div class="flex justify-between items-start mb-2">
                         <div class="flex-1">
-                            <h3 class="font-bold text-lg mb-1 truncate">${inv.name}</h3>
-                            <p class="text-xs opacity-80 flex items-center gap-1">
-                                <i data-lucide="briefcase" class="w-3 h-3"></i>
-                                ${typeLabel}
-                            </p>
+                            <h3 class="font-bold text-lg truncate">${inv.name}</h3>
+                            ${inv.ticker ? `<p class="text-xs opacity-90 font-mono">${inv.ticker}</p>` : ''}
+                            <p class="text-xs opacity-80 mt-1">${typeLabel}</p>
                         </div>
                         <div class="flex gap-1">
-                            <button onclick="window.editarInvHandler('${inv.id}')" 
-                                class="p-1.5 bg-white/20 hover:bg-white/30 rounded-lg transition" 
-                                title="Editar">
-                                <i data-lucide="edit-2" class="w-3 h-3"></i>
+                            <button onclick="window.abrirModalTransacao('${inv.id}')" 
+                                class="p-2 bg-white/20 hover:bg-white/30 rounded-lg transition" 
+                                title="Adicionar Operação">
+                                <i data-lucide="plus" class="w-4 h-4"></i>
                             </button>
                             <button onclick="window.deletarInvestimento('${inv.id}', '${inv.name.replace(/'/g, "\\'")}')" 
-                                class="p-1.5 bg-white/20 hover:bg-white/30 rounded-lg transition" 
+                                class="p-2 bg-white/20 hover:bg-white/30 rounded-lg transition" 
                                 title="Deletar">
-                                <i data-lucide="trash-2" class="w-3 h-3"></i>
+                                <i data-lucide="trash-2" class="w-4 h-4"></i>
                             </button>
                         </div>
                     </div>
-                    <div class="space-y-2 mb-3">
-                        <div class="flex justify-between text-sm">
-                            <span class="opacity-80">Investido:</span>
-                            <span class="font-bold">R$ ${inv.amount.toFixed(2).replace('.', ',')}</span>
-                        </div>
-                        <div class="flex justify-between text-sm">
-                            <span class="opacity-80">Valor Atual:</span>
-                            <span class="font-bold">R$ ${inv.currentValue.toFixed(2).replace('.', ',')}</span>
-                        </div>
-                    </div>
-                    <div class="pt-3 border-t border-white/20">
-                        <div class="flex justify-between items-center">
+                </div>
+
+                <!-- Stats -->
+                <div class="p-4">
+                    ${hasTransactions ? `
+                        <div class="grid grid-cols-2 gap-3 mb-4">
                             <div>
-                                <p class="text-xs opacity-80 mb-1">Rendimento</p>
-                                <p class="font-bold text-lg ${isPositive ? 'text-white' : 'text-red-200'}">
-                                    ${isPositive ? '+' : ''}R$ ${rendimento.toFixed(2).replace('.', ',')}
-                                </p>
+                                <p class="text-xs text-gray-500 dark:text-gray-400 mb-1">Quantidade</p>
+                                <p class="font-bold text-gray-900 dark:text-white">${cons.quantidade?.toFixed(4) || '0'}</p>
                             </div>
-                            <div class="text-right">
-                                <p class="text-xs opacity-80 mb-1">Rentabilidade</p>
-                                <p class="font-bold text-lg ${isPositive ? 'text-white' : 'text-red-200'}">
-                                    ${isPositive ? '+' : ''}${rentabilidade.toFixed(2)}%
-                                </p>
+                            <div>
+                                <p class="text-xs text-gray-500 dark:text-gray-400 mb-1">Preço Médio</p>
+                                <p class="font-bold text-gray-900 dark:text-white">R$ ${(cons.precoMedio || 0).toFixed(2).replace('.', ',')}</p>
+                            </div>
+                            <div>
+                                <p class="text-xs text-gray-500 dark:text-gray-400 mb-1">Investido</p>
+                                <p class="font-bold text-gray-900 dark:text-white">R$ ${(cons.totalInvestido || 0).toFixed(2).replace('.', ',')}</p>
+                            </div>
+                            <div>
+                                <p class="text-xs text-gray-500 dark:text-gray-400 mb-1">Valor Atual</p>
+                                <p class="font-bold text-gray-900 dark:text-white">R$ ${(cons.totalAtual || 0).toFixed(2).replace('.', ',')}</p>
                             </div>
                         </div>
-                    </div>
+
+                        ${cons.totalDividendos > 0 ? `
+                        <div class="bg-green-50 dark:bg-green-900/20 p-3 rounded-lg mb-4">
+                            <p class="text-xs text-green-700 dark:text-green-400 mb-1">Dividendos Recebidos</p>
+                            <p class="font-bold text-green-700 dark:text-green-400">R$ ${cons.totalDividendos.toFixed(2).replace('.', ',')}</p>
+                        </div>
+                        ` : ''}
+
+                        <div class="pt-4 border-t border-gray-200 dark:border-gray-700">
+                            <div class="flex justify-between items-center mb-3">
+                                <div>
+                                    <p class="text-xs text-gray-500 dark:text-gray-400 mb-1">Rendimento Total</p>
+                                    <p class="font-bold text-xl ${isPositive ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}">
+                                        ${isPositive ? '+' : ''}R$ ${rendimento.toFixed(2).replace('.', ',')}
+                                    </p>
+                                </div>
+                                <div class="text-right">
+                                    <p class="text-xs text-gray-500 dark:text-gray-400 mb-1">Rentabilidade</p>
+                                    <p class="font-bold text-xl ${isPositive ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}">
+                                        ${isPositive ? '+' : ''}${rentabilidade.toFixed(2)}%
+                                    </p>
+                                </div>
+                            </div>
+                            
+                            <button onclick="window.mostrarTransacoes('${inv.id}')" 
+                                class="w-full py-2 text-sm text-indigo-600 dark:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 rounded-lg transition flex items-center justify-center gap-2">
+                                <i data-lucide="list" class="w-4 h-4"></i>
+                                Ver ${inv.transactions.length} transação${inv.transactions.length !== 1 ? 'ões' : ''}
+                            </button>
+                        </div>
+                    ` : `
+                        <div class="text-center py-6">
+                            <i data-lucide="inbox" class="w-12 h-12 mx-auto text-gray-300 dark:text-gray-600 mb-2"></i>
+                            <p class="text-sm text-gray-500 dark:text-gray-400 mb-3">Nenhuma transação registrada</p>
+                            <button onclick="window.abrirModalTransacao('${inv.id}')" 
+                                class="px-4 py-2 bg-indigo-600 text-white rounded-lg text-sm font-bold hover:bg-indigo-700 transition">
+                                Adicionar Primeira Operação
+                            </button>
+                        </div>
+                    `}
                 </div>
             </div>
         `;
-        container.innerHTML += investmentHtml;
+
+        container.insertAdjacentHTML('beforeend', investmentHtml);
     });
 
     if (window.lucide) lucide.createIcons();
-    window.deletarInvestimento = deleteCallback;
-
-    // Sync with section container
-    const sectionContainer = document.getElementById('investments-container-section');
-    if (sectionContainer) {
-        sectionContainer.innerHTML = container.innerHTML;
-    }
 }
