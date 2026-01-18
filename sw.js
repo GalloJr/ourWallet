@@ -1,4 +1,4 @@
-const CACHE_NAME = 'ourwallet-v3'; // Incrementado para v3 para forçar atualização após fix da API key
+const CACHE_NAME = 'ourwallet-v4'; // Incrementado para v4 para forçar atualização com fix mobile auth
 const ASSETS = [
     '/',
     '/index.html',
@@ -40,6 +40,16 @@ self.addEventListener('activate', (e) => {
 // E Network-First para o index.html (garantindo que o HTML sempre venha fresco se houver rede)
 self.addEventListener('fetch', (e) => {
     const url = new URL(e.request.url);
+
+    // Nunca cachear requisições de autenticação do Firebase
+    // Isso previne problemas com login/logout em mobile e desktop
+    if (url.hostname === 'identitytoolkit.googleapis.com' ||
+        url.hostname === 'securetoken.googleapis.com' ||
+        url.hostname === 'accounts.google.com' ||
+        url.hostname.includes('firebaseapp.com')) {
+        e.respondWith(fetch(e.request));
+        return;
+    }
 
     // Estratégia Network-First para a página principal (HTML)
     if (e.request.mode === 'navigate') {

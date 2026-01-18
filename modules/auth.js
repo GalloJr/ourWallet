@@ -1,12 +1,55 @@
-import { auth, db, doc, getDoc, setDoc, onAuthStateChanged, signInWithPopup, signOut, provider } from '../firebase.js';
+import { auth, db, doc, getDoc, setDoc, onAuthStateChanged, signInWithPopup, signInWithRedirect, getRedirectResult, signOut, provider } from '../firebase.js';
+import { showToast } from './dialogs.js';
+
+// Detecta se o dispositivo é mobile
+function isMobile() {
+    return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)
+        || window.innerWidth < 768
+        || ('ontouchstart' in window);
+}
 
 export function setupAuth(loginBtn, logoutBtn, appScreen, loginScreen, userNameDisplay, callback) {
+    console.log('🔧 setupAuth chamado, loginBtn:', loginBtn ? 'encontrado' : 'NÃO encontrado');
+    
     if (loginBtn) {
         loginBtn.addEventListener('click', async () => {
+            const deviceType = isMobile() ? 'MOBILE' : 'DESKTOP';
+            console.log(`🔐 Botão login clicado! Dispositivo: ${deviceType}`);
+            console.log('🔐 User-Agent:', navigator.userAgent);
+            console.log('🔐 Window width:', window.innerWidth);
+            
             try {
-                await signInWithPopup(auth, provider);
+                // Mobile: usar redirect flow (popups não funcionam bem em mobile)
+                // Desktop: usar popup flow (melhor experiência)
+                if (isMobile()) {
+                    console.log('🔐 Iniciando signInWithRedirect...');
+                    await signInWithRedirect(auth, provider);
+                    console.log('🔐 signInWithRedirect completou (usuário deve ser redirecionado)');
+                } else {
+                    console.log('🔐 Iniciando signInWithPopup...');
+                    await signInWithPopup(auth, provider);
+                    console.log('🔐 signInWithPopup completou');
+                }
             } catch (e) {
-                console.error(e);
+                console.error('❌ Erro de autenticação:', e);
+                
+                // Exibir mensagem amigável ao usuário
+                let userMessage = 'Erro ao fazer login. ';
+                
+                if (e.code === 'auth/popup-blocked') {
+                    userMessage = 'Popup bloqueado. Por favor, permita popups para este site.';
+                } else if (e.code === 'auth/unauthorized-domain') {
+                    userMessage = 'Domínio não autorizado. Entre em contato com o suporte.';
+                } else if (e.code === 'auth/popup-closed-by-user') {
+                    userMessage = 'Login cancelado.';
+                } else if (e.code === 'auth/cancelled-popup-request') {
+                    // Múltiplos cliques - não mostrar erro
+                    return;
+                } else {
+                    userMessage += e.message;
+                }
+                
+                showToast(userMessage, 'error', 5000);
             }
         });
     }
@@ -27,6 +70,36 @@ export function setupAuth(loginBtn, logoutBtn, appScreen, loginScreen, userNameD
     }
 
     onAuthStateChanged(auth, async (user) => {
+        console.log('🔐 onAuthStateChanged disparado, user:', user ? user.email : 'null');
+        
+        // Verificar resultado de redirect (para mobile)
+        if (!user && isMobile()) {
+            console.log('🔐 Verificando getRedirectResult para mobile...');
+            try {
+                const result = await getRedirectResult(auth);
+                console.log('🔐 getRedirectResult:', result ? 'COM resultado' : 'SEM resultado');
+                if (result?.user) {
+                    // Redirect completado com sucesso
+                    console.log('✅ Login via redirect concluído para:', result.user.email);
+                    // O onAuthStateChanged será chamado novamente com o user
+                    return;
+                }
+            } catch (e) {
+                console.error('❌ Erro ao processar redirect:', e);
+                
+                let userMessage = 'Erro na autenticação. ';
+                if (e.code === 'auth/unauthorized-domain') {
+                    userMessage = 'Domínio não autorizado para autenticação.';
+                } else if (e.code === 'auth/operation-not-allowed') {
+                    userMessage = 'Login com Google não está habilitado.';
+                } else {
+                    userMessage += 'Tente novamente.';
+                }
+                
+                showToast(userMessage, 'error', 5000);
+            }
+        }
+        
         if (user) {
             if (loginScreen) {
                 loginScreen.classList.add('hidden');
