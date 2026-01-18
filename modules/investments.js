@@ -1,4 +1,4 @@
-import { db, collection, addDoc, updateDoc, deleteDoc, doc, onSnapshot, query, where, orderBy, getDocs } from '../firebase.js';
+import { db, collection, addDoc, updateDoc, deleteDoc, doc, onSnapshot, query, where, orderBy, getDocs, functions, httpsCallable } from '../firebase.js';
 import { renderInvestments } from './ui.js';
 import { limparValorMoeda } from './utils.js';
 import { showToast } from './dialogs.js';
@@ -194,6 +194,27 @@ export async function atualizarCotacao(investmentId, novaCotacao) {
 }
 
 /**
+ * Edita cotação manualmente via prompt
+ */
+export async function editarCotacaoManual(investmentId, ticker, currentPrice) {
+    const novaCotacao = prompt(
+        `Digite a nova cotação para ${ticker}:`,
+        currentPrice ? currentPrice.toFixed(2) : '0.00'
+    );
+    
+    if (novaCotacao === null) return; // Cancelou
+    
+    const valor = parseFloat(novaCotacao.replace(',', '.'));
+    
+    if (isNaN(valor) || valor < 0) {
+        showToast("❌ Valor inválido", "error");
+        return;
+    }
+    
+    await atualizarCotacao(investmentId, valor);
+}
+
+/**
  * Deleta transação
  */
 export async function deletarTransacaoInvestimento(transactionId) {
@@ -249,30 +270,28 @@ export async function salvarInvestimento_OLD(activeWalletId, form, fecharModal) 
 export async function editarInvestimento(editForm, fecharModal) {
     const id = document.getElementById('edit-inv-id').value;
     const nome = document.getElementById('edit-inv-name').value.trim();
+    const ticker = document.getElementById('edit-inv-ticker')?.value.trim().toUpperCase() || '';
     const tipo = document.getElementById('edit-inv-type').value;
-    const valorInvestido = limparValorMoeda(document.getElementById('edit-inv-amount').value);
-    const valorAtual = limparValorMoeda(document.getElementById('edit-inv-current').value);
     const cor = document.getElementById('edit-inv-color').value;
 
-    if (!nome || valorInvestido <= 0 || valorAtual <= 0) {
-        showToast("⚠️ Preencha todos os campos corretamente");
+    if (!nome) {
+        showToast("⚠️ Digite o nome do ativo", "error");
         return;
     }
 
     try {
         await updateDoc(doc(db, "investments", id), {
             name: nome,
+            ticker: ticker,
             type: tipo,
-            amount: valorInvestido,
-            currentValue: valorAtual,
             color: cor
         });
         
-        showToast("✅ Investimento atualizado!");
+        showToast("✅ Ativo atualizado!", "success");
         fecharModal();
     } catch (e) {
         console.error("Erro ao editar investimento:", e);
-        alert("Erro ao editar investimento.");
+        showToast("❌ Erro ao editar ativo", "error");
     }
 }
 
@@ -280,8 +299,10 @@ export async function editarInvestimento(editForm, fecharModal) {
  * Busca cotação em tempo real via APIs públicas
  */
 export async function buscarCotacaoAutomatica(ticker, tipo) {
-    if (!ticker) {
-        showToast("⚠️ Ticker não informado", "warning");
+    console.log('buscarCotacaoAutomatica - ticker:', ticker, 'tipo:', tipo);
+    
+    if (!ticker || ticker === '' || ticker === 'undefined') {
+        showToast("⚠️ Ticker não informado. Edite o ativo e adicione o ticker.", "warning");
         return null;
     }
 
@@ -300,7 +321,7 @@ export async function buscarCotacaoAutomatica(ticker, tipo) {
         return null;
     } catch (error) {
         console.error("Erro ao buscar cotação:", error);
-        showToast("❌ Erro ao buscar cotação", "error");
+        showToast("❌ Erro: " + error.message, "error");
         return null;
     }
 }
@@ -334,17 +355,27 @@ async function buscarCotacaoCripto(ticker) {
         'USDC': 'usd-coin'
     };
 
-    const coinId = cryptoMap[ticker.toUpperCase()] || ticker.toLowerCase();
+    const tickerUpper = ticker.toUpperCase().trim();
+    const coinId = cryptoMap[tickerUpper] || ticker.toLowerCase().trim();
+    
+    console.log('Buscando cripto:', tickerUpper, '-> CoinGecko ID:', coinId);
+    
     const url = `https://api.coingecko.com/api/v3/simple/price?ids=${coinId}&vs_currencies=brl`;
     
     const response = await fetch(url);
-    if (!response.ok) throw new Error('Erro na requisição CoinGecko');
+    if (!response.ok) {
+        const errorText = await response.text();
+        console.error('Erro CoinGecko:', response.status, errorText);
+        throw new Error(`CoinGecko retornou erro ${response.status}`);
+    }
     
     const data = await response.json();
+    console.log('Resposta CoinGecko:', data);
+    
     const price = data[coinId]?.brl;
     
     if (!price) {
-        showToast("❌ Criptomoeda não encontrada. Tente: BTC, ETH, BNB, etc.", "error");
+        showToast("❌ Cripto não encontrada. Use ticker: BTC, ETH, SOL, XRP, ADA, etc.", "error");
         return null;
     }
     
@@ -352,29 +383,36 @@ async function buscarCotacaoCripto(ticker) {
 }
 
 /**
- * Busca cotação de ações brasileiras via Brapi
+ * Busca cotação de ações brasileiras via Cloud Function
  */
 async function buscarCotacaoAcao(ticker) {
     // Normalizar ticker (adicionar .SA se for ação brasileira sem sufixo)
-    let normalizedTicker = ticker.toUpperCase();
+    let normalizedTicker = ticker.toUpperCase().trim();
     if (!normalizedTicker.includes('.') && !normalizedTicker.includes(':')) {
         normalizedTicker = `${normalizedTicker}.SA`;
     }
     
-    const url = `https://brapi.dev/api/quote/${normalizedTicker}?token=demo`;
+    console.log('Buscando ação:', ticker, '-> normalizado:', normalizedTicker);
     
-    const response = await fetch(url);
-    if (!response.ok) throw new Error('Erro na requisição Brapi');
-    
-    const data = await response.json();
-    const result = data.results?.[0];
-    
-    if (!result || !result.regularMarketPrice) {
-        showToast("❌ Ação não encontrada. Verifique o ticker (ex: PETR4, VALE3)", "error");
+    try {
+        // Chamar Cloud Function
+        const getStockQuote = httpsCallable(functions, 'getStockQuote');
+        const result = await getStockQuote({ ticker: normalizedTicker });
+        
+        console.log('Cotação obtida via Cloud Function:', result.data);
+        return result.data.price;
+        
+    } catch (error) {
+        console.error('Erro ao buscar cotação via Cloud Function:', error);
+        
+        if (error.code === 'functions/not-found') {
+            showToast("❌ Ação não encontrada. Verifique o ticker.", "error");
+        } else {
+            showToast("❌ Erro ao buscar cotação. Use edição manual.", "error");
+        }
+        
         return null;
     }
-    
-    return result.regularMarketPrice;
 }
 
 /**
@@ -417,10 +455,38 @@ export async function deletarInvestimento(id, nome) {
 export function popularFormularioEdicao(investment) {
     document.getElementById('edit-inv-id').value = investment.id;
     document.getElementById('edit-inv-name').value = investment.name;
+    document.getElementById('edit-inv-ticker').value = investment.ticker || '';
     document.getElementById('edit-inv-type').value = investment.type;
-    document.getElementById('edit-inv-amount').value = `R$ ${investment.amount.toFixed(2).replace('.', ',')}`;
-    document.getElementById('edit-inv-current').value = `R$ ${investment.currentValue.toFixed(2).replace('.', ',')}`;
     document.getElementById('edit-inv-color').value = investment.color || 'blue';
+}
+
+/**
+ * Abre modal de edição com dados do investimento
+ */
+export async function abrirEdicaoInvestimento(investmentId) {
+    try {
+        // Buscar investimento do Firebase
+        const investmentDoc = await getDocs(query(
+            collection(db, "investments"),
+            where("__name__", "==", investmentId)
+        ));
+        
+        if (investmentDoc.empty) {
+            showToast("❌ Investimento não encontrado", "error");
+            return;
+        }
+        
+        const investment = {
+            id: investmentDoc.docs[0].id,
+            ...investmentDoc.docs[0].data()
+        };
+        
+        popularFormularioEdicao(investment);
+        document.getElementById('edit-investimento-modal').classList.remove('hidden');
+    } catch (error) {
+        console.error("Erro ao abrir edição:", error);
+        showToast("❌ Erro ao carregar dados", "error");
+    }
 }
 
 /**

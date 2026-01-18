@@ -5,7 +5,7 @@ import { setupTransactions, salvarTransacao, editarTransacao, deletarTransacao, 
 import { setupGoals, salvarMeta, deletarMeta } from "./modules/goals.js";
 import { setupAccounts, salvarConta, editarConta } from "./modules/accounts.js";
 import { setupDebts, salvarDivida, editarDivida } from "./modules/debts.js";
-import { setupInvestments, salvarInvestimento, editarInvestimento, deletarInvestimento, popularFormularioEdicao, calcularEstatisticasInvestimentos, adicionarTransacao, deletarTransacaoInvestimento, atualizarCotacaoAutomatica } from "./modules/investments.js";
+import { setupInvestments, salvarInvestimento, editarInvestimento, deletarInvestimento, popularFormularioEdicao, calcularEstatisticasInvestimentos, adicionarTransacao, deletarTransacaoInvestimento, atualizarCotacaoAutomatica, editarCotacaoManual, abrirEdicaoInvestimento } from "./modules/investments.js";
 import { updateThemeIcon, toggleLoading, popularSeletorMeses, renderCharts, renderList, renderValues, renderCards, renderAccounts, renderDebts, renderGoals, renderInvestments } from "./modules/ui.js";
 import { formatarMoedaInput, formatarData, limparValorMoeda } from "./modules/utils.js";
 import { processarPagamento } from "./modules/transactions.js";
@@ -633,6 +633,8 @@ window.mostrarTransacoes = (investmentId) => {
 // Expor função deletarInvestimento
 window.deletarInvestimento = deletarInvestimento;
 window.atualizarCotacaoAuto = atualizarCotacaoAutomatica;
+window.editarInvestimentoManual = editarCotacaoManual;
+window.abrirEdicaoInvestimento = abrirEdicaoInvestimento;
 
 // Edit Investment Form
 const editInvestimentoForm = document.getElementById('edit-investimento-form');

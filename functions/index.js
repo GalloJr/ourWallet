@@ -2,6 +2,7 @@ const {onCall, HttpsError} = require('firebase-functions/v2/https');
 const {onDocumentCreated} = require('firebase-functions/v2/firestore');
 const {onSchedule} = require('firebase-functions/v2/scheduler');
 const admin = require('firebase-admin');
+const https = require('https');
 admin.initializeApp();
 
 const db = admin.firestore();
@@ -205,4 +206,54 @@ exports.cleanupOldData = onSchedule('0 0 1 * *', async (event) => {
   await batch.commit();
   console.log(`Deleted ${oldLogs.size} old audit logs`);
   return null;
+});
+
+/**
+ * Busca cotação de ações via Yahoo Finance (sem CORS)
+ */
+exports.getStockQuote = onCall(async (request) => {
+  // Verificar autenticação
+  if (!request.auth) {
+    throw new HttpsError('unauthenticated', 'Usuário não autenticado');
+  }
+
+  const { ticker } = request.data;
+
+  if (!ticker || typeof ticker !== 'string') {
+    throw new HttpsError('invalid-argument', 'Ticker inválido');
+  }
+
+  // Normalizar ticker
+  let normalizedTicker = ticker.toUpperCase().trim();
+  if (!normalizedTicker.includes('.') && !normalizedTicker.includes(':')) {
+    normalizedTicker = `${normalizedTicker}.SA`;
+  }
+
+  try {
+    // Buscar via Yahoo Finance
+    const url = `https://query1.finance.yahoo.com/v8/finance/chart/${normalizedTicker}?interval=1d&range=1d`;
+    
+    const response = await fetch(url);
+    
+    if (!response.ok) {
+      throw new HttpsError('not-found', `Erro ao buscar cotação: ${response.status}`);
+    }
+
+    const data = await response.json();
+    const quote = data.chart?.result?.[0]?.meta?.regularMarketPrice;
+
+    if (!quote) {
+      throw new HttpsError('not-found', 'Ação não encontrada');
+    }
+
+    return { 
+      ticker: normalizedTicker, 
+      price: quote,
+      timestamp: new Date().toISOString()
+    };
+
+  } catch (error) {
+    console.error('Erro ao buscar cotação:', error);
+    throw new HttpsError('internal', error.message || 'Erro ao buscar cotação');
+  }
 });

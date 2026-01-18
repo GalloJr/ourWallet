@@ -523,12 +523,34 @@ export function renderInvestments(investments, container, editCallback, deleteCa
                             <h3 class="font-bold text-lg truncate">${inv.name}</h3>
                             ${inv.ticker ? `<p class="text-xs opacity-90 font-mono">${inv.ticker}</p>` : ''}
                             <p class="text-xs opacity-80 mt-1">${typeLabel}</p>
+                            <div class="mt-3 space-y-1">
+                                <div class="flex justify-between text-xs">
+                                    <span class="opacity-80">Cotação:</span>
+                                    <span class="font-bold">R$ ${(inv.currentPrice || 0).toFixed(2).replace('.', ',')}</span>
+                                </div>
+                                ${hasTransactions ? `
+                                <div class="flex justify-between text-xs">
+                                    <span class="opacity-80">Investido:</span>
+                                    <span class="font-bold">R$ ${(cons.totalInvestido || 0).toFixed(2).replace('.', ',')}</span>
+                                </div>
+                                ` : ''}
+                            </div>
                         </div>
                         <div class="flex gap-1">
                             <button onclick="window.atualizarCotacaoAuto('${inv.id}', '${inv.ticker || ''}', '${inv.type}')" 
                                 class="p-2 bg-white/20 hover:bg-white/30 rounded-lg transition" 
                                 title="Atualizar Cotação">
                                 <i data-lucide="refresh-cw" class="w-4 h-4"></i>
+                            </button>
+                            <button onclick="window.editarInvestimentoManual('${inv.id}', '${inv.ticker || ''}', ${inv.currentPrice || 0})" 
+                                class="p-2 bg-white/20 hover:bg-white/30 rounded-lg transition" 
+                                title="Editar Cotação">
+                                <i data-lucide="dollar-sign" class="w-4 h-4"></i>
+                            </button>
+                            <button onclick="window.abrirEdicaoInvestimento('${inv.id}')" 
+                                class="p-2 bg-white/20 hover:bg-white/30 rounded-lg transition" 
+                                title="Editar Ativo">
+                                <i data-lucide="edit" class="w-4 h-4"></i>
                             </button>
                             <button onclick="window.abrirModalTransacao('${inv.id}')" 
                                 class="p-2 bg-white/20 hover:bg-white/30 rounded-lg transition" 
@@ -555,6 +577,11 @@ export function renderInvestments(investments, container, editCallback, deleteCa
                             <div>
                                 <p class="text-xs text-gray-500 dark:text-gray-400 mb-1">Preço Médio</p>
                                 <p class="font-bold text-gray-900 dark:text-white">R$ ${(cons.precoMedio || 0).toFixed(2).replace('.', ',')}</p>
+                            </div>
+                            <div>
+                                <p class="text-xs text-gray-500 dark:text-gray-400 mb-1">Cotação Atual</p>
+                                <p class="font-bold text-blue-600 dark:text-blue-400">R$ ${(inv.currentPrice || 0).toFixed(2).replace('.', ',')}</p>
+                                ${inv.lastPriceUpdate ? `<p class="text-xs text-gray-400 mt-1">${new Date(inv.lastPriceUpdate.toDate ? inv.lastPriceUpdate.toDate() : inv.lastPriceUpdate).toLocaleString('pt-BR', {day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit'})}</p>` : ''}
                             </div>
                             <div>
                                 <p class="text-xs text-gray-500 dark:text-gray-400 mb-1">Investido</p>

@@ -4,6 +4,7 @@ import { getFirestore, collection, addDoc, query, where, onSnapshot, orderBy, de
 import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-storage.js";
 import { initializeAppCheck, ReCaptchaV3Provider } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app-check.js";
 import { getPerformance } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-performance.js";
+import { getFunctions, httpsCallable } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-functions.js";
 import { firebaseConfig, recaptchaSiteKey } from "./firebase.config.js";
 
 // IMPORTANTE: Credenciais carregadas de firebase.config.js
@@ -42,6 +43,7 @@ const performance = getPerformance(app);
 const auth = getAuth(app);
 const db = getFirestore(app);
 const storage = getStorage(app);
+const functions = getFunctions(app);
 const provider = new GoogleAuthProvider();
 
-export { auth, db, storage, provider, ref, uploadBytes, getDownloadURL, signInWithPopup, signInWithRedirect, getRedirectResult, signOut, onAuthStateChanged, collection, addDoc, query, where, onSnapshot, orderBy, getDocs, deleteDoc, doc, updateDoc, getDoc, setDoc, runTransaction, increment };
+export { auth, db, storage, functions, provider, ref, uploadBytes, getDownloadURL, signInWithPopup, signInWithRedirect, getRedirectResult, signOut, onAuthStateChanged, collection, addDoc, query, where, onSnapshot, orderBy, getDocs, deleteDoc, doc, updateDoc, getDoc, setDoc, runTransaction, increment, httpsCallable };

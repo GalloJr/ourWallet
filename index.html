@@ -2110,38 +2110,29 @@
                 </div>
                 
                 <div>
+                    <label for="edit-inv-ticker" class="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase">
+                        Ticker/Código
+                    </label>
+                    <input type="text" id="edit-inv-ticker" placeholder="Ex: VALE3, BTC, IPCA35"
+                        class="w-full p-3 bg-gray-50 dark:bg-gray-700 border dark:border-gray-600 rounded-xl dark:text-white uppercase">
+                </div>
+                
+                <div>
                     <label for="edit-inv-type" class="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase">
                         Tipo de Investimento
                     </label>
                     <select id="edit-inv-type"
                         class="w-full p-3 bg-gray-50 dark:bg-gray-700 border dark:border-gray-600 rounded-xl dark:text-white cursor-pointer">
                         <option value="renda-fixa">Renda Fixa</option>
-                        <option value="renda-variavel">Renda Variável</option>
+                        <option value="acoes">Ações</option>
+                        <option value="fiis">FIIs</option>
                         <option value="cripto">Criptomoedas</option>
-                        <option value="imoveis">Imóveis</option>
-                        <option value="fundos">Fundos de Investimento</option>
+                        <option value="etf">ETFs</option>
+                        <option value="outros">Outros</option>
                     </select>
                 </div>
                 
-                <div class="grid grid-cols-2 gap-4">
-                    <div>
-                        <label for="edit-inv-amount" class="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase">
-                            Valor Investido
-                        </label>
-                        <input type="text" id="edit-inv-amount" placeholder="R$ 0,00" onkeyup="formatarMoedaInput(this)"
-                            class="w-full p-3 bg-gray-50 dark:bg-gray-700 border dark:border-gray-600 rounded-xl dark:text-white"
-                            required>
-                    </div>
-                    <div>
-                        <label for="edit-inv-current" class="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase">
-                            Valor Atual
-                        </label>
-                        <input type="text" id="edit-inv-current" placeholder="R$ 0,00" onkeyup="formatarMoedaInput(this)"
-                            class="w-full p-3 bg-gray-50 dark:bg-gray-700 border dark:border-gray-600 rounded-xl dark:text-white"
-                            required>
-                    </div>
-                </div>
-
+                
                 <div>
                     <label for="edit-inv-color" class="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase">
                         Cor do Card
