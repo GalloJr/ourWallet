@@ -3,8 +3,8 @@ import { setupAuth, configurarWallet } from "./modules/auth.js";
 import { setupCards, salvarCartao, editarCartao, deletarCartao } from "./modules/cards.js";
 import { setupTransactions, salvarTransacao, editarTransacao, deletarTransacao, exportarCSV, consolidarPagamento, consolidarPagamentosEmLote } from "./modules/transactions.js";
 import { setupGoals, salvarMeta, deletarMeta } from "./modules/goals.js";
-import { setupAccounts, salvarConta, editarConta } from "./modules/accounts.js";
-import { setupDebts, salvarDivida, editarDivida } from "./modules/debts.js";
+import { setupAccounts, salvarConta, editarConta, deletarConta } from "./modules/accounts.js";
+import { setupDebts, salvarDivida, editarDivida, deletarDivida } from "./modules/debts.js";
 import { setupInvestments, salvarInvestimento, editarInvestimento, deletarInvestimento, popularFormularioEdicao, calcularEstatisticasInvestimentos, adicionarTransacao, deletarTransacaoInvestimento, atualizarCotacaoAutomatica, editarCotacaoManual, abrirEdicaoInvestimento } from "./modules/investments.js";
 import { updateThemeIcon, toggleLoading, popularSeletorMeses, renderCharts, renderList, renderValues, renderCards, renderAccounts, renderDebts, renderGoals, renderInvestments } from "./modules/ui.js";
 import { formatarMoedaInput, formatarData, limparValorMoeda } from "./modules/utils.js";
@@ -65,6 +65,12 @@ window.fecharModalPagamento = () => {
     document.getElementById('payment-modal').classList.add('hidden');
     document.getElementById('payment-form').reset();
 };
+
+// Early window function assignments to prevent "not a function" errors
+window.deletarCartao = deletarCartao;
+window.deletarMeta = deletarMeta;
+window.deletarDivida = deletarDivida;
+window.deletarConta = deletarConta;
 
 // Registra o Plugin de Labels do Chart.js
 if (window.Chart && window.ChartDataLabels) {
@@ -368,7 +374,7 @@ setupAuth(loginBtn, logoutBtn, appScreen, loginScreen, userNameDisplay, async (u
         appState._u.i = setupInvestments(appState.walletId, document.getElementById('investments-container-section'), (investments) => {
             appState.investments = investments;
             atualizarEstatisticasInvestimentos(investments);
-            
+
             // Atualizar também o widget do dashboard
             const investCont = document.getElementById('investments-container');
             if (investCont) {
@@ -380,7 +386,7 @@ setupAuth(loginBtn, logoutBtn, appScreen, loginScreen, userNameDisplay, async (u
 
         // Setup navigation
         setupNavigation();
-        
+
         // Listen for section changes and update content
         window.addEventListener('section-changed', (e) => {
             const section = e.detail.section;
@@ -463,7 +469,7 @@ let tipoTransacaoSelecionado = null;
 
 window.selecionarTipoTransacao = (tipo) => {
     tipoTransacaoSelecionado = tipo;
-    
+
     // Atualiza visual dos botões
     ['saldo-inicial', 'compra', 'venda', 'dividendo'].forEach(t => {
         const btn = document.getElementById(`tipo-${t}`);
@@ -475,11 +481,11 @@ window.selecionarTipoTransacao = (tipo) => {
             }
         }
     });
-    
+
     // Mostra/esconde campos apropriados
     const compraVendaFields = document.getElementById('trans-compra-venda-fields');
     const dividendoFields = document.getElementById('trans-dividendo-fields');
-    
+
     if (tipo === 'dividendo') {
         compraVendaFields.classList.add('hidden');
         dividendoFields.classList.remove('hidden');
@@ -494,35 +500,35 @@ if (transacaoForm) {
     const quantityInput = document.getElementById('trans-quantity');
     const priceInput = document.getElementById('trans-price');
     const totalDisplay = document.getElementById('trans-total');
-    
+
     const atualizarTotal = () => {
         const quantity = parseFloat(quantityInput.value) || 0;
         const price = limparValorMoeda(priceInput.value);
         const total = quantity * price;
         totalDisplay.textContent = `R$ ${total.toFixed(2).replace('.', ',')}`;
     };
-    
+
     quantityInput?.addEventListener('input', atualizarTotal);
     priceInput?.addEventListener('input', atualizarTotal);
-    
+
     transacaoForm.addEventListener('submit', async (e) => {
         e.preventDefault();
-        
+
         if (!tipoTransacaoSelecionado) {
             showToast("⚠️ Selecione o tipo de operação", "error");
             return;
         }
-        
+
         const investmentId = document.getElementById('trans-investment-id').value;
         const date = document.getElementById('trans-date').value;
         const notes = document.getElementById('trans-notes').value;
-        
+
         let transactionData = {
             type: tipoTransacaoSelecionado,
             date: new Date(date + 'T12:00:00'),
             notes: notes || ''
         };
-        
+
         if (tipoTransacaoSelecionado === 'dividendo') {
             const amount = limparValorMoeda(document.getElementById('trans-dividendo-amount').value);
             if (amount <= 0) {
@@ -533,7 +539,7 @@ if (transacaoForm) {
         } else {
             const quantity = parseFloat(document.getElementById('trans-quantity').value);
             const price = limparValorMoeda(document.getElementById('trans-price').value);
-            
+
             if (!quantity || quantity <= 0) {
                 showToast("⚠️ Digite a quantidade", "error");
                 return;
@@ -542,12 +548,12 @@ if (transacaoForm) {
                 showToast("⚠️ Digite o preço unitário", "error");
                 return;
             }
-            
+
             transactionData.quantity = quantity;
             transactionData.price = price;
             transactionData.currentPrice = price; // Preço atual é o da transação por padrão
         }
-        
+
         const success = await adicionarTransacao(investmentId, transactionData);
         if (success) {
             window.fecharModalTransacao();
@@ -559,17 +565,17 @@ window.abrirModalTransacao = (investmentId) => {
     document.getElementById('trans-investment-id').value = investmentId;
     document.getElementById('trans-date').valueAsDate = new Date();
     tipoTransacaoSelecionado = null;
-    
+
     // Reset visual
     ['compra', 'venda', 'dividendo'].forEach(t => {
         const btn = document.getElementById(`tipo-${t}`);
         btn?.classList.remove('border-indigo-500', 'bg-indigo-50', 'dark:bg-indigo-900/20');
     });
-    
+
     // Mostra campos de compra/venda por padrão
     document.getElementById('trans-compra-venda-fields').classList.remove('hidden');
     document.getElementById('trans-dividendo-fields').classList.add('hidden');
-    
+
     document.getElementById('transacao-modal').classList.remove('hidden');
     if (window.lucide) lucide.createIcons();
 };
@@ -583,18 +589,18 @@ window.fecharModalTransacao = () => {
 window.mostrarTransacoes = (investmentId) => {
     const investment = appState.investments.find(inv => inv.id === investmentId);
     if (!investment || !investment.transactions) return;
-    
+
     const transactionsHtml = investment.transactions.map(t => {
         const typeIcons = {
             'compra': { icon: 'arrow-down-circle', color: 'text-green-600' },
             'venda': { icon: 'arrow-up-circle', color: 'text-red-600' },
             'dividendo': { icon: 'dollar-sign', color: 'text-blue-600' }
         };
-        
+
         const typeInfo = typeIcons[t.type] || typeIcons.compra;
         const dateObj = t.date.toDate ? t.date.toDate() : new Date(t.date);
         const dateStr = dateObj.toLocaleDateString('pt-BR');
-        
+
         let detailsHtml = '';
         if (t.type === 'dividendo') {
             detailsHtml = `<p class="text-sm">Valor: <strong>R$ ${t.amount.toFixed(2).replace('.', ',')}</strong></p>`;
@@ -606,7 +612,7 @@ window.mostrarTransacoes = (investmentId) => {
                 <p class="text-sm">Total: <strong>R$ ${total.toFixed(2).replace('.', ',')}</strong></p>
             `;
         }
-        
+
         return `
             <div class="border-b border-gray-200 dark:border-gray-700 pb-3 mb-3">
                 <div class="flex items-center gap-2 mb-2">
@@ -619,14 +625,14 @@ window.mostrarTransacoes = (investmentId) => {
             </div>
         `;
     }).join('');
-    
+
     showDialog(`
         <h3 class="font-bold text-lg mb-4">${investment.name} - Histórico</h3>
         <div class="max-h-96 overflow-y-auto">
             ${transactionsHtml}
         </div>
     `, 'info');
-    
+
     if (window.lucide) lucide.createIcons();
 };
 
@@ -758,7 +764,7 @@ function popularSelectPagamento() {
 function popularSelectDespesaFixa() {
     const accountSelect = document.getElementById('fixed-expense-account');
     if (!accountSelect) return;
-    
+
     let options = '';
     appState.accounts.forEach(acc => {
         options += `<option value="${acc.id}">🏦 ${acc.name}</option>`;
@@ -772,14 +778,14 @@ async function criarDespesaFixa() {
     if (submitBtn.disabled) return;
     submitBtn.disabled = true;
     submitBtn.textContent = 'Criando...';
-    
+
     const desc = document.getElementById('fixed-expense-desc').value;
     const accountId = document.getElementById('fixed-expense-account').value;
     const amountInput = document.getElementById('fixed-expense-amount').value;
     const dueDay = parseInt(document.getElementById('fixed-expense-due-day').value);
     const numMonths = parseInt(document.getElementById('fixed-expense-months').value);
     const startMonth = document.getElementById('fixed-expense-start-month').value; // formato: YYYY-MM
-    
+
     // Converter valor usando a função limparValorMoeda
     const amountPerMonth = limparValorMoeda(amountInput);
     if (isNaN(amountPerMonth) || amountPerMonth <= 0) {
@@ -788,18 +794,18 @@ async function criarDespesaFixa() {
         submitBtn.textContent = 'Criar Despesa Fixa';
         return;
     }
-    
+
     try {
         const [year, month] = startMonth.split('-').map(Number);
-        
+
         for (let i = 0; i < numMonths; i++) {
             const currentDate = new Date(year, month - 1 + i, dueDay);
             const dateStr = currentDate.toISOString().split('T')[0];
-            
-            const description = numMonths > 1 
+
+            const description = numMonths > 1
                 ? `${desc} (${i + 1}/${numMonths})`
                 : desc;
-            
+
             await addDoc(collection(db, "transactions"), {
                 uid: appState.walletId,
                 owner: appState.user.uid,
@@ -815,7 +821,7 @@ async function criarDespesaFixa() {
                 isFixedExpense: true
             });
         }
-        
+
         showToast(`${numMonths} despesa(s) fixa(s) criada(s)!`);
         window.fecharModalDespesaFixa();
     } catch (e) {
@@ -896,7 +902,7 @@ function atualizarUIPremium() {
         const goalsCont = document.getElementById('goals-container');
         const debtsCont = document.getElementById('debts-container');
         const investCont = document.getElementById('investments-container');
-        
+
         if (goalsCont) goalsCont.innerHTML = `
             <div class="col-span-full p-8 border-2 border-dashed border-gray-200 dark:border-gray-800 rounded-2xl text-center bg-gray-50/50 dark:bg-gray-900/20">
                 <p class="text-gray-400 text-sm">Funcionalidade Premium</p>
@@ -1040,8 +1046,6 @@ window.prepararEdicaoDivida = (id) => {
     document.getElementById('edit-debt-balance').value = (debt.totalBalance || 0).toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
 }
 
-window.deletarCartao = deletarCartao;
-window.deletarMeta = deletarMeta;
 
 window.prepararEdicao = (id) => {
     const t = appState.transactions.find(item => item.id === id);
@@ -1145,21 +1149,21 @@ function aplicarFiltro() {
         const matchesMonth = !mesSelecionado || (t.date && t.date.startsWith(mesSelecionado));
         const matchesSearch = !busca || (t.desc && t.desc.toLowerCase().includes(busca));
         const matchesSource = !fonteSelecionada || t.source === fonteSelecionada;
-        
+
         // Filtro de status de pagamento
         let matchesStatus = true;
         if (statusSelecionado) {
             const card = appState.cards.find(c => c.id === t.source);
             const isPaid = t.paid || (t.amount < 0 && card); // Cartões são considerados pagos
             const isPending = t.amount < 0 && !t.paid && !card;
-            
+
             if (statusSelecionado === 'pending') {
                 matchesStatus = isPending;
             } else if (statusSelecionado === 'paid') {
                 matchesStatus = isPaid && t.amount < 0; // Só despesas podem ser "pagas"
             }
         }
-        
+
         return matchesMonth && matchesSearch && matchesSource && matchesStatus;
     });
 
@@ -1174,7 +1178,7 @@ function renderSummary() {
     renderList(appState.filteredTrans, listElement, appState.cards, appState.accounts, appState.debts, formatarData, window.prepararEdicao, window.deletarItem);
     renderValues(appState.filteredTrans, appState.transactions, monthFilter.value);
     renderCharts(appState.filteredTrans, monthFilter.value);
-    
+
     // Update section content when data changes
     const event = new CustomEvent('section-changed', { detail: { section: 'current' } });
     window.dispatchEvent(event);
@@ -1183,46 +1187,46 @@ function renderSummary() {
 // Função para atualizar estatísticas de investimentos
 function atualizarEstatisticasInvestimentos(investments) {
     const stats = calcularEstatisticasInvestimentos(investments);
-    
+
     // Atualiza painel de estatísticas na seção de investimentos
     const invStatInvested = document.getElementById('inv-stat-invested');
     const invStatCurrent = document.getElementById('inv-stat-current');
     const invStatProfit = document.getElementById('inv-stat-profit');
     const invStatPercentage = document.getElementById('inv-stat-percentage');
-    
+
     if (invStatInvested) invStatInvested.textContent = `R$ ${stats.totalInvestido.toFixed(2).replace('.', ',')}`;
     if (invStatCurrent) invStatCurrent.textContent = `R$ ${stats.totalAtual.toFixed(2).replace('.', ',')}`;
-    
+
     if (invStatProfit) {
         const isPositive = stats.lucro >= 0;
         invStatProfit.textContent = `${isPositive ? '+' : ''}R$ ${stats.lucro.toFixed(2).replace('.', ',')}`;
         invStatProfit.className = `text-2xl font-bold ${isPositive ? 'text-emerald-600 dark:text-emerald-400' : 'text-red-600 dark:text-red-400'}`;
     }
-    
+
     if (invStatPercentage) {
         const isPositive = stats.rentabilidade >= 0;
         invStatPercentage.textContent = `${isPositive ? '+' : ''}${stats.rentabilidade.toFixed(2)}%`;
         invStatPercentage.className = `text-2xl font-bold ${isPositive ? 'text-emerald-600 dark:text-emerald-400' : 'text-red-600 dark:text-red-400'}`;
     }
-    
+
     // Atualiza widget no dashboard
     const invTotal = document.getElementById('investments-total');
     const invProfit = document.getElementById('investments-profit');
     const invPercentage = document.getElementById('investments-percentage');
-    
+
     if (invTotal) invTotal.textContent = `R$ ${stats.totalAtual.toFixed(2).replace('.', ',')}`;
-    
+
     if (invProfit) {
         const isPositive = stats.lucro >= 0;
         invProfit.textContent = `${isPositive ? '+' : ''}R$ ${stats.lucro.toFixed(2).replace('.', ',')}`;
     }
-    
+
     if (invPercentage) {
         const isPositive = stats.rentabilidade >= 0;
         invPercentage.textContent = `${isPositive ? '+' : ''}${stats.rentabilidade.toFixed(2)}%`;
         invPercentage.className = `text-xs font-bold ${isPositive ? 'text-white' : 'text-red-200'}`;
     }
-    
+
     // Oculta widget se não houver investimentos
     const widget = document.getElementById('investments-widget');
     if (widget) {
@@ -1242,11 +1246,11 @@ async function gerarRelatorio() {
         showToast("⭐ Relatórios com IA são exclusivos para Premium");
         return;
     }
-    
+
     // Pega mês/ano atual do filtro
     const mesAnoFiltro = monthFilter.value; // formato: "2026-01"
     const [ano, mes] = mesAnoFiltro.split('-').map(Number);
-    
+
     // Gera relatório
     await gerarRelatorioMensalIA(
         appState.transactions,
