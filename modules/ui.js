@@ -488,12 +488,12 @@ export function renderInvestments(investments, container, editCallback, deleteCa
     }
 
     const colorMap = {
-        blue: { from: 'blue-500', to: 'blue-700', text: 'blue-100' },
-        green: { from: 'emerald-500', to: 'emerald-700', text: 'emerald-100' },
-        purple: { from: 'purple-500', to: 'purple-700', text: 'purple-100' },
-        yellow: { from: 'yellow-500', to: 'yellow-700', text: 'yellow-100' },
-        red: { from: 'red-500', to: 'red-700', text: 'red-100' },
-        indigo: { from: 'indigo-500', to: 'indigo-700', text: 'indigo-100' }
+        blue: 'bg-gradient-to-br from-blue-500 to-blue-700',
+        green: 'bg-gradient-to-br from-emerald-500 to-emerald-700',
+        purple: 'bg-gradient-to-br from-purple-500 to-purple-700',
+        yellow: 'bg-gradient-to-br from-yellow-500 to-yellow-700',
+        red: 'bg-gradient-to-br from-red-500 to-red-700',
+        indigo: 'bg-gradient-to-br from-indigo-500 to-indigo-700'
     };
 
     const typeLabels = {
@@ -506,7 +506,7 @@ export function renderInvestments(investments, container, editCallback, deleteCa
     };
 
     investments.forEach(inv => {
-        const colors = colorMap[inv.color] || colorMap.blue;
+        const colorClass = colorMap[inv.color] || colorMap.blue;
         const cons = inv.consolidated || {};
         const rendimento = (cons.lucroTotal || 0);
         const rentabilidade = cons.rentabilidade || 0;
@@ -517,7 +517,7 @@ export function renderInvestments(investments, container, editCallback, deleteCa
         const investmentHtml = `
             <div class="bg-white dark:bg-darkcard rounded-2xl shadow-lg hover:shadow-xl transition duration-300 overflow-hidden border border-gray-200 dark:border-gray-700">
                 <!-- Header com gradiente -->
-                <div class="bg-gradient-to-br from-${colors.from} to-${colors.to} p-4 text-white">
+                <div class="${colorClass} p-4 text-white">
                     <div class="flex justify-between items-start mb-2">
                         <div class="flex-1">
                             <h3 class="font-bold text-lg truncate">${inv.name}</h3>

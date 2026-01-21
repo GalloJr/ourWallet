@@ -509,7 +509,8 @@ if (transacaoForm) {
     };
 
     quantityInput?.addEventListener('input', atualizarTotal);
-    priceInput?.addEventListener('input', atualizarTotal);
+    // Usar 'keyup' ao invés de 'input' para aguardar a formatação do campo
+    priceInput?.addEventListener('keyup', atualizarTotal);
 
     transacaoForm.addEventListener('submit', async (e) => {
         e.preventDefault();
@@ -590,54 +591,117 @@ window.mostrarTransacoes = (investmentId) => {
     const investment = appState.investments.find(inv => inv.id === investmentId);
     if (!investment || !investment.transactions) return;
 
-    const transactionsHtml = investment.transactions.map(t => {
-        const typeIcons = {
-            'compra': { icon: 'arrow-down-circle', color: 'text-green-600' },
-            'venda': { icon: 'arrow-up-circle', color: 'text-red-600' },
-            'dividendo': { icon: 'dollar-sign', color: 'text-blue-600' }
-        };
-
-        const typeInfo = typeIcons[t.type] || typeIcons.compra;
-        const dateObj = t.date.toDate ? t.date.toDate() : new Date(t.date);
-        const dateStr = dateObj.toLocaleDateString('pt-BR');
-
-        let detailsHtml = '';
-        if (t.type === 'dividendo') {
-            detailsHtml = `<p class="text-sm">Valor: <strong>R$ ${t.amount.toFixed(2).replace('.', ',')}</strong></p>`;
-        } else {
-            const total = t.quantity * t.price;
-            detailsHtml = `
-                <p class="text-sm">Qtd: <strong>${t.quantity.toFixed(4)}</strong></p>
-                <p class="text-sm">Preço: <strong>R$ ${t.price.toFixed(2).replace('.', ',')}</strong></p>
-                <p class="text-sm">Total: <strong>R$ ${total.toFixed(2).replace('.', ',')}</strong></p>
-            `;
-        }
-
-        return `
-            <div class="border-b border-gray-200 dark:border-gray-700 pb-3 mb-3">
-                <div class="flex items-center gap-2 mb-2">
-                    <i data-lucide="${typeInfo.icon}" class="w-4 h-4 ${typeInfo.color}"></i>
-                    <strong class="capitalize">${t.type}</strong>
-                    <span class="text-xs text-gray-500 ml-auto">${dateStr}</span>
-                </div>
-                ${detailsHtml}
-                ${t.notes ? `<p class="text-xs text-gray-500 mt-1">${t.notes}</p>` : ''}
+    const overlay = document.createElement('div');
+    overlay.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4';
+    
+    const modal = document.createElement('div');
+    modal.className = 'bg-white dark:bg-darkcard rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] flex flex-col';
+    
+    const header = document.createElement('div');
+    header.className = 'p-6 border-b border-gray-200 dark:border-gray-700';
+    header.innerHTML = `
+        <div class="flex items-center justify-between">
+            <h3 class="font-bold text-lg text-gray-900 dark:text-white">${investment.name} - Histórico</h3>
+            <button onclick="this.closest('.fixed').remove()" class="text-gray-500 hover:text-gray-700 dark:hover:text-gray-300">
+                <i data-lucide="x" class="w-5 h-5"></i>
+            </button>
+        </div>
+    `;
+    
+    const content = document.createElement('div');
+    content.className = 'p-6 overflow-y-auto flex-1';
+    
+    if (investment.transactions.length === 0) {
+        content.innerHTML = `
+            <div class="text-center text-gray-500 dark:text-gray-400 py-8">
+                <i data-lucide="inbox" class="w-12 h-12 mx-auto mb-2 opacity-50"></i>
+                <p>Nenhuma transação registrada</p>
             </div>
         `;
-    }).join('');
+    } else {
+        const transactionsHtml = investment.transactions.map(t => {
+            const typeIcons = {
+                'compra': { icon: 'arrow-down-circle', color: 'text-green-600', bg: 'bg-green-50 dark:bg-green-900/20' },
+                'venda': { icon: 'arrow-up-circle', color: 'text-red-600', bg: 'bg-red-50 dark:bg-red-900/20' },
+                'dividendo': { icon: 'dollar-sign', color: 'text-blue-600', bg: 'bg-blue-50 dark:bg-blue-900/20' },
+                'saldo-inicial': { icon: 'archive', color: 'text-purple-600', bg: 'bg-purple-50 dark:bg-purple-900/20' }
+            };
 
-    showDialog(`
-        <h3 class="font-bold text-lg mb-4">${investment.name} - Histórico</h3>
-        <div class="max-h-96 overflow-y-auto">
-            ${transactionsHtml}
-        </div>
-    `, 'info');
+            const typeInfo = typeIcons[t.type] || typeIcons.compra;
+            const dateObj = t.date.toDate ? t.date.toDate() : new Date(t.date);
+            const dateStr = dateObj.toLocaleDateString('pt-BR');
 
+            let detailsHtml = '';
+            if (t.type === 'dividendo') {
+                detailsHtml = `<p class="text-sm text-gray-700 dark:text-gray-300">Valor: <strong>R$ ${t.amount.toFixed(2).replace('.', ',')}</strong></p>`;
+            } else {
+                const total = t.quantity * t.price;
+                detailsHtml = `
+                    <div class="grid grid-cols-3 gap-2 text-sm text-gray-700 dark:text-gray-300">
+                        <div>Qtd: <strong>${t.quantity.toFixed(4)}</strong></div>
+                        <div>Preço: <strong>R$ ${t.price.toFixed(2).replace('.', ',')}</strong></div>
+                        <div>Total: <strong>R$ ${total.toFixed(2).replace('.', ',')}</strong></div>
+                    </div>
+                `;
+            }
+
+            return `
+                <div class="border border-gray-200 dark:border-gray-700 rounded-xl p-4 mb-3 hover:shadow-md transition">
+                    <div class="flex items-start gap-3">
+                        <div class="${typeInfo.bg} ${typeInfo.color} p-2 rounded-lg">
+                            <i data-lucide="${typeInfo.icon}" class="w-5 h-5"></i>
+                        </div>
+                        <div class="flex-1">
+                            <div class="flex items-center justify-between mb-2">
+                                <strong class="capitalize text-gray-900 dark:text-white">${t.type.replace('-', ' ')}</strong>
+                                <span class="text-xs text-gray-500">${dateStr}</span>
+                            </div>
+                            ${detailsHtml}
+                            ${t.notes ? `<p class="text-xs text-gray-500 mt-2 italic">${t.notes}</p>` : ''}
+                        </div>
+                        <button onclick="window.deletarTransacaoInvestimento('${t.id}')" 
+                                class="text-red-500 hover:text-red-700 p-2 rounded-lg hover:bg-red-50 dark:hover:bg-red-900/20 transition"
+                                title="Deletar transação">
+                            <i data-lucide="trash-2" class="w-4 h-4"></i>
+                        </button>
+                    </div>
+                </div>
+            `;
+        }).join('');
+        
+        content.innerHTML = transactionsHtml;
+    }
+    
+    const footer = document.createElement('div');
+    footer.className = 'p-6 border-t border-gray-200 dark:border-gray-700';
+    footer.innerHTML = `
+        <button onclick="this.closest('.fixed').remove()" 
+                class="w-full py-3 bg-gray-200 dark:bg-gray-700 text-gray-900 dark:text-white font-bold rounded-xl hover:bg-gray-300 dark:hover:bg-gray-600 transition">
+            Fechar
+        </button>
+    `;
+    
+    modal.appendChild(header);
+    modal.appendChild(content);
+    modal.appendChild(footer);
+    overlay.appendChild(modal);
+    document.body.appendChild(overlay);
+    
     if (window.lucide) lucide.createIcons();
+    
+    // Fechar com ESC
+    const handleEsc = (e) => {
+        if (e.key === 'Escape') {
+            overlay.remove();
+            document.removeEventListener('keydown', handleEsc);
+        }
+    };
+    document.addEventListener('keydown', handleEsc);
 };
 
 // Expor função deletarInvestimento
 window.deletarInvestimento = deletarInvestimento;
+window.deletarTransacaoInvestimento = deletarTransacaoInvestimento;
 window.atualizarCotacaoAuto = atualizarCotacaoAutomatica;
 window.editarInvestimentoManual = editarCotacaoManual;
 window.abrirEdicaoInvestimento = abrirEdicaoInvestimento;
