@@ -2,6 +2,7 @@ import { db, storage, ref, uploadBytes, getDownloadURL, collection, addDoc, upda
 import { categoryConfig } from './constants.js';
 import { limparValorMoeda, formatarData } from './utils.js';
 import { showToast } from './dialogs.js';
+import { sincronizarComVeicAi } from './veicai.js';
 
 export function setupTransactions(uid, onTransactionsLoaded) {
     const q = query(collection(db, "transactions"), where("uid", "==", uid));
@@ -124,6 +125,15 @@ export async function salvarTransacao(activeWalletId, currentUser, allCards, all
             showToast("Lançamentos recorrentes criados!");
         } else {
             showToast(numIterations > 1 ? `${numIterations} parcelas adicionadas!` : "Salvo!");
+
+            // Sincronizar com VeicAi se for a categoria transporte
+            if (category === 'transport') {
+                await sincronizarComVeicAi({
+                    date: dateVal,
+                    amount: finalAmountTotal,
+                    desc: desc
+                });
+            }
         }
         return true;
     } catch (e) {
@@ -224,7 +234,7 @@ export async function editarTransacao(id, allTransactions, allCards, allAccounts
 
 export function exportarCSV(filteredTransactions, allCards, allAccounts) {
     if (!filteredTransactions.length) return showToast("Nada para exportar!");
-    
+
     // Função auxiliar para escapar valores CSV
     const escaparCSV = (valor) => {
         if (valor === null || valor === undefined) return '';
@@ -238,12 +248,12 @@ export function exportarCSV(filteredTransactions, allCards, allAccounts) {
 
     // Cabeçalho com BOM para Excel reconhecer UTF-8
     let csv = "\uFEFFData;Descrição;Valor (R$);Tipo;Categoria;Forma de Pagamento;Responsável;Status;Recorrente\n";
-    
+
     filteredTransactions.forEach(t => {
         // Identifica a fonte de pagamento
         let fonte = "Carteira";
         let tipoFonte = "Carteira";
-        
+
         if (t.source && t.source !== 'wallet') {
             // Primeiro verifica se é um cartão
             const card = allCards?.find(c => c.id === t.source);
@@ -262,54 +272,54 @@ export function exportarCSV(filteredTransactions, allCards, allAccounts) {
                 }
             }
         }
-        
+
         const quem = t.ownerName || "Não identificado";
         const tipo = t.amount >= 0 ? "Receita" : "Despesa";
-        
+
         // Formata o valor como número com vírgula decimal (sem R$)
         const valorNumerico = Math.abs(t.amount).toFixed(2).replace('.', ',');
-        
+
         const categoria = categoryConfig[t.category]?.label || t.category;
         const status = t.paid ? "Pago" : "Pendente";
         const recorrente = t.isRecurring ? "Sim" : "Não";
-        
+
         // Monta a linha do CSV
         csv += `${escaparCSV(formatarData(t.date))};${escaparCSV(t.desc)};${valorNumerico};${escaparCSV(tipo)};${escaparCSV(categoria)};${escaparCSV(tipoFonte + ' - ' + fonte)};${escaparCSV(quem)};${escaparCSV(status)};${escaparCSV(recorrente)}\n`;
     });
-    
+
     // Adiciona linha de resumo
     csv += "\n";
     csv += "RESUMO\n";
-    
+
     const totalReceitas = filteredTransactions
         .filter(t => t.amount >= 0)
         .reduce((sum, t) => sum + t.amount, 0);
-    
+
     const totalDespesas = filteredTransactions
         .filter(t => t.amount < 0)
         .reduce((sum, t) => sum + Math.abs(t.amount), 0);
-    
+
     const saldo = totalReceitas - totalDespesas;
-    
+
     csv += `Total de Receitas;${totalReceitas.toFixed(2).replace('.', ',')}\n`;
     csv += `Total de Despesas;${totalDespesas.toFixed(2).replace('.', ',')}\n`;
     csv += `Saldo Período;${saldo.toFixed(2).replace('.', ',')}\n`;
     csv += `Total de Transações;${filteredTransactions.length}\n`;
-    
+
     const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
     const link = document.createElement("a");
     link.href = URL.createObjectURL(blob);
-    
+
     // Nome do arquivo com data e hora
     const agora = new Date();
     const dataHora = agora.toISOString().replace(/[:.]/g, '-').slice(0, -5);
     link.download = `extrato_ourwallet_${dataHora}.csv`;
-    
+
     link.click();
-    
+
     // Libera o objeto URL após um delay
     setTimeout(() => URL.revokeObjectURL(link.href), 100);
-    
+
     showToast(`✅ CSV exportado! ${filteredTransactions.length} transações`);
 }
 
@@ -468,7 +478,7 @@ export async function consolidarPagamentosEmLote(allTransactions, allCards, allA
     const transacoesParaConsolidar = allTransactions.filter(t => {
         if (t.paid) return false; // Já paga
         if (t.amount >= 0) return false; // Não é despesa
-        
+
         const dataTransacao = new Date(t.date + 'T00:00:00');
         if (dataTransacao > hoje) return false; // Ainda é futura
 
@@ -488,7 +498,7 @@ export async function consolidarPagamentosEmLote(allTransactions, allCards, allA
 
     try {
         let consolidadas = 0;
-        
+
         for (const trans of transacoesParaConsolidar) {
             // Marca como paga
             await updateDoc(doc(db, "transactions", trans.id), { paid: true });
@@ -499,7 +509,7 @@ export async function consolidarPagamentosEmLote(allTransactions, allCards, allA
                 const novoSaldo = (acc.balance || 0) - Math.abs(trans.amount);
                 await updateDoc(doc(db, "accounts", trans.source), { balance: novoSaldo });
             }
-            
+
             consolidadas++;
         }
 

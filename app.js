@@ -14,6 +14,7 @@ import { collection, addDoc, onSnapshot, query, where, updateDoc } from "./fireb
 import { showToast, showDialog } from "./modules/dialogs.js";
 import { initErrorLogger } from "./modules/errorLogger.js";
 import { setupNavigation, navigateToSection, renderSectionContent } from "./modules/navigation.js";
+import { setupVeicAi } from "./modules/veicai.js";
 
 // Global variables to maintain compatibility with DOM event listeners
 window.formatarMoedaInput = formatarMoedaInput;
@@ -275,6 +276,7 @@ initErrorLogger();
 setupAuth(loginBtn, logoutBtn, appScreen, loginScreen, userNameDisplay, async (user) => {
     if (user) {
         appState.user = user;
+        setupVeicAi(user);
         toggleLoading(true);
         const config = await configurarWallet(user.uid);
         appState.walletId = config.activeWalletId;
@@ -593,10 +595,10 @@ window.mostrarTransacoes = (investmentId) => {
 
     const overlay = document.createElement('div');
     overlay.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4';
-    
+
     const modal = document.createElement('div');
     modal.className = 'bg-white dark:bg-darkcard rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] flex flex-col';
-    
+
     const header = document.createElement('div');
     header.className = 'p-6 border-b border-gray-200 dark:border-gray-700';
     header.innerHTML = `
@@ -607,10 +609,10 @@ window.mostrarTransacoes = (investmentId) => {
             </button>
         </div>
     `;
-    
+
     const content = document.createElement('div');
     content.className = 'p-6 overflow-y-auto flex-1';
-    
+
     if (investment.transactions.length === 0) {
         content.innerHTML = `
             <div class="text-center text-gray-500 dark:text-gray-400 py-8">
@@ -668,10 +670,10 @@ window.mostrarTransacoes = (investmentId) => {
                 </div>
             `;
         }).join('');
-        
+
         content.innerHTML = transactionsHtml;
     }
-    
+
     const footer = document.createElement('div');
     footer.className = 'p-6 border-t border-gray-200 dark:border-gray-700';
     footer.innerHTML = `
@@ -680,15 +682,15 @@ window.mostrarTransacoes = (investmentId) => {
             Fechar
         </button>
     `;
-    
+
     modal.appendChild(header);
     modal.appendChild(content);
     modal.appendChild(footer);
     overlay.appendChild(modal);
     document.body.appendChild(overlay);
-    
+
     if (window.lucide) lucide.createIcons();
-    
+
     // Fechar com ESC
     const handleEsc = (e) => {
         if (e.key === 'Escape') {

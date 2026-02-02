@@ -12,7 +12,8 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/lucide@latest"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js" crossorigin="anonymous"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0/dist/chartjs-plugin-datalabels.min.js" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0/dist/chartjs-plugin-datalabels.min.js"
+        crossorigin="anonymous"></script>
     <!-- Bibliotecas para geração de PDF -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.7/pdfmake.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.7/vfs_fonts.js"></script>
@@ -202,8 +203,15 @@
         }
 
         @keyframes countUp {
-            from { opacity: 0; transform: translateY(20px); }
-            to { opacity: 1; transform: translateY(0); }
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
         }
 
         .pulse-slow {
@@ -211,8 +219,15 @@
         }
 
         @keyframes pulse {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.5; }
+
+            0%,
+            100% {
+                opacity: 1;
+            }
+
+            50% {
+                opacity: 0.5;
+            }
         }
 
         .slide-in-left {
@@ -228,6 +243,7 @@
                 opacity: 0;
                 transform: translateX(-50px);
             }
+
             to {
                 opacity: 1;
                 transform: translateX(0);
@@ -239,6 +255,7 @@
                 opacity: 0;
                 transform: translateX(50px);
             }
+
             to {
                 opacity: 1;
                 transform: translateX(0);
@@ -251,10 +268,23 @@
         }
 
         @keyframes blob {
-            0%, 100% { border-radius: 30% 70% 70% 30% / 30% 30% 70% 70%; }
-            25% { border-radius: 58% 42% 75% 25% / 76% 46% 54% 24%; }
-            50% { border-radius: 50% 50% 33% 67% / 55% 27% 73% 45%; }
-            75% { border-radius: 33% 67% 58% 42% / 63% 68% 32% 37%; }
+
+            0%,
+            100% {
+                border-radius: 30% 70% 70% 30% / 30% 30% 70% 70%;
+            }
+
+            25% {
+                border-radius: 58% 42% 75% 25% / 76% 46% 54% 24%;
+            }
+
+            50% {
+                border-radius: 50% 50% 33% 67% / 55% 27% 73% 45%;
+            }
+
+            75% {
+                border-radius: 33% 67% 58% 42% / 63% 68% 32% 37%;
+            }
         }
 
         .parallax-element {
@@ -367,10 +397,14 @@
         <!-- Hero Section -->
         <section class="relative pt-32 pb-20 px-4 overflow-hidden">
             <!-- Animated Background Blobs -->
-            <div class="absolute top-0 left-1/4 w-72 h-72 bg-purple-300 dark:bg-purple-900 rounded-full mix-blend-multiply dark:mix-blend-lighten filter blur-3xl opacity-20 animate-blob"></div>
-            <div class="absolute top-0 right-1/4 w-72 h-72 bg-indigo-300 dark:bg-indigo-900 rounded-full mix-blend-multiply dark:mix-blend-lighten filter blur-3xl opacity-20 animate-blob" style="animation-delay: 2s;"></div>
-            <div class="absolute -bottom-8 left-1/3 w-72 h-72 bg-pink-300 dark:bg-pink-900 rounded-full mix-blend-multiply dark:mix-blend-lighten filter blur-3xl opacity-20 animate-blob" style="animation-delay: 4s;"></div>
-            
+            <div
+                class="absolute top-0 left-1/4 w-72 h-72 bg-purple-300 dark:bg-purple-900 rounded-full mix-blend-multiply dark:mix-blend-lighten filter blur-3xl opacity-20 animate-blob">
+            </div>
+            <div class="absolute top-0 right-1/4 w-72 h-72 bg-indigo-300 dark:bg-indigo-900 rounded-full mix-blend-multiply dark:mix-blend-lighten filter blur-3xl opacity-20 animate-blob"
+                style="animation-delay: 2s;"></div>
+            <div class="absolute -bottom-8 left-1/3 w-72 h-72 bg-pink-300 dark:bg-pink-900 rounded-full mix-blend-multiply dark:mix-blend-lighten filter blur-3xl opacity-20 animate-blob"
+                style="animation-delay: 4s;"></div>
+
             <div class="max-w-4xl mx-auto text-center relative z-10">
                 <!-- Badge de Social Proof -->
                 <!-- <div class="inline-flex items-center gap-2 mb-6 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm px-4 py-2 rounded-full border border-gray-200 dark:border-gray-700 shadow-lg fade-in">
@@ -383,27 +417,37 @@
                     <span class="text-amber-500">⭐⭐⭐⭐⭐</span>
                 </div> -->
 
-                <h2 class="text-4xl md:text-7xl font-extrabold text-gray-900 dark:text-white mb-6 tracking-tight leading-tight slide-in-left">
+                <h2
+                    class="text-4xl md:text-7xl font-extrabold text-gray-900 dark:text-white mb-6 tracking-tight leading-tight slide-in-left">
                     Finanças <span class="gradient-text">sem Stress.</span>
                 </h2>
-                <p class="text-lg md:text-xl text-gray-600 dark:text-gray-300 mb-10 leading-relaxed max-w-2xl mx-auto slide-in-right">
-                    Acompanhe gastos, defina metas e sincronize suas contas em tempo real. <strong>30 dias grátis</strong> para testar todas as funcionalidades premium.
+                <p
+                    class="text-lg md:text-xl text-gray-600 dark:text-gray-300 mb-10 leading-relaxed max-w-2xl mx-auto slide-in-right">
+                    Acompanhe gastos, defina metas e sincronize suas contas em tempo real. <strong>30 dias
+                        grátis</strong> para testar todas as funcionalidades premium.
                 </p>
-                
+
                 <div class="flex flex-col sm:flex-row gap-4 justify-center mb-8 fade-in" style="animation-delay: 0.4s;">
                     <button id="login-btn"
                         class="px-8 py-4 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-2xl font-bold text-lg hover:shadow-2xl hover:scale-105 transition-all flex items-center justify-center gap-3 shadow-xl shadow-indigo-500/30 group relative overflow-hidden">
-                        <div class="absolute inset-0 bg-gradient-to-r from-purple-600 to-indigo-600 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                        <div
+                            class="absolute inset-0 bg-gradient-to-r from-purple-600 to-indigo-600 opacity-0 group-hover:opacity-100 transition-opacity">
+                        </div>
                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="w-5 h-5 relative z-10">
-                            <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
-                            <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
-                            <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
-                            <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
+                            <path fill="#4285F4"
+                                d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
+                            <path fill="#34A853"
+                                d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" />
+                            <path fill="#FBBC05"
+                                d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" />
+                            <path fill="#EA4335"
+                                d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" />
                         </svg>
                         <span class="relative z-10">Começar 30 Dias Grátis</span>
-                        <i data-lucide="arrow-right" class="w-5 h-5 group-hover:translate-x-1 transition-transform relative z-10"></i>
+                        <i data-lucide="arrow-right"
+                            class="w-5 h-5 group-hover:translate-x-1 transition-transform relative z-10"></i>
                     </button>
-                    <button onclick="document.querySelector('.features-section').scrollIntoView({behavior: 'smooth'})" 
+                    <button onclick="document.querySelector('.features-section').scrollIntoView({behavior: 'smooth'})"
                         class="px-8 py-4 bg-white dark:bg-gray-800 text-gray-900 dark:text-white rounded-2xl font-bold text-lg hover:shadow-xl transition-all flex items-center justify-center gap-2 border-2 border-gray-200 dark:border-gray-700 hover:border-indigo-500 dark:hover:border-indigo-500">
                         <i data-lucide="play-circle" class="w-5 h-5"></i>
                         Ver Como Funciona
@@ -411,7 +455,8 @@
                 </div>
 
                 <!-- Trust Indicators -->
-                <div class="flex flex-wrap justify-center items-center gap-6 text-sm text-gray-500 dark:text-gray-400 fade-in" style="animation-delay: 0.6s;">
+                <div class="flex flex-wrap justify-center items-center gap-6 text-sm text-gray-500 dark:text-gray-400 fade-in"
+                    style="animation-delay: 0.6s;">
                     <div class="flex items-center gap-2">
                         <i data-lucide="shield-check" class="w-4 h-4 text-green-500"></i>
                         <span>100% Seguro</span>
@@ -474,75 +519,121 @@
         <section class="features-section py-20 bg-gray-50 dark:bg-gray-900/40">
             <div class="max-w-7xl mx-auto px-4">
                 <div class="text-center mb-16">
-                    <span class="inline-block px-4 py-1 bg-indigo-100 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 rounded-full text-sm font-semibold mb-4">FUNCIONALIDADES</span>
-                    <h2 class="text-4xl md:text-5xl font-bold text-gray-900 dark:text-white mb-4">Tudo o que vocês precisam</h2>
-                    <p class="text-lg text-gray-600 dark:text-gray-300 max-w-2xl mx-auto">Ferramentas pensadas exclusivamente para a vida financeira em conjunto.</p>
+                    <span
+                        class="inline-block px-4 py-1 bg-indigo-100 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 rounded-full text-sm font-semibold mb-4">FUNCIONALIDADES</span>
+                    <h2 class="text-4xl md:text-5xl font-bold text-gray-900 dark:text-white mb-4">Tudo o que vocês
+                        precisam</h2>
+                    <p class="text-lg text-gray-600 dark:text-gray-300 max-w-2xl mx-auto">Ferramentas pensadas
+                        exclusivamente para a vida financeira em conjunto.</p>
                 </div>
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
-                    <div class="feature-card-3d bg-white dark:bg-darkcard p-8 rounded-3xl border border-gray-100 dark:border-gray-800 shadow-lg hover:shadow-2xl transition-all group glass relative overflow-hidden">
-                        <div class="absolute top-0 right-0 w-32 h-32 bg-indigo-500/10 rounded-full blur-3xl group-hover:scale-150 transition-transform"></div>
-                        <div class="w-16 h-16 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-2xl flex items-center justify-center text-white mb-6 group-hover:scale-110 group-hover:rotate-6 transition-all shadow-lg relative z-10">
+                    <div
+                        class="feature-card-3d bg-white dark:bg-darkcard p-8 rounded-3xl border border-gray-100 dark:border-gray-800 shadow-lg hover:shadow-2xl transition-all group glass relative overflow-hidden">
+                        <div
+                            class="absolute top-0 right-0 w-32 h-32 bg-indigo-500/10 rounded-full blur-3xl group-hover:scale-150 transition-transform">
+                        </div>
+                        <div
+                            class="w-16 h-16 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-2xl flex items-center justify-center text-white mb-6 group-hover:scale-110 group-hover:rotate-6 transition-all shadow-lg relative z-10">
                             <i data-lucide="users" class="w-8 h-8"></i>
                         </div>
                         <h3 class="text-xl font-bold mb-3 dark:text-white relative z-10">Carteira Conjunta</h3>
-                        <p class="text-gray-600 dark:text-gray-400 text-sm leading-relaxed relative z-10">Sincronize sua conta com a do seu cônjuge. Ambos podem adicionar e ver gastos em tempo real.</p>
-                        <div class="mt-4 flex items-center text-indigo-600 dark:text-indigo-400 text-sm font-semibold group-hover:gap-2 transition-all relative z-10">
-                            Saiba mais <i data-lucide="arrow-right" class="w-4 h-4 ml-1 group-hover:translate-x-1 transition-transform"></i>
+                        <p class="text-gray-600 dark:text-gray-400 text-sm leading-relaxed relative z-10">Sincronize sua
+                            conta com a do seu cônjuge. Ambos podem adicionar e ver gastos em tempo real.</p>
+                        <div
+                            class="mt-4 flex items-center text-indigo-600 dark:text-indigo-400 text-sm font-semibold group-hover:gap-2 transition-all relative z-10">
+                            Saiba mais <i data-lucide="arrow-right"
+                                class="w-4 h-4 ml-1 group-hover:translate-x-1 transition-transform"></i>
                         </div>
                     </div>
-                    <div class="feature-card-3d bg-white dark:bg-darkcard p-8 rounded-3xl border border-gray-100 dark:border-gray-800 shadow-lg hover:shadow-2xl transition-all group glass relative overflow-hidden">
-                        <div class="absolute top-0 right-0 w-32 h-32 bg-emerald-500/10 rounded-full blur-3xl group-hover:scale-150 transition-transform"></div>
-                        <div class="w-16 h-16 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-2xl flex items-center justify-center text-white mb-6 group-hover:scale-110 group-hover:rotate-6 transition-all shadow-lg relative z-10">
+                    <div
+                        class="feature-card-3d bg-white dark:bg-darkcard p-8 rounded-3xl border border-gray-100 dark:border-gray-800 shadow-lg hover:shadow-2xl transition-all group glass relative overflow-hidden">
+                        <div
+                            class="absolute top-0 right-0 w-32 h-32 bg-emerald-500/10 rounded-full blur-3xl group-hover:scale-150 transition-transform">
+                        </div>
+                        <div
+                            class="w-16 h-16 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-2xl flex items-center justify-center text-white mb-6 group-hover:scale-110 group-hover:rotate-6 transition-all shadow-lg relative z-10">
                             <i data-lucide="target" class="w-8 h-8"></i>
                         </div>
                         <h3 class="text-xl font-bold mb-3 dark:text-white relative z-10">Metas Compartilhadas</h3>
-                        <p class="text-gray-600 dark:text-gray-400 text-sm leading-relaxed relative z-10">Poupem juntos para a viagem dos sonhos ou para a casa nova. Acompanhem o progresso visualmente.</p>
-                        <div class="mt-4 flex items-center text-emerald-600 dark:text-emerald-400 text-sm font-semibold group-hover:gap-2 transition-all relative z-10">
-                            Saiba mais <i data-lucide="arrow-right" class="w-4 h-4 ml-1 group-hover:translate-x-1 transition-transform"></i>
+                        <p class="text-gray-600 dark:text-gray-400 text-sm leading-relaxed relative z-10">Poupem juntos
+                            para a viagem dos sonhos ou para a casa nova. Acompanhem o progresso visualmente.</p>
+                        <div
+                            class="mt-4 flex items-center text-emerald-600 dark:text-emerald-400 text-sm font-semibold group-hover:gap-2 transition-all relative z-10">
+                            Saiba mais <i data-lucide="arrow-right"
+                                class="w-4 h-4 ml-1 group-hover:translate-x-1 transition-transform"></i>
                         </div>
                     </div>
-                    <div class="feature-card-3d bg-white dark:bg-darkcard p-8 rounded-3xl border border-gray-100 dark:border-gray-800 shadow-lg hover:shadow-2xl transition-all group glass relative overflow-hidden">
-                        <div class="absolute top-0 right-0 w-32 h-32 bg-amber-500/10 rounded-full blur-3xl group-hover:scale-150 transition-transform"></div>
-                        <div class="w-16 h-16 bg-gradient-to-br from-amber-500 to-orange-600 rounded-2xl flex items-center justify-center text-white mb-6 group-hover:scale-110 group-hover:rotate-6 transition-all shadow-lg relative z-10">
+                    <div
+                        class="feature-card-3d bg-white dark:bg-darkcard p-8 rounded-3xl border border-gray-100 dark:border-gray-800 shadow-lg hover:shadow-2xl transition-all group glass relative overflow-hidden">
+                        <div
+                            class="absolute top-0 right-0 w-32 h-32 bg-amber-500/10 rounded-full blur-3xl group-hover:scale-150 transition-transform">
+                        </div>
+                        <div
+                            class="w-16 h-16 bg-gradient-to-br from-amber-500 to-orange-600 rounded-2xl flex items-center justify-center text-white mb-6 group-hover:scale-110 group-hover:rotate-6 transition-all shadow-lg relative z-10">
                             <i data-lucide="layout-dashboard" class="w-8 h-8"></i>
                         </div>
                         <h3 class="text-xl font-bold mb-3 dark:text-white relative z-10">Visão Panorâmica</h3>
-                        <p class="text-gray-600 dark:text-gray-400 text-sm leading-relaxed relative z-10">Gráficos intuitivos por categorias e por usuário. Saibam exatamente para onde o dinheiro está indo.</p>
-                        <div class="mt-4 flex items-center text-amber-600 dark:text-amber-400 text-sm font-semibold group-hover:gap-2 transition-all relative z-10">
-                            Saiba mais <i data-lucide="arrow-right" class="w-4 h-4 ml-1 group-hover:translate-x-1 transition-transform"></i>
+                        <p class="text-gray-600 dark:text-gray-400 text-sm leading-relaxed relative z-10">Gráficos
+                            intuitivos por categorias e por usuário. Saibam exatamente para onde o dinheiro está indo.
+                        </p>
+                        <div
+                            class="mt-4 flex items-center text-amber-600 dark:text-amber-400 text-sm font-semibold group-hover:gap-2 transition-all relative z-10">
+                            Saiba mais <i data-lucide="arrow-right"
+                                class="w-4 h-4 ml-1 group-hover:translate-x-1 transition-transform"></i>
                         </div>
                     </div>
-                    <div class="feature-card-3d bg-white dark:bg-darkcard p-8 rounded-3xl border border-gray-100 dark:border-gray-800 shadow-lg hover:shadow-2xl transition-all group glass relative overflow-hidden">
-                        <div class="absolute top-0 right-0 w-32 h-32 bg-blue-500/10 rounded-full blur-3xl group-hover:scale-150 transition-transform"></div>
-                        <div class="w-16 h-16 bg-gradient-to-br from-blue-500 to-cyan-600 rounded-2xl flex items-center justify-center text-white mb-6 group-hover:scale-110 group-hover:rotate-6 transition-all shadow-lg relative z-10">
+                    <div
+                        class="feature-card-3d bg-white dark:bg-darkcard p-8 rounded-3xl border border-gray-100 dark:border-gray-800 shadow-lg hover:shadow-2xl transition-all group glass relative overflow-hidden">
+                        <div
+                            class="absolute top-0 right-0 w-32 h-32 bg-blue-500/10 rounded-full blur-3xl group-hover:scale-150 transition-transform">
+                        </div>
+                        <div
+                            class="w-16 h-16 bg-gradient-to-br from-blue-500 to-cyan-600 rounded-2xl flex items-center justify-center text-white mb-6 group-hover:scale-110 group-hover:rotate-6 transition-all shadow-lg relative z-10">
                             <i data-lucide="credit-card" class="w-8 h-8"></i>
                         </div>
                         <h3 class="text-xl font-bold mb-3 dark:text-white relative z-10">Gestão de Cartões</h3>
-                        <p class="text-gray-600 dark:text-gray-400 text-sm leading-relaxed relative z-10">Cadastre múltiplos cartões, acompanhe limites e parcele compras de forma inteligente.</p>
-                        <div class="mt-4 flex items-center text-blue-600 dark:text-blue-400 text-sm font-semibold group-hover:gap-2 transition-all relative z-10">
-                            Saiba mais <i data-lucide="arrow-right" class="w-4 h-4 ml-1 group-hover:translate-x-1 transition-transform"></i>
+                        <p class="text-gray-600 dark:text-gray-400 text-sm leading-relaxed relative z-10">Cadastre
+                            múltiplos cartões, acompanhe limites e parcele compras de forma inteligente.</p>
+                        <div
+                            class="mt-4 flex items-center text-blue-600 dark:text-blue-400 text-sm font-semibold group-hover:gap-2 transition-all relative z-10">
+                            Saiba mais <i data-lucide="arrow-right"
+                                class="w-4 h-4 ml-1 group-hover:translate-x-1 transition-transform"></i>
                         </div>
                     </div>
-                    <div class="feature-card-3d bg-white dark:bg-darkcard p-8 rounded-3xl border border-gray-100 dark:border-gray-800 shadow-lg hover:shadow-2xl transition-all group glass relative overflow-hidden">
-                        <div class="absolute top-0 right-0 w-32 h-32 bg-rose-500/10 rounded-full blur-3xl group-hover:scale-150 transition-transform"></div>
-                        <div class="w-16 h-16 bg-gradient-to-br from-rose-500 to-pink-600 rounded-2xl flex items-center justify-center text-white mb-6 group-hover:scale-110 group-hover:rotate-6 transition-all shadow-lg relative z-10">
+                    <div
+                        class="feature-card-3d bg-white dark:bg-darkcard p-8 rounded-3xl border border-gray-100 dark:border-gray-800 shadow-lg hover:shadow-2xl transition-all group glass relative overflow-hidden">
+                        <div
+                            class="absolute top-0 right-0 w-32 h-32 bg-rose-500/10 rounded-full blur-3xl group-hover:scale-150 transition-transform">
+                        </div>
+                        <div
+                            class="w-16 h-16 bg-gradient-to-br from-rose-500 to-pink-600 rounded-2xl flex items-center justify-center text-white mb-6 group-hover:scale-110 group-hover:rotate-6 transition-all shadow-lg relative z-10">
                             <i data-lucide="pie-chart" class="w-8 h-8"></i>
                         </div>
                         <h3 class="text-xl font-bold mb-3 dark:text-white relative z-10">Relatórios Detalhados</h3>
-                        <p class="text-gray-600 dark:text-gray-400 text-sm leading-relaxed relative z-10">Visualize seus gastos com gráficos interativos e exporte relatórios em CSV.</p>
-                        <div class="mt-4 flex items-center text-rose-600 dark:text-rose-400 text-sm font-semibold group-hover:gap-2 transition-all relative z-10">
-                            Saiba mais <i data-lucide="arrow-right" class="w-4 h-4 ml-1 group-hover:translate-x-1 transition-transform"></i>
+                        <p class="text-gray-600 dark:text-gray-400 text-sm leading-relaxed relative z-10">Visualize seus
+                            gastos com gráficos interativos e exporte relatórios em CSV.</p>
+                        <div
+                            class="mt-4 flex items-center text-rose-600 dark:text-rose-400 text-sm font-semibold group-hover:gap-2 transition-all relative z-10">
+                            Saiba mais <i data-lucide="arrow-right"
+                                class="w-4 h-4 ml-1 group-hover:translate-x-1 transition-transform"></i>
                         </div>
                     </div>
-                    <div class="feature-card-3d bg-white dark:bg-darkcard p-8 rounded-3xl border border-gray-100 dark:border-gray-800 shadow-lg hover:shadow-2xl transition-all group glass relative overflow-hidden">
-                        <div class="absolute top-0 right-0 w-32 h-32 bg-violet-500/10 rounded-full blur-3xl group-hover:scale-150 transition-transform"></div>
-                        <div class="w-16 h-16 bg-gradient-to-br from-violet-500 to-purple-600 rounded-2xl flex items-center justify-center text-white mb-6 group-hover:scale-110 group-hover:rotate-6 transition-all shadow-lg relative z-10">
+                    <div
+                        class="feature-card-3d bg-white dark:bg-darkcard p-8 rounded-3xl border border-gray-100 dark:border-gray-800 shadow-lg hover:shadow-2xl transition-all group glass relative overflow-hidden">
+                        <div
+                            class="absolute top-0 right-0 w-32 h-32 bg-violet-500/10 rounded-full blur-3xl group-hover:scale-150 transition-transform">
+                        </div>
+                        <div
+                            class="w-16 h-16 bg-gradient-to-br from-violet-500 to-purple-600 rounded-2xl flex items-center justify-center text-white mb-6 group-hover:scale-110 group-hover:rotate-6 transition-all shadow-lg relative z-10">
                             <i data-lucide="shield-check" class="w-8 h-8"></i>
                         </div>
                         <h3 class="text-xl font-bold mb-3 dark:text-white relative z-10">100% Seguro</h3>
-                        <p class="text-gray-600 dark:text-gray-400 text-sm leading-relaxed relative z-10">Seus dados protegidos com criptografia de ponta e autenticação via Google.</p>
-                        <div class="mt-4 flex items-center text-violet-600 dark:text-violet-400 text-sm font-semibold group-hover:gap-2 transition-all relative z-10">
-                            Saiba mais <i data-lucide="arrow-right" class="w-4 h-4 ml-1 group-hover:translate-x-1 transition-transform"></i>
+                        <p class="text-gray-600 dark:text-gray-400 text-sm leading-relaxed relative z-10">Seus dados
+                            protegidos com criptografia de ponta e autenticação via Google.</p>
+                        <div
+                            class="mt-4 flex items-center text-violet-600 dark:text-violet-400 text-sm font-semibold group-hover:gap-2 transition-all relative z-10">
+                            Saiba mais <i data-lucide="arrow-right"
+                                class="w-4 h-4 ml-1 group-hover:translate-x-1 transition-transform"></i>
                         </div>
                     </div>
                 </div>
@@ -553,15 +644,19 @@
         <section class="py-20 bg-white dark:bg-darkbg">
             <div class="max-w-7xl mx-auto px-4">
                 <div class="text-center mb-16">
-                    <span class="inline-block px-4 py-1 bg-purple-100 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400 rounded-full text-sm font-semibold mb-4">DEPOIMENTOS</span>
-                    <h2 class="text-4xl md:text-5xl font-bold text-gray-900 dark:text-white mb-4">Casais que amam o OurWallet</h2>
+                    <span
+                        class="inline-block px-4 py-1 bg-purple-100 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400 rounded-full text-sm font-semibold mb-4">DEPOIMENTOS</span>
+                    <h2 class="text-4xl md:text-5xl font-bold text-gray-900 dark:text-white mb-4">Casais que amam o
+                        OurWallet</h2>
                 </div>
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                    <div class="testimonial-card bg-gradient-to-br from-white to-gray-50 dark:from-gray-800 dark:to-gray-900 p-6 rounded-2xl border border-gray-200 dark:border-gray-700 shadow-lg hover:shadow-xl transition">
+                    <div
+                        class="testimonial-card bg-gradient-to-br from-white to-gray-50 dark:from-gray-800 dark:to-gray-900 p-6 rounded-2xl border border-gray-200 dark:border-gray-700 shadow-lg hover:shadow-xl transition">
                         <div class="flex items-center gap-1 mb-4">
                             <span class="text-amber-500">⭐⭐⭐⭐⭐</span>
                         </div>
-                        <p class="text-gray-700 dark:text-gray-300 mb-4 italic">"Finalmente conseguimos organizar nossas finanças juntos! A sincronização em tempo real é perfeita."</p>
+                        <p class="text-gray-700 dark:text-gray-300 mb-4 italic">"Finalmente conseguimos organizar nossas
+                            finanças juntos! A sincronização em tempo real é perfeita."</p>
                         <div class="flex items-center gap-3">
                             <div class="w-10 h-10 rounded-full bg-gradient-to-br from-blue-400 to-blue-600"></div>
                             <div>
@@ -570,11 +665,13 @@
                             </div>
                         </div>
                     </div>
-                    <div class="testimonial-card bg-gradient-to-br from-white to-gray-50 dark:from-gray-800 dark:to-gray-900 p-6 rounded-2xl border border-gray-200 dark:border-gray-700 shadow-lg hover:shadow-xl transition">
+                    <div
+                        class="testimonial-card bg-gradient-to-br from-white to-gray-50 dark:from-gray-800 dark:to-gray-900 p-6 rounded-2xl border border-gray-200 dark:border-gray-700 shadow-lg hover:shadow-xl transition">
                         <div class="flex items-center gap-1 mb-4">
                             <span class="text-amber-500">⭐⭐⭐⭐⭐</span>
                         </div>
-                        <p class="text-gray-700 dark:text-gray-300 mb-4 italic">"As metas compartilhadas nos ajudaram a economizar R$ 15 mil para nossa viagem dos sonhos!"</p>
+                        <p class="text-gray-700 dark:text-gray-300 mb-4 italic">"As metas compartilhadas nos ajudaram a
+                            economizar R$ 15 mil para nossa viagem dos sonhos!"</p>
                         <div class="flex items-center gap-3">
                             <div class="w-10 h-10 rounded-full bg-gradient-to-br from-purple-400 to-purple-600"></div>
                             <div>
@@ -583,11 +680,13 @@
                             </div>
                         </div>
                     </div>
-                    <div class="testimonial-card bg-gradient-to-br from-white to-gray-50 dark:from-gray-800 dark:to-gray-900 p-6 rounded-2xl border border-gray-200 dark:border-gray-700 shadow-lg hover:shadow-xl transition">
+                    <div
+                        class="testimonial-card bg-gradient-to-br from-white to-gray-50 dark:from-gray-800 dark:to-gray-900 p-6 rounded-2xl border border-gray-200 dark:border-gray-700 shadow-lg hover:shadow-xl transition">
                         <div class="flex items-center gap-1 mb-4">
                             <span class="text-amber-500">⭐⭐⭐⭐⭐</span>
                         </div>
-                        <p class="text-gray-700 dark:text-gray-300 mb-4 italic">"Interface linda e funcional. O suporte foi super atencioso quando precisamos de ajuda."</p>
+                        <p class="text-gray-700 dark:text-gray-300 mb-4 italic">"Interface linda e funcional. O suporte
+                            foi super atencioso quando precisamos de ajuda."</p>
                         <div class="flex items-center gap-3">
                             <div class="w-10 h-10 rounded-full bg-gradient-to-br from-pink-400 to-pink-600"></div>
                             <div>
@@ -602,66 +701,90 @@
 
         <!-- Premium Plan -->
         <section class="py-24 relative overflow-hidden">
-            <div class="absolute inset-0 bg-gradient-to-br from-indigo-50 to-purple-50 dark:from-gray-900 dark:to-indigo-950"></div>
+            <div
+                class="absolute inset-0 bg-gradient-to-br from-indigo-50 to-purple-50 dark:from-gray-900 dark:to-indigo-950">
+            </div>
             <div class="max-w-6xl mx-auto px-4 relative z-10">
                 <div class="text-center mb-12">
-                    <span class="inline-block px-4 py-1 bg-amber-100 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400 rounded-full text-sm font-semibold mb-4">✨ PREMIUM</span>
-                    <h2 class="text-4xl md:text-5xl font-bold text-gray-900 dark:text-white mb-4">Desbloqueie o Poder Total</h2>
-                    <p class="text-lg text-gray-600 dark:text-gray-300 max-w-2xl mx-auto">Apoie o desenvolvimento do projeto e tenha acesso a funcionalidades exclusivas.</p>
+                    <span
+                        class="inline-block px-4 py-1 bg-amber-100 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400 rounded-full text-sm font-semibold mb-4">✨
+                        PREMIUM</span>
+                    <h2 class="text-4xl md:text-5xl font-bold text-gray-900 dark:text-white mb-4">Desbloqueie o Poder
+                        Total</h2>
+                    <p class="text-lg text-gray-600 dark:text-gray-300 max-w-2xl mx-auto">Apoie o desenvolvimento do
+                        projeto e tenha acesso a funcionalidades exclusivas.</p>
                 </div>
-                
+
                 <div class="grid md:grid-cols-2 gap-8 items-center">
                     <!-- Features List -->
                     <div class="space-y-4">
-                        <div class="flex items-start gap-4 bg-white dark:bg-gray-800 p-5 rounded-2xl shadow-lg hover:shadow-xl transition border border-gray-100 dark:border-gray-700">
-                            <div class="w-12 h-12 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-xl flex items-center justify-center text-white flex-shrink-0">
+                        <div
+                            class="flex items-start gap-4 bg-white dark:bg-gray-800 p-5 rounded-2xl shadow-lg hover:shadow-xl transition border border-gray-100 dark:border-gray-700">
+                            <div
+                                class="w-12 h-12 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-xl flex items-center justify-center text-white flex-shrink-0">
                                 <i data-lucide="download" class="w-6 h-6"></i>
                             </div>
                             <div>
-                                <h4 class="font-bold text-gray-900 dark:text-white mb-1">Exportação CSV de Relatórios</h4>
-                                <p class="text-sm text-gray-600 dark:text-gray-400">Exporte todos os seus dados financeiros para análise externa</p>
+                                <h4 class="font-bold text-gray-900 dark:text-white mb-1">Exportação CSV de Relatórios
+                                </h4>
+                                <p class="text-sm text-gray-600 dark:text-gray-400">Exporte todos os seus dados
+                                    financeiros para análise externa</p>
                             </div>
                         </div>
-                        <div class="flex items-start gap-4 bg-white dark:bg-gray-800 p-5 rounded-2xl shadow-lg hover:shadow-xl transition border border-gray-100 dark:border-gray-700">
-                            <div class="w-12 h-12 bg-gradient-to-br from-purple-500 to-pink-600 rounded-xl flex items-center justify-center text-white flex-shrink-0">
+                        <div
+                            class="flex items-start gap-4 bg-white dark:bg-gray-800 p-5 rounded-2xl shadow-lg hover:shadow-xl transition border border-gray-100 dark:border-gray-700">
+                            <div
+                                class="w-12 h-12 bg-gradient-to-br from-purple-500 to-pink-600 rounded-xl flex items-center justify-center text-white flex-shrink-0">
                                 <i data-lucide="heart" class="w-6 h-6"></i>
                             </div>
                             <div>
-                                <h4 class="font-bold text-gray-900 dark:text-white mb-1">Metas Ilimitadas (Wishlist)</h4>
-                                <p class="text-sm text-gray-600 dark:text-gray-400">Crie quantas metas quiser para realizar seus sonhos</p>
+                                <h4 class="font-bold text-gray-900 dark:text-white mb-1">Metas Ilimitadas (Wishlist)
+                                </h4>
+                                <p class="text-sm text-gray-600 dark:text-gray-400">Crie quantas metas quiser para
+                                    realizar seus sonhos</p>
                             </div>
                         </div>
-                        <div class="flex items-start gap-4 bg-white dark:bg-gray-800 p-5 rounded-2xl shadow-lg hover:shadow-xl transition border border-gray-100 dark:border-gray-700">
-                            <div class="w-12 h-12 bg-gradient-to-br from-amber-500 to-orange-600 rounded-xl flex items-center justify-center text-white flex-shrink-0">
+                        <div
+                            class="flex items-start gap-4 bg-white dark:bg-gray-800 p-5 rounded-2xl shadow-lg hover:shadow-xl transition border border-gray-100 dark:border-gray-700">
+                            <div
+                                class="w-12 h-12 bg-gradient-to-br from-amber-500 to-orange-600 rounded-xl flex items-center justify-center text-white flex-shrink-0">
                                 <i data-lucide="trending-down" class="w-6 h-6"></i>
                             </div>
                             <div>
                                 <h4 class="font-bold text-gray-900 dark:text-white mb-1">Gestão Completa de Dívidas</h4>
-                                <p class="text-sm text-gray-600 dark:text-gray-400">Controle e acompanhe pagamentos de dívidas e empréstimos</p>
+                                <p class="text-sm text-gray-600 dark:text-gray-400">Controle e acompanhe pagamentos de
+                                    dívidas e empréstimos</p>
                             </div>
                         </div>
-                        <div class="flex items-start gap-4 bg-white dark:bg-gray-800 p-5 rounded-2xl shadow-lg hover:shadow-xl transition border border-gray-100 dark:border-gray-700">
-                            <div class="w-12 h-12 bg-gradient-to-br from-blue-500 to-cyan-600 rounded-xl flex items-center justify-center text-white flex-shrink-0">
+                        <div
+                            class="flex items-start gap-4 bg-white dark:bg-gray-800 p-5 rounded-2xl shadow-lg hover:shadow-xl transition border border-gray-100 dark:border-gray-700">
+                            <div
+                                class="w-12 h-12 bg-gradient-to-br from-blue-500 to-cyan-600 rounded-xl flex items-center justify-center text-white flex-shrink-0">
                                 <i data-lucide="infinity" class="w-6 h-6"></i>
                             </div>
                             <div>
-                                <h4 class="font-bold text-gray-900 dark:text-white mb-1">Contas e Cartões Ilimitados</h4>
-                                <p class="text-sm text-gray-600 dark:text-gray-400">Cadastre quantas contas e cartões precisar</p>
+                                <h4 class="font-bold text-gray-900 dark:text-white mb-1">Contas e Cartões Ilimitados
+                                </h4>
+                                <p class="text-sm text-gray-600 dark:text-gray-400">Cadastre quantas contas e cartões
+                                    precisar</p>
                             </div>
                         </div>
                     </div>
 
                     <!-- Pricing Card -->
                     <div class="relative">
-                        <div class="absolute inset-0 bg-gradient-to-br from-indigo-600 to-purple-700 rounded-[3rem] blur-xl opacity-20 animate-pulse"></div>
-                        <div class="relative bg-gradient-to-br from-indigo-600 to-purple-700 rounded-[3rem] p-8 text-white shadow-2xl overflow-hidden">
+                        <div
+                            class="absolute inset-0 bg-gradient-to-br from-indigo-600 to-purple-700 rounded-[3rem] blur-xl opacity-20 animate-pulse">
+                        </div>
+                        <div
+                            class="relative bg-gradient-to-br from-indigo-600 to-purple-700 rounded-[3rem] p-8 text-white shadow-2xl overflow-hidden">
                             <div class="absolute top-0 right-0 p-8 opacity-10 floating">
                                 <i data-lucide="crown" class="w-48 h-48 text-white"></i>
                             </div>
                             <div class="relative z-10">
                                 <div class="text-center mb-8">
                                     <div class="inline-flex items-center gap-2 bg-white/20 backdrop-blur-md px-4 py-2 rounded-full mb-4"
-                                        style="display: inline-flex;" >
+                                        style="display: inline-flex;">
                                         <i data-lucide="zap" class="w-4 h-4 text-amber-300"></i>
                                         <span class="text-sm font-bold">OFERTA LIMITADA</span>
                                     </div>
@@ -680,10 +803,12 @@
                                 </div>
                                 <button onclick="document.getElementById('login-btn').click()"
                                     class="w-full py-4 bg-white text-indigo-600 rounded-2xl font-bold text-lg hover:shadow-2xl hover:scale-105 transition-all flex items-center justify-center gap-2 group">
-                                    <i data-lucide="rocket" class="w-5 h-5 group-hover:translate-y-[-2px] transition-transform"></i>
+                                    <i data-lucide="rocket"
+                                        class="w-5 h-5 group-hover:translate-y-[-2px] transition-transform"></i>
                                     Começar Agora Grátis
                                 </button>
-                                <p class="text-xs text-indigo-100 text-center mt-4">✓ Sem cartão de crédito • ✓ Cancele quando quiser</p>
+                                <p class="text-xs text-indigo-100 text-center mt-4">✓ Sem cartão de crédito • ✓ Cancele
+                                    quando quiser</p>
                             </div>
                         </div>
                     </div>
@@ -694,9 +819,11 @@
         <!-- CTA Final Section -->
         <section class="py-20 bg-white dark:bg-darkbg">
             <div class="max-w-4xl mx-auto px-4 text-center">
-                <h2 class="text-4xl md:text-5xl font-bold text-gray-900 dark:text-white mb-6">Pronto para transformar suas finanças?</h2>
-                <p class="text-lg text-gray-600 dark:text-gray-300 mb-10 max-w-2xl mx-auto">Junte-se a centenas de casais que já organizaram sua vida financeira com o OurWallet.</p>
-                <button onclick="document.getElementById('login-btn').click()" 
+                <h2 class="text-4xl md:text-5xl font-bold text-gray-900 dark:text-white mb-6">Pronto para transformar
+                    suas finanças?</h2>
+                <p class="text-lg text-gray-600 dark:text-gray-300 mb-10 max-w-2xl mx-auto">Junte-se a centenas de
+                    casais que já organizaram sua vida financeira com o OurWallet.</p>
+                <button onclick="document.getElementById('login-btn').click()"
                     class="px-10 py-4 bg-gradient-to-r from-indigo-600 to-purple-600 rounded-2xl font-bold text-lg hover:shadow-2xl hover:scale-105 transition-all flex items-center justify-center gap-2"
                     style="justify-self: center;">
                     <i data-lucide="sparkles" class="w-5 h-5 group-hover:translate-y-[-2px] transition-transform"></i>
@@ -1024,13 +1151,15 @@
                     data-lucide="repeat"></i> Nova Despesa Fixa</h3>
             <form id="fixed-expense-form" class="space-y-4">
                 <div>
-                    <label for="fixed-expense-desc" class="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase">Descrição</label>
+                    <label for="fixed-expense-desc"
+                        class="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase">Descrição</label>
                     <input type="text" id="fixed-expense-desc" placeholder="Ex: IPVA, Seguro, Aluguel"
                         class="w-full p-3 bg-gray-50 dark:bg-gray-700 border dark:border-gray-600 rounded-xl dark:text-white"
                         required>
                 </div>
                 <div>
-                    <label for="fixed-expense-account" class="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase">Conta</label>
+                    <label for="fixed-expense-account"
+                        class="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase">Conta</label>
                     <select id="fixed-expense-account"
                         class="w-full p-3 bg-gray-50 dark:bg-gray-700 border dark:border-gray-600 rounded-xl dark:text-white cursor-pointer"
                         required>
@@ -1038,26 +1167,33 @@
                     </select>
                 </div>
                 <div>
-                    <label for="fixed-expense-amount" class="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase">Valor da Parcela</label>
-                    <input type="text" id="fixed-expense-amount" placeholder="R$ 0,00" onkeyup="formatarMoedaInput(this)"
+                    <label for="fixed-expense-amount"
+                        class="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase">Valor da Parcela</label>
+                    <input type="text" id="fixed-expense-amount" placeholder="R$ 0,00"
+                        onkeyup="formatarMoedaInput(this)"
                         class="w-full p-3 bg-gray-50 dark:bg-gray-700 border dark:border-gray-600 rounded-xl dark:text-white"
                         required>
                 </div>
                 <div>
-                    <label for="fixed-expense-due-day" class="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase">Dia do Vencimento</label>
+                    <label for="fixed-expense-due-day"
+                        class="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase">Dia do Vencimento</label>
                     <input type="number" id="fixed-expense-due-day" placeholder="Ex: 10" min="1" max="31"
                         class="w-full p-3 bg-gray-50 dark:bg-gray-700 border dark:border-gray-600 rounded-xl dark:text-white"
                         required>
                 </div>
                 <div>
-                    <label for="fixed-expense-months" class="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase">Número de Meses</label>
-                    <input type="number" id="fixed-expense-months" placeholder="Ex: 5 (para IPVA)" min="1" max="12" value="1"
+                    <label for="fixed-expense-months"
+                        class="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase">Número de Meses</label>
+                    <input type="number" id="fixed-expense-months" placeholder="Ex: 5 (para IPVA)" min="1" max="12"
+                        value="1"
                         class="w-full p-3 bg-gray-50 dark:bg-gray-700 border dark:border-gray-600 rounded-xl dark:text-white"
                         required>
-                    <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Ex: 5 meses para IPVA, 10 meses para seguros</p>
+                    <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Ex: 5 meses para IPVA, 10 meses para
+                        seguros</p>
                 </div>
                 <div>
-                    <label for="fixed-expense-start-month" class="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase">Mês de Início</label>
+                    <label for="fixed-expense-start-month"
+                        class="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase">Mês de Início</label>
                     <input type="month" id="fixed-expense-start-month"
                         class="w-full p-3 bg-gray-50 dark:bg-gray-700 border dark:border-gray-600 rounded-xl dark:text-white"
                         required>
@@ -1066,7 +1202,8 @@
                     <button type="button" onclick="fecharModalDespesaFixa()"
                         class="flex-1 py-3 bg-gray-200 dark:bg-gray-600 rounded-xl hover:bg-gray-300 dark:hover:bg-gray-500 transition">Cancelar</button>
                     <button type="submit" id="fixed-expense-submit-btn"
-                        class="flex-1 py-3 bg-emerald-600 text-white rounded-xl hover:bg-emerald-700 transition font-bold">Criar Despesa Fixa</button>
+                        class="flex-1 py-3 bg-emerald-600 text-white rounded-xl hover:bg-emerald-700 transition font-bold">Criar
+                        Despesa Fixa</button>
                 </div>
             </form>
         </div>
@@ -1366,6 +1503,40 @@
         </div>
     </div>
 
+    <div id="veicai-modal"
+        class="hidden fixed inset-0 z-[70] bg-black/50 flex items-center justify-center backdrop-blur-sm">
+        <div class="bg-white dark:bg-darkcard p-6 rounded-2xl w-full max-w-md shadow-2xl m-4 fade-in">
+            <h3 class="text-xl font-bold mb-4 flex items-center gap-2 text-blue-600 dark:text-blue-400"><i
+                    data-lucide="car"></i> Integração VeicAI</h3>
+            <form id="veicai-form" class="space-y-4">
+                <div>
+                    <label for="veicai-tenant-id"
+                        class="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase">ID de Integração
+                        VeicAI</label>
+                    <input type="text" id="veicai-tenant-id" placeholder="Cole o código aqui..."
+                        class="w-full p-3 bg-gray-50 dark:bg-gray-700 border dark:border-gray-600 rounded-xl dark:text-white font-mono text-sm">
+                    <p class="text-[10px] text-gray-400 mt-2 italic">Você encontra este código nas configurações do
+                        VeicAI.</p>
+                </div>
+
+                <div class="pt-2">
+                    <a href="https://studio-8071776082-3c93f.web.app" target="_blank"
+                        class="text-xs text-indigo-500 hover:underline flex items-center gap-1">
+                        <i data-lucide="external-link" class="w-3 h-3"></i> Abrir VeicAI
+                    </a>
+                </div>
+
+                <div class="flex gap-3 mt-6">
+                    <button type="button" onclick="fecharModalVeicAi()"
+                        class="flex-1 py-3 bg-gray-100 dark:bg-gray-700 rounded-xl font-bold dark:text-white hover:bg-gray-200 transition">Cancelar</button>
+                    <button type="submit"
+                        class="flex-1 py-3 bg-blue-600 text-white rounded-xl font-bold hover:bg-blue-700 transition">Salvar
+                        ID</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
     <div id="app-screen" class="hidden fade-in">
         <nav class="bg-white dark:bg-darkcard border-b border-gray-200 dark:border-gray-700 sticky top-0 z-50">
             <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex justify-between items-center">
@@ -1387,6 +1558,11 @@
                         class="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 text-indigo-600 dark:text-indigo-400 cursor-pointer"
                         aria-label="Compartilhar Carteira">
                         <i data-lucide="users" class="w-5 h-5"></i>
+                    </button>
+                    <button id="veicai-btn"
+                        class="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 text-blue-600 dark:text-blue-400 cursor-pointer"
+                        aria-label="Integração VeicAi">
+                        <i data-lucide="car" class="w-5 h-5"></i>
                     </button>
                     <button id="install-pwa"
                         class="hidden p-2 rounded-full bg-indigo-100 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 cursor-pointer animate-pulse"
@@ -1413,26 +1589,36 @@
         <main class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
             <!-- Navigation Tabs -->
             <nav class="flex overflow-x-auto gap-2 pb-2 border-b border-gray-200 dark:border-gray-700 hide-scroll">
-                <button id="nav-dashboard" class="nav-tab active px-6 py-3 rounded-lg font-bold text-sm transition-all flex items-center gap-2 whitespace-nowrap">
+                <button id="nav-dashboard"
+                    class="nav-tab active px-6 py-3 rounded-lg font-bold text-sm transition-all flex items-center gap-2 whitespace-nowrap">
                     <i data-lucide="layout-dashboard" class="w-4 h-4"></i> Dashboard
                 </button>
-                <button id="nav-goals" class="nav-tab px-6 py-3 rounded-lg font-bold text-sm transition-all flex items-center gap-2 whitespace-nowrap">
+                <button id="nav-goals"
+                    class="nav-tab px-6 py-3 rounded-lg font-bold text-sm transition-all flex items-center gap-2 whitespace-nowrap">
                     <i data-lucide="target" class="w-4 h-4"></i> Metas
                 </button>
-                <button id="nav-accounts" class="nav-tab px-6 py-3 rounded-lg font-bold text-sm transition-all flex items-center gap-2 whitespace-nowrap">
+                <button id="nav-accounts"
+                    class="nav-tab px-6 py-3 rounded-lg font-bold text-sm transition-all flex items-center gap-2 whitespace-nowrap">
                     <i data-lucide="building-2" class="w-4 h-4"></i> Contas
                 </button>
-                <button id="nav-cards" class="nav-tab px-6 py-3 rounded-lg font-bold text-sm transition-all flex items-center gap-2 whitespace-nowrap">
+                <button id="nav-cards"
+                    class="nav-tab px-6 py-3 rounded-lg font-bold text-sm transition-all flex items-center gap-2 whitespace-nowrap">
                     <i data-lucide="credit-card" class="w-4 h-4"></i> Cartões
                 </button>
-                <button id="nav-debts" class="nav-tab px-6 py-3 rounded-lg font-bold text-sm transition-all flex items-center gap-2 whitespace-nowrap">
+                <button id="nav-debts"
+                    class="nav-tab px-6 py-3 rounded-lg font-bold text-sm transition-all flex items-center gap-2 whitespace-nowrap">
                     <i data-lucide="trending-down" class="w-4 h-4"></i> Dívidas
                 </button>
-                <button id="nav-investments" class="nav-tab px-6 py-3 rounded-lg font-bold text-sm transition-all flex items-center gap-2 whitespace-nowrap">
+                <button id="nav-investments"
+                    class="nav-tab px-6 py-3 rounded-lg font-bold text-sm transition-all flex items-center gap-2 whitespace-nowrap">
                     <i data-lucide="trending-up" class="w-4 h-4"></i> Investimentos
                 </button>
+                <a href="https://studio-8071776082-3c93f.web.app" target="_blank"
+                    class="px-6 py-3 rounded-lg font-bold text-sm transition-all flex items-center gap-2 whitespace-nowrap text-gray-500 hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/20">
+                    <i data-lucide="external-link" class="w-4 h-4 text-blue-500"></i> VeicAI
+                </a>
             </nav>
-            
+
             <!-- Referral Banner -->
             <div id="referral-banner"
                 class="bg-gradient-to-r from-indigo-500 to-purple-600 p-4 rounded-2xl text-white flex flex-col md:flex-row items-center justify-between gap-4 shadow-lg shadow-indigo-500/20">
@@ -1575,6 +1761,90 @@
                                     <option value="wallet">💵 Carteira / Conta Corrente</option>
                                 </select>
                             </div>
+
+                            <div id="transport-integration-fields"
+                                class="hidden space-y-4 border-l-2 border-blue-500 pl-3 pt-2">
+                                <p class="text-[10px] font-bold text-blue-600 uppercase flex items-center gap-1">
+                                    <i data-lucide="car" class="w-3 h-3"></i> Integração VeicAI
+                                </p>
+
+                                <div>
+                                    <label for="veicai-vehicle"
+                                        class="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase">Veículo</label>
+                                    <select id="veicai-vehicle"
+                                        class="w-full p-3 bg-gray-50 dark:bg-gray-700 border dark:border-gray-600 rounded-xl dark:text-white cursor-pointer">
+                                        <option value="">Selecione um veículo...</option>
+                                    </select>
+                                </div>
+
+                                <div id="veicai-type-container" class="hidden">
+                                    <label for="veicai-type"
+                                        class="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase">Tipo de
+                                        Registro</label>
+                                    <select id="veicai-type"
+                                        class="w-full p-3 bg-gray-50 dark:bg-gray-700 border dark:border-gray-600 rounded-xl dark:text-white cursor-pointer">
+                                        <option value="none">Apenas no ourWallet</option>
+                                        <option value="fuel">⛽ Abastecimento</option>
+                                        <option value="maintenance">🔧 Manutenção</option>
+                                    </select>
+                                </div>
+
+                                <div id="veicai-fuel-fields" class="hidden grid grid-cols-2 gap-4">
+                                    <div>
+                                        <label for="veicai-fuel-km"
+                                            class="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase">KM
+                                            Atual</label>
+                                        <input type="number" id="veicai-fuel-km"
+                                            class="w-full p-3 bg-gray-50 dark:bg-gray-700 border dark:border-gray-600 rounded-xl dark:text-white">
+                                    </div>
+                                    <div>
+                                        <label for="veicai-fuel-liters"
+                                            class="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase">Litros</label>
+                                        <input type="number" step="0.01" id="veicai-fuel-liters"
+                                            class="w-full p-3 bg-gray-50 dark:bg-gray-700 border dark:border-gray-600 rounded-xl dark:text-white">
+                                    </div>
+                                    <div class="col-span-full">
+                                        <label for="veicai-fuel-station"
+                                            class="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase">Posto</label>
+                                        <input type="text" id="veicai-fuel-station"
+                                            class="w-full p-3 bg-gray-50 dark:bg-gray-700 border dark:border-gray-600 rounded-xl dark:text-white">
+                                    </div>
+                                </div>
+
+                                <div id="veicai-maintenance-fields" class="hidden space-y-4">
+                                    <div class="grid grid-cols-2 gap-4">
+                                        <div>
+                                            <label for="veicai-maint-km"
+                                                class="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase">KM
+                                                Atual</label>
+                                            <input type="number" id="veicai-maint-km"
+                                                class="w-full p-3 bg-gray-50 dark:bg-gray-700 border dark:border-gray-600 rounded-xl dark:text-white">
+                                        </div>
+                                        <div>
+                                            <label for="veicai-maint-next-km"
+                                                class="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase">Próxima
+                                                KM</label>
+                                            <input type="number" id="veicai-maint-next-km"
+                                                class="w-full p-3 bg-gray-50 dark:bg-gray-700 border dark:border-gray-600 rounded-xl dark:text-white">
+                                        </div>
+                                    </div>
+                                    <div class="grid grid-cols-2 gap-4">
+                                        <div>
+                                            <label for="veicai-maint-next-date"
+                                                class="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase">Próxima
+                                                Data</label>
+                                            <input type="date" id="veicai-maint-next-date"
+                                                class="w-full p-3 bg-gray-50 dark:bg-gray-700 border dark:border-gray-600 rounded-xl dark:text-white">
+                                        </div>
+                                        <div>
+                                            <label for="veicai-maint-provider"
+                                                class="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase">Oficina/Fornecedor</label>
+                                            <input type="text" id="veicai-maint-provider"
+                                                class="w-full p-3 bg-gray-50 dark:bg-gray-700 border dark:border-gray-600 rounded-xl dark:text-white">
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
                             <div class="col-span-full hidden">
                                 <label for="receipt"
                                     class="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase">Comprovante
@@ -1620,13 +1890,18 @@
                                 <h3 class="text-lg font-bold text-gray-900 dark:text-white">Histórico</h3>
                                 <button onclick="consolidarPagamentosEmLote()" id="consolidate-btn"
                                     class="px-2 py-1 bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 rounded-lg text-xs font-semibold cursor-pointer flex items-center gap-1 hover:bg-green-200 dark:hover:bg-green-900/50 transition-colors"
-                                    aria-label="Consolidar Pagamentos" title="Marcar transações pendentes como pagas"><i data-lucide="check-square" class="w-3 h-3"></i> Consolidar Pagamentos</button>
+                                    aria-label="Consolidar Pagamentos" title="Marcar transações pendentes como pagas"><i
+                                        data-lucide="check-square" class="w-3 h-3"></i> Consolidar Pagamentos</button>
                                 <button onclick="exportarCSV()" id="export-btn"
                                     class="px-2 py-1 bg-gray-100 dark:bg-gray-700 rounded-lg text-xs dark:text-white cursor-pointer flex items-center gap-1 hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
-                                    aria-label="Exportar CSV"><i data-lucide="download" class="w-3 h-3"></i> CSV</button>
+                                    aria-label="Exportar CSV"><i data-lucide="download" class="w-3 h-3"></i>
+                                    CSV</button>
                                 <button onclick="gerarRelatorio()" id="report-btn"
                                     class="px-2 py-1 bg-gradient-to-r from-purple-600 to-indigo-600 text-white rounded-lg text-xs font-semibold cursor-pointer flex items-center gap-1 hover:shadow-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed"
-                                    aria-label="Gerar Relatório com IA" title="Relatório Financeiro com Análise de IA (Premium)"><i data-lucide="sparkles" class="w-3 h-3"></i> <span class="sm:inline">Relatório IA</span><i data-lucide="crown" class="w-2.5 h-2.5 text-amber-300"></i></button>
+                                    aria-label="Gerar Relatório com IA"
+                                    title="Relatório Financeiro com Análise de IA (Premium)"><i data-lucide="sparkles"
+                                        class="w-3 h-3"></i> <span class="sm:inline">Relatório IA</span><i
+                                        data-lucide="crown" class="w-2.5 h-2.5 text-amber-300"></i></button>
                                 <span id="csv-premium-lock"
                                     class="hidden text-[10px] bg-gray-100 dark:bg-gray-800 text-gray-400 px-2 py-0.5 rounded flex items-center gap-1"><i
                                         data-lucide="lock" class="w-2.5 h-2.5"></i> Premium</span>
@@ -1659,13 +1934,14 @@
                         </div>
                         <div class="overflow-x-auto">
                             <table class="w-full text-left">
-                                <tbody id="transaction-list" class="divide-y divide-gray-100 dark:divide-gray-700"></tbody>
+                                <tbody id="transaction-list" class="divide-y divide-gray-100 dark:divide-gray-700">
+                                </tbody>
                             </table>
                         </div>
                     </div>
                 </div>
             </div>
-            
+
             <!-- Hidden containers for setup functions -->
             <div id="cards-container" class="hidden"></div>
             <div id="accounts-container" class="hidden"></div>
@@ -1679,7 +1955,8 @@
                         <h2 class="text-2xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
                             <i data-lucide="target" class="w-6 h-6 text-indigo-500"></i> Metas do Casal
                         </h2>
-                        <p class="text-gray-500 dark:text-gray-400 text-sm mt-1">Gerencie suas metas e acompanhe o progresso</p>
+                        <p class="text-gray-500 dark:text-gray-400 text-sm mt-1">Gerencie suas metas e acompanhe o
+                            progresso</p>
                     </div>
                     <button onclick="abrirModalMeta()" id="add-goal-btn-section"
                         class="px-4 py-2 bg-indigo-600 text-white rounded-lg font-bold hover:bg-indigo-700 transition flex items-center gap-2">
@@ -1698,7 +1975,8 @@
                         <h2 class="text-2xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
                             <i data-lucide="building-2" class="w-6 h-6 text-indigo-500"></i> Minhas Contas
                         </h2>
-                        <p class="text-gray-500 dark:text-gray-400 text-sm mt-1">Gerencie contas bancárias e despesas fixas</p>
+                        <p class="text-gray-500 dark:text-gray-400 text-sm mt-1">Gerencie contas bancárias e despesas
+                            fixas</p>
                     </div>
                     <div class="flex gap-2">
                         <button onclick="abrirModalDespesaFixa()"
@@ -1714,9 +1992,10 @@
                 <div id="accounts-container-section" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                     <!-- Contas aparecerão aqui -->
                 </div>
-                
+
                 <!-- Account Transactions -->
-                <div class="mt-8 bg-white dark:bg-darkcard p-6 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700">
+                <div
+                    class="mt-8 bg-white dark:bg-darkcard p-6 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700">
                     <div class="flex flex-wrap justify-between items-center gap-4 mb-4">
                         <h3 class="text-lg font-bold text-gray-900 dark:text-white flex items-center gap-2">
                             <i data-lucide="list" class="w-5 h-5 text-indigo-500"></i> Movimentações das Contas
@@ -1751,11 +2030,18 @@
                         <table class="w-full text-left">
                             <thead>
                                 <tr class="border-b border-gray-200 dark:border-gray-700">
-                                    <th class="pb-3 text-xs font-bold text-gray-500 dark:text-gray-400 uppercase">Data</th>
-                                    <th class="pb-3 text-xs font-bold text-gray-500 dark:text-gray-400 uppercase">Descrição</th>
-                                    <th class="pb-3 text-xs font-bold text-gray-500 dark:text-gray-400 uppercase">Conta</th>
-                                    <th class="pb-3 text-xs font-bold text-gray-500 dark:text-gray-400 uppercase text-right">Valor</th>
-                                    <th class="pb-3 text-xs font-bold text-gray-500 dark:text-gray-400 uppercase text-center">Status</th>
+                                    <th class="pb-3 text-xs font-bold text-gray-500 dark:text-gray-400 uppercase">Data
+                                    </th>
+                                    <th class="pb-3 text-xs font-bold text-gray-500 dark:text-gray-400 uppercase">
+                                        Descrição</th>
+                                    <th class="pb-3 text-xs font-bold text-gray-500 dark:text-gray-400 uppercase">Conta
+                                    </th>
+                                    <th
+                                        class="pb-3 text-xs font-bold text-gray-500 dark:text-gray-400 uppercase text-right">
+                                        Valor</th>
+                                    <th
+                                        class="pb-3 text-xs font-bold text-gray-500 dark:text-gray-400 uppercase text-center">
+                                        Status</th>
                                 </tr>
                             </thead>
                             <tbody id="account-transactions-list" class="divide-y divide-gray-100 dark:divide-gray-700">
@@ -1773,7 +2059,8 @@
                         <h2 class="text-2xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
                             <i data-lucide="credit-card" class="w-6 h-6 text-indigo-500"></i> Meus Cartões
                         </h2>
-                        <p class="text-gray-500 dark:text-gray-400 text-sm mt-1">Gerencie cartões de crédito e acompanhe faturas</p>
+                        <p class="text-gray-500 dark:text-gray-400 text-sm mt-1">Gerencie cartões de crédito e acompanhe
+                            faturas</p>
                     </div>
                     <button onclick="abrirModalCartao()"
                         class="px-4 py-2 bg-indigo-600 text-white rounded-lg font-bold hover:bg-indigo-700 transition flex items-center gap-2">
@@ -1783,9 +2070,10 @@
                 <div id="cards-container-section" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                     <!-- Cartões aparecerão aqui -->
                 </div>
-                
+
                 <!-- Card Transactions -->
-                <div class="mt-8 bg-white dark:bg-darkcard p-6 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700">
+                <div
+                    class="mt-8 bg-white dark:bg-darkcard p-6 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700">
                     <div class="flex flex-wrap justify-between items-center gap-4 mb-4">
                         <h3 class="text-lg font-bold text-gray-900 dark:text-white flex items-center gap-2">
                             <i data-lucide="receipt" class="w-5 h-5 text-indigo-500"></i> Faturas dos Cartões
@@ -1813,11 +2101,17 @@
                         <table class="w-full text-left">
                             <thead>
                                 <tr class="border-b border-gray-200 dark:border-gray-700">
-                                    <th class="pb-3 text-xs font-bold text-gray-500 dark:text-gray-400 uppercase">Data</th>
-                                    <th class="pb-3 text-xs font-bold text-gray-500 dark:text-gray-400 uppercase">Descrição</th>
-                                    <th class="pb-3 text-xs font-bold text-gray-500 dark:text-gray-400 uppercase">Cartão</th>
-                                    <th class="pb-3 text-xs font-bold text-gray-500 dark:text-gray-400 uppercase">Parcela</th>
-                                    <th class="pb-3 text-xs font-bold text-gray-500 dark:text-gray-400 uppercase text-right">Valor</th>
+                                    <th class="pb-3 text-xs font-bold text-gray-500 dark:text-gray-400 uppercase">Data
+                                    </th>
+                                    <th class="pb-3 text-xs font-bold text-gray-500 dark:text-gray-400 uppercase">
+                                        Descrição</th>
+                                    <th class="pb-3 text-xs font-bold text-gray-500 dark:text-gray-400 uppercase">Cartão
+                                    </th>
+                                    <th class="pb-3 text-xs font-bold text-gray-500 dark:text-gray-400 uppercase">
+                                        Parcela</th>
+                                    <th
+                                        class="pb-3 text-xs font-bold text-gray-500 dark:text-gray-400 uppercase text-right">
+                                        Valor</th>
                                 </tr>
                             </thead>
                             <tbody id="card-transactions-list" class="divide-y divide-gray-100 dark:divide-gray-700">
@@ -1835,7 +2129,8 @@
                         <h2 class="text-2xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
                             <i data-lucide="trending-down" class="w-6 h-6 text-red-500"></i> Minhas Dívidas
                         </h2>
-                        <p class="text-gray-500 dark:text-gray-400 text-sm mt-1">Gerencie dívidas e acompanhe pagamentos</p>
+                        <p class="text-gray-500 dark:text-gray-400 text-sm mt-1">Gerencie dívidas e acompanhe pagamentos
+                        </p>
                     </div>
                     <button onclick="abrirModalDivida()" id="add-debt-btn-section"
                         class="px-4 py-2 bg-indigo-600 text-white rounded-lg font-bold hover:bg-indigo-700 transition flex items-center gap-2">
@@ -1845,9 +2140,10 @@
                 <div id="debts-container-section" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                     <!-- Dívidas aparecerão aqui -->
                 </div>
-                
+
                 <!-- Debt Transactions -->
-                <div class="mt-8 bg-white dark:bg-darkcard p-6 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700">
+                <div
+                    class="mt-8 bg-white dark:bg-darkcard p-6 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700">
                     <h3 class="text-lg font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
                         <i data-lucide="calendar-check" class="w-5 h-5 text-indigo-500"></i> Pagamentos de Dívidas
                     </h3>
@@ -1855,11 +2151,18 @@
                         <table class="w-full text-left">
                             <thead>
                                 <tr class="border-b border-gray-200 dark:border-gray-700">
-                                    <th class="pb-3 text-xs font-bold text-gray-500 dark:text-gray-400 uppercase">Data</th>
-                                    <th class="pb-3 text-xs font-bold text-gray-500 dark:text-gray-400 uppercase">Dívida</th>
-                                    <th class="pb-3 text-xs font-bold text-gray-500 dark:text-gray-400 uppercase">Parcela</th>
-                                    <th class="pb-3 text-xs font-bold text-gray-500 dark:text-gray-400 uppercase text-right">Valor</th>
-                                    <th class="pb-3 text-xs font-bold text-gray-500 dark:text-gray-400 uppercase text-center">Status</th>
+                                    <th class="pb-3 text-xs font-bold text-gray-500 dark:text-gray-400 uppercase">Data
+                                    </th>
+                                    <th class="pb-3 text-xs font-bold text-gray-500 dark:text-gray-400 uppercase">Dívida
+                                    </th>
+                                    <th class="pb-3 text-xs font-bold text-gray-500 dark:text-gray-400 uppercase">
+                                        Parcela</th>
+                                    <th
+                                        class="pb-3 text-xs font-bold text-gray-500 dark:text-gray-400 uppercase text-right">
+                                        Valor</th>
+                                    <th
+                                        class="pb-3 text-xs font-bold text-gray-500 dark:text-gray-400 uppercase text-center">
+                                        Status</th>
                                 </tr>
                             </thead>
                             <tbody id="debt-transactions-list" class="divide-y divide-gray-100 dark:divide-gray-700">
@@ -1877,7 +2180,8 @@
                         <h2 class="text-2xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
                             <i data-lucide="trending-up" class="w-6 h-6 text-emerald-500"></i> Meus Investimentos
                         </h2>
-                        <p class="text-gray-500 dark:text-gray-400 text-sm mt-1">Gerencie investimentos e acompanhe rentabilidade</p>
+                        <p class="text-gray-500 dark:text-gray-400 text-sm mt-1">Gerencie investimentos e acompanhe
+                            rentabilidade</p>
                     </div>
                     <button onclick="abrirModalInvestimento()" id="add-investment-btn-section"
                         class="px-4 py-2 bg-indigo-600 text-white rounded-lg font-bold hover:bg-indigo-700 transition flex items-center gap-2">
@@ -1928,7 +2232,7 @@
                         class="w-full p-3 bg-gray-50 dark:bg-gray-700 border dark:border-gray-600 rounded-xl dark:text-white"
                         required>
                 </div>
-                
+
                 <div>
                     <label for="inv-ticker" class="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase">
                         Ticker/Código (Opcional)
@@ -1936,7 +2240,7 @@
                     <input type="text" id="inv-ticker" placeholder="Ex: VALE3, BTC, IPCA35"
                         class="w-full p-3 bg-gray-50 dark:bg-gray-700 border dark:border-gray-600 rounded-xl dark:text-white uppercase">
                 </div>
-                
+
                 <div>
                     <label for="inv-type" class="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase">
                         Tipo de Investimento
@@ -1966,13 +2270,13 @@
                         <option value="indigo">Índigo</option>
                     </select>
                 </div>
-                
+
                 <div class="bg-blue-50 dark:bg-blue-900/20 p-3 rounded-lg">
                     <p class="text-xs text-blue-700 dark:text-blue-400">
                         💡 Após criar o ativo, você poderá adicionar compras, vendas e dividendos.
                     </p>
                 </div>
-                
+
                 <div class="flex gap-3 mt-6">
                     <button type="button" onclick="fecharModalInvestimento()"
                         class="flex-1 py-3 bg-gray-200 dark:bg-gray-600 rounded-xl hover:bg-gray-300 dark:hover:bg-gray-700 transition">
@@ -1996,7 +2300,7 @@
             </h3>
             <form id="transacao-form" class="space-y-4">
                 <input type="hidden" id="trans-investment-id">
-                
+
                 <div>
                     <label class="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase mb-2 block">
                         Tipo de Operação
@@ -2029,7 +2333,7 @@
                     <label for="trans-date" class="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase">
                         Data da Operação
                     </label>
-                    <input type="date" id="trans-date" 
+                    <input type="date" id="trans-date"
                         class="w-full p-3 bg-gray-50 dark:bg-gray-700 border dark:border-gray-600 rounded-xl dark:text-white"
                         required>
                 </div>
@@ -2037,13 +2341,14 @@
                 <!-- Campos para Compra/Venda -->
                 <div id="trans-compra-venda-fields" class="space-y-4">
                     <div>
-                        <label for="trans-quantity" class="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase">
+                        <label for="trans-quantity"
+                            class="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase">
                             Quantidade
                         </label>
                         <input type="number" id="trans-quantity" placeholder="0" step="0.0001"
                             class="w-full p-3 bg-gray-50 dark:bg-gray-700 border dark:border-gray-600 rounded-xl dark:text-white">
                     </div>
-                    
+
                     <div>
                         <label for="trans-price" class="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase">
                             Preço Unitário
@@ -2061,10 +2366,12 @@
                 <!-- Campos para Dividendo -->
                 <div id="trans-dividendo-fields" class="hidden space-y-4">
                     <div>
-                        <label for="trans-dividendo-amount" class="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase">
+                        <label for="trans-dividendo-amount"
+                            class="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase">
                             Valor do Dividendo
                         </label>
-                        <input type="text" id="trans-dividendo-amount" placeholder="R$ 0,00" onkeyup="formatarMoedaInput(this)"
+                        <input type="text" id="trans-dividendo-amount" placeholder="R$ 0,00"
+                            onkeyup="formatarMoedaInput(this)"
                             class="w-full p-3 bg-gray-50 dark:bg-gray-700 border dark:border-gray-600 rounded-xl dark:text-white">
                     </div>
                 </div>
@@ -2076,7 +2383,7 @@
                     <textarea id="trans-notes" placeholder="Ex: Dividendo de janeiro, compra via XP..."
                         class="w-full p-3 bg-gray-50 dark:bg-gray-700 border dark:border-gray-600 rounded-xl dark:text-white h-20 resize-none"></textarea>
                 </div>
-                
+
                 <div class="flex gap-3 mt-6">
                     <button type="button" onclick="fecharModalTransacao()"
                         class="flex-1 py-3 bg-gray-200 dark:bg-gray-600 rounded-xl hover:bg-gray-300 dark:hover:bg-gray-700 transition">
@@ -2108,7 +2415,7 @@
                         class="w-full p-3 bg-gray-50 dark:bg-gray-700 border dark:border-gray-600 rounded-xl dark:text-white"
                         required>
                 </div>
-                
+
                 <div>
                     <label for="edit-inv-ticker" class="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase">
                         Ticker/Código
@@ -2116,7 +2423,7 @@
                     <input type="text" id="edit-inv-ticker" placeholder="Ex: VALE3, BTC, IPCA35"
                         class="w-full p-3 bg-gray-50 dark:bg-gray-700 border dark:border-gray-600 rounded-xl dark:text-white uppercase">
                 </div>
-                
+
                 <div>
                     <label for="edit-inv-type" class="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase">
                         Tipo de Investimento
@@ -2131,8 +2438,8 @@
                         <option value="outros">Outros</option>
                     </select>
                 </div>
-                
-                
+
+
                 <div>
                     <label for="edit-inv-color" class="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase">
                         Cor do Card
@@ -2147,7 +2454,7 @@
                         <option value="indigo">Índigo</option>
                     </select>
                 </div>
-                
+
                 <div class="flex gap-3 mt-6">
                     <button type="button" onclick="fecharEditModalInvestimento()"
                         class="flex-1 py-3 bg-gray-200 dark:bg-gray-600 rounded-xl hover:bg-gray-300 transition">
