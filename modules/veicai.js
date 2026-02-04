@@ -187,6 +187,7 @@ export async function sincronizarComVeicAi(transacao) {
                 tipo: transacao.desc,
                 custo: Math.abs(transacao.amount),
                 fornecedor: document.getElementById('veicai-maint-provider').value,
+                observacoes: document.getElementById('veicai-maint-notes').value || null,
                 kmProxima: Number(document.getElementById('veicai-maint-next-km').value) || null,
                 dataProxima: document.getElementById('veicai-maint-next-date').value || null
             });
