@@ -1122,6 +1122,8 @@ window.prepararEdicao = (id) => {
     document.getElementById('edit-amount').value = Math.abs(t.amount).toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
     document.getElementById('edit-date').value = t.date;
     document.getElementById('edit-category').value = t.category || 'other';
+    const editPending = document.getElementById('edit-pending');
+    if (editPending) editPending.checked = !t.paid;
 
     const editSource = document.getElementById('edit-source');
     popularSelectSources(editSource);

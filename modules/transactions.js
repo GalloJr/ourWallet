@@ -51,12 +51,20 @@ export async function salvarTransacao(activeWalletId, currentUser, allCards, all
     const receiptInput = document.getElementById('receipt');
     let receiptUrl = null;
 
+    const hoje = new Date();
+    hoje.setHours(0, 0, 0, 0);
+
+    const cardPagamento = allCards.find(c => c.id === paymentSource);
+
     try {
         for (let i = 0; i < numIterations; i++) {
             const currentParcelDate = new Date(dateVal + 'T12:00:00');
             currentParcelDate.setMonth(currentParcelDate.getMonth() + i);
 
             const dateStr = currentParcelDate.toISOString().split('T')[0];
+            const dataParcela = new Date(dateStr + 'T00:00:00');
+            const isDataPassadaOuHojeParcela = dataParcela <= hoje;
+            const isPago = cardPagamento ? true : isDataPassadaOuHojeParcela;
             let parcelDesc = desc;
 
             if (isInstallment) {
@@ -77,13 +85,11 @@ export async function salvarTransacao(activeWalletId, currentUser, allCards, all
                 receiptUrl: receiptUrl,
                 createdAt: new Date(),
                 isRecurring: repeatMonthly,
-                paid: false
+                paid: isPago
             });
         }
 
         // Verifica se a transação é de data futura ou passada
-        const hoje = new Date();
-        hoje.setHours(0, 0, 0, 0);
         const dataTransacao = new Date(dateVal + 'T00:00:00');
         const isDataPassadaOuHoje = dataTransacao <= hoje;
 
@@ -149,6 +155,7 @@ export async function editarTransacao(id, allTransactions, allCards, allAccounts
     const dateVal = document.getElementById('edit-date').value;
     const newCategory = document.getElementById('edit-category').value;
     const newSource = document.getElementById('edit-source').value;
+    const isPending = document.getElementById('edit-pending')?.checked ?? true;
 
     const original = allTransactions.find(t => t.id === id);
     if (!original) return false;
@@ -219,7 +226,8 @@ export async function editarTransacao(id, allTransactions, allCards, allAccounts
             amount: finalAmount,
             date: dateVal,
             category: newCategory,
-            source: newSource
+            source: newSource,
+            paid: !isPending
         });
 
         showToast("Editado e saldos atualizados!");
