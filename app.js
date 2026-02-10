@@ -102,6 +102,8 @@ const installmentsSelect = document.getElementById('installments');
 const searchInput = document.getElementById('search-input');
 const historySourceFilter = document.getElementById('history-source-filter');
 const paymentStatusFilter = document.getElementById('payment-status-filter');
+const monthPrevBtn = document.getElementById('month-prev');
+const monthNextBtn = document.getElementById('month-next');
 const paymentForm = document.getElementById('payment-form');
 
 // Encapsulated State
@@ -244,6 +246,20 @@ if (themeToggle) {
 
 // Month Selector
 popularSeletorMeses(monthFilter, aplicarFiltro);
+if (monthFilter) {
+    const changeMonth = (delta) => {
+        const currentIndex = monthFilter.selectedIndex;
+        if (currentIndex < 0) return;
+        const nextIndex = Math.min(Math.max(currentIndex + delta, 0), monthFilter.options.length - 1);
+        if (nextIndex !== currentIndex) {
+            monthFilter.selectedIndex = nextIndex;
+            monthFilter.dispatchEvent(new Event('change'));
+        }
+    };
+
+    monthPrevBtn?.addEventListener('click', () => changeMonth(-1));
+    monthNextBtn?.addEventListener('click', () => changeMonth(1));
+}
 
 // History Source Filter
 if (historySourceFilter) {

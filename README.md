@@ -195,6 +195,24 @@ goals/
 - **Firebase Cloud Functions**: Serverless Node.js 20
 - **Firebase Storage**: Armazenamento de comprovantes
 
+---
+
+## 🤖 Relatório IA automático (mensal)
+
+O relatório mensal é gerado automaticamente no último dia útil do mês às 23:59 (Horário de Brasília) e enviado por e-mail para cada usuário cadastrado.
+
+### Variáveis de ambiente necessárias (Cloud Functions)
+
+- `GEMINI_API_KEY` (opcional, para gerar a análise com IA)
+- `SMTP_HOST`
+- `SMTP_PORT` (ex.: `587`)
+- `SMTP_USER`
+- `SMTP_PASS`
+- `SMTP_SECURE` (`true` ou `false`)
+- `EMAIL_FROM` (opcional, usa `SMTP_USER` por padrão)
+
+Se alguma variável SMTP estiver ausente, o envio será abortado com erro.
+
 ### DevOps & Ferramentas
 - **Firebase CLI**: Deploy e gerenciamento
 - **Git**: Controle de versão

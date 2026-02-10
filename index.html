@@ -1926,9 +1926,17 @@
                                         class="pl-9 pr-3 py-1 bg-gray-50 dark:bg-gray-700 border dark:border-gray-600 rounded-lg text-sm dark:text-white focus:ring-2 focus:ring-indigo-500 outline-none w-32 sm:w-40 transition-all focus:w-48 sm:focus:w-60">
                                 </div>
                                 <div class="flex gap-2">
-                                    <select id="month-filter"
-                                        class="px-2 py-1 bg-gray-50 dark:bg-gray-700 border dark:border-gray-600 rounded-lg text-xs dark:text-white cursor-pointer"
-                                        aria-label="Filtrar por Mês"></select>
+                                    <div class="flex items-center gap-1">
+                                        <button id="month-prev" type="button"
+                                            class="px-2 py-1 bg-gray-50 dark:bg-gray-700 border dark:border-gray-600 rounded-lg text-xs dark:text-white hover:bg-gray-100 dark:hover:bg-gray-600 transition"
+                                            aria-label="Mês anterior">&lt;</button>
+                                        <select id="month-filter"
+                                            class="px-2 py-1 bg-gray-50 dark:bg-gray-700 border dark:border-gray-600 rounded-lg text-xs dark:text-white cursor-pointer"
+                                            aria-label="Filtrar por Mês"></select>
+                                        <button id="month-next" type="button"
+                                            class="px-2 py-1 bg-gray-50 dark:bg-gray-700 border dark:border-gray-600 rounded-lg text-xs dark:text-white hover:bg-gray-100 dark:hover:bg-gray-600 transition"
+                                            aria-label="Próximo mês">&gt;</button>
+                                    </div>
                                     <select id="payment-status-filter"
                                         class="px-2 py-1 bg-gray-50 dark:bg-gray-700 border dark:border-gray-600 rounded-lg text-xs dark:text-white cursor-pointer"
                                         aria-label="Filtrar por Status">
