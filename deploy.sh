@@ -69,7 +69,7 @@ print_success "Backup salvo em $BACKUP_DIR"
 # 5. Validar regras do Firestore
 echo ""
 echo "✅ Validando regras do Firestore..."
-if firebase firestore:rules:validate firestore.rules; then
+if firebase deploy --only firestore:rules --dry-run; then
     print_success "Regras do Firestore válidas"
 else
     print_error "Regras do Firestore inválidas"

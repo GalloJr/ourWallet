@@ -70,7 +70,7 @@ echo.
 
 REM 6. Validar regras do Firestore
 echo ✅ Validando regras do Firestore...
-firebase firestore:rules:validate firestore.rules >nul 2>&1
+firebase deploy --only firestore:rules --dry-run >nul 2>&1
 if %ERRORLEVEL% neq 0 (
     echo ❌ Regras do Firestore inválidas
     exit /b 1
