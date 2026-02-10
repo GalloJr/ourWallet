@@ -329,7 +329,8 @@ function renderAccountTransactions(data) {
         
         // Status filter
         if (accountFilters.status) {
-            const isIncome = ['salary', 'freelance'].includes(t.category);
+            const valor = parseFloat(t.amount || 0);
+            const isIncome = valor >= 0;
             const isPaid = t.paid === true || isIncome;
             const isPending = !isPaid;
             
@@ -361,7 +362,7 @@ function renderAccountTransactions(data) {
             const account = accounts.find(acc => acc.id === (t.source || t.card));
             const accountName = account ? account.name : 'Desconhecida';
             const valor = parseFloat(t.amount || 0);
-            const isIncome = ['salary', 'freelance'].includes(t.category);
+            const isIncome = valor >= 0;
             const isPaid = t.paid === true || isIncome;
             
             return `

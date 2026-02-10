@@ -1,4 +1,4 @@
-import { db, storage, ref, uploadBytes, getDownloadURL, collection, addDoc, updateDoc, deleteDoc, doc, onSnapshot, query, where } from '../firebase.js';
+import { db, storage, ref, uploadBytes, getDownloadURL, collection, addDoc, updateDoc, deleteDoc, doc, onSnapshot, query, where, runTransaction } from '../firebase.js';
 import { categoryConfig } from './constants.js';
 import { limparValorMoeda, formatarData } from './utils.js';
 import { showToast } from './dialogs.js';
@@ -526,6 +526,88 @@ export async function consolidarPagamentosEmLote(allTransactions, allCards, allA
     } catch (e) {
         console.error(e);
         alert("Erro ao consolidar pagamentos");
+        return false;
+    }
+}
+
+export async function transferirEntreContas(activeWalletId, currentUser, allAccounts, fecharModal) {
+    const fromId = document.getElementById('transfer-from').value;
+    const toId = document.getElementById('transfer-to').value;
+    const amountVal = limparValorMoeda(document.getElementById('transfer-amount').value);
+    const dateVal = document.getElementById('transfer-date').value;
+    const descVal = document.getElementById('transfer-desc').value.trim();
+
+    if (!fromId || !toId) return alert('Selecione as contas de origem e destino.');
+    if (fromId === toId) return alert('A conta de origem e destino devem ser diferentes.');
+    if (amountVal <= 0) return alert('Valor inválido');
+    if (!dateVal) return alert('Data inválida');
+
+    const fromAcc = allAccounts.find(a => a.id === fromId);
+    const toAcc = allAccounts.find(a => a.id === toId);
+    if (!fromAcc || !toAcc) return alert('Conta não encontrada');
+
+    const transferId = `transfer_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
+    const baseDesc = descVal || 'Transferência entre contas';
+    const descOut = descVal ? `${baseDesc} (para ${toAcc.name})` : `Transferência para ${toAcc.name}`;
+    const descIn = descVal ? `${baseDesc} (de ${fromAcc.name})` : `Transferência de ${fromAcc.name}`;
+
+    try {
+        await runTransaction(db, async (transaction) => {
+            const fromRef = doc(db, 'accounts', fromId);
+            const toRef = doc(db, 'accounts', toId);
+
+            const fromSnap = await transaction.get(fromRef);
+            const toSnap = await transaction.get(toRef);
+
+            if (!fromSnap.exists() || !toSnap.exists()) {
+                throw new Error('Conta não encontrada');
+            }
+
+            const fromBalance = (fromSnap.data().balance || 0) - Math.abs(amountVal);
+            const toBalance = (toSnap.data().balance || 0) + Math.abs(amountVal);
+
+            transaction.update(fromRef, { balance: fromBalance });
+            transaction.update(toRef, { balance: toBalance });
+
+            const baseData = {
+                uid: activeWalletId,
+                owner: currentUser.uid,
+                ownerName: currentUser.displayName || 'Usuário',
+                category: 'transfer',
+                createdAt: new Date(),
+                isTransfer: true,
+                transferId: transferId,
+                paid: true,
+                date: dateVal
+            };
+
+            const outRef = doc(collection(db, 'transactions'));
+            const inRef = doc(collection(db, 'transactions'));
+
+            transaction.set(outRef, {
+                ...baseData,
+                desc: descOut,
+                amount: -Math.abs(amountVal),
+                source: fromId,
+                targetId: toId
+            });
+
+            transaction.set(inRef, {
+                ...baseData,
+                desc: descIn,
+                amount: Math.abs(amountVal),
+                source: toId,
+                targetId: fromId
+            });
+        });
+
+        showToast('Transferência registrada!');
+        if (fecharModal) fecharModal();
+        document.getElementById('transfer-form')?.reset();
+        return true;
+    } catch (e) {
+        console.error(e);
+        alert('Erro ao transferir');
         return false;
     }
 }

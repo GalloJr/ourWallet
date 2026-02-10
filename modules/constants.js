@@ -10,7 +10,8 @@ export const categoryConfig = {
     invest: { label: 'Investimento', icon: 'trending-up', color: 'text-yellow-600', bg: 'bg-yellow-100', type: 'expense' },
     shopping: { label: 'Compras', icon: 'shopping-bag', color: 'text-pink-600', bg: 'bg-pink-100', type: 'expense' },
     tax: { label: 'Taxas', icon: 'tax', color: 'text-gray-600', bg: 'bg-gray-100', type: 'expense' },
-    other: { label: 'Outros', icon: 'package', color: 'text-gray-600', bg: 'bg-gray-100', type: 'expense' }
+    other: { label: 'Outros', icon: 'package', color: 'text-gray-600', bg: 'bg-gray-100', type: 'expense' },
+    transfer: { label: 'Transferência', icon: 'arrow-right-left', color: 'text-indigo-600', bg: 'bg-indigo-100', type: 'expense' }
 };
 
 export const colorStyles = {

@@ -1,7 +1,7 @@
 import { db, doc, setDoc } from "./firebase.js";
 import { setupAuth, configurarWallet } from "./modules/auth.js";
 import { setupCards, salvarCartao, editarCartao, deletarCartao } from "./modules/cards.js";
-import { setupTransactions, salvarTransacao, editarTransacao, deletarTransacao, exportarCSV, consolidarPagamento, consolidarPagamentosEmLote } from "./modules/transactions.js";
+import { setupTransactions, salvarTransacao, editarTransacao, deletarTransacao, exportarCSV, consolidarPagamento, consolidarPagamentosEmLote, transferirEntreContas } from "./modules/transactions.js";
 import { setupGoals, salvarMeta, deletarMeta } from "./modules/goals.js";
 import { setupAccounts, salvarConta, editarConta, deletarConta } from "./modules/accounts.js";
 import { setupDebts, salvarDivida, editarDivida, deletarDivida } from "./modules/debts.js";
@@ -67,6 +67,17 @@ window.fecharModalPagamento = () => {
     document.getElementById('payment-form').reset();
 };
 
+window.abrirModalTransferencia = () => {
+    const modal = document.getElementById('transfer-modal');
+    modal.classList.remove('hidden');
+    popularSelectTransferContas();
+    document.getElementById('transfer-date').valueAsDate = new Date();
+};
+window.fecharModalTransferencia = () => {
+    document.getElementById('transfer-modal').classList.add('hidden');
+    document.getElementById('transfer-form').reset();
+};
+
 // Early window function assignments to prevent "not a function" errors
 window.deletarCartao = deletarCartao;
 window.deletarMeta = deletarMeta;
@@ -94,6 +105,7 @@ const accountsContainer = document.getElementById('accounts-container');
 const goalsContainer = document.getElementById('goals-container');
 const accountForm = document.getElementById('account-form');
 const editAccountForm = document.getElementById('edit-account-form');
+const transferForm = document.getElementById('transfer-form');
 const monthFilter = document.getElementById('month-filter');
 const themeToggle = document.getElementById('theme-toggle');
 const sourceSelect = document.getElementById('transaction-source');
@@ -380,6 +392,7 @@ setupAuth(loginBtn, logoutBtn, appScreen, loginScreen, userNameDisplay, async (u
             appState.accounts = accounts;
             popularSelectSources();
             popularHistorySourceFilter();
+            popularSelectTransferContas();
         });
 
         appState._u.d = setupDebts(appState.walletId, document.getElementById('debts-container'), (debts) => {
@@ -774,6 +787,13 @@ document.getElementById('edit-debt-form').addEventListener('submit', async (e) =
     e.preventDefault();
     await editarDivida(e.target, window.fecharModalEdicaoDivida);
 });
+
+if (transferForm) {
+    transferForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        await transferirEntreContas(appState.walletId, appState.user, appState.accounts, window.fecharModalTransferencia);
+    });
+}
 
 // Fixed Expense Form
 document.getElementById('fixed-expense-form').addEventListener('submit', async (e) => {
@@ -1184,6 +1204,38 @@ function popularSelectSources(target = sourceSelect) {
 
     target.innerHTML = options;
     if (currentVal) target.value = currentVal;
+}
+
+function popularSelectTransferContas() {
+    const fromSelect = document.getElementById('transfer-from');
+    const toSelect = document.getElementById('transfer-to');
+    if (!fromSelect || !toSelect) return;
+
+    if (appState.accounts.length === 0) {
+        fromSelect.innerHTML = '<option value="">Nenhuma conta disponível</option>';
+        toSelect.innerHTML = '<option value="">Nenhuma conta disponível</option>';
+        return;
+    }
+
+    const currentFrom = fromSelect.value;
+    const currentTo = toSelect.value;
+    const options = appState.accounts
+        .map(acc => `<option value="${acc.id}">🏦 ${acc.name} (${acc.balance.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })})</option>`)
+        .join('');
+
+    fromSelect.innerHTML = options;
+    toSelect.innerHTML = options;
+
+    if (currentFrom) fromSelect.value = currentFrom;
+    if (currentTo) toSelect.value = currentTo;
+
+    if (!fromSelect.value && appState.accounts[0]) fromSelect.value = appState.accounts[0].id;
+    if (!toSelect.value && appState.accounts[1]) toSelect.value = appState.accounts[1].id;
+
+    if (fromSelect.value === toSelect.value && appState.accounts.length > 1) {
+        const alternativa = appState.accounts.find(acc => acc.id !== fromSelect.value);
+        if (alternativa) toSelect.value = alternativa.id;
+    }
 }
 
 function popularHistorySourceFilter() {

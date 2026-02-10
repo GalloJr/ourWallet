@@ -47,12 +47,13 @@ export async function gerarRelatorioMensalIA(transactions, cards, accounts, goal
  * Prepara dados financeiros para análise
  */
 function prepararDadosFinanceiros(transacoes, cards, accounts, goals) {
+    const transacoesSemTransfer = transacoes.filter(t => t.category !== 'transfer' && !t.isTransfer);
     // Calcula totais
-    const totalReceitas = transacoes
+    const totalReceitas = transacoesSemTransfer
         .filter(t => t.amount >= 0)
         .reduce((sum, t) => sum + t.amount, 0);
     
-    const totalDespesas = transacoes
+    const totalDespesas = transacoesSemTransfer
         .filter(t => t.amount < 0)
         .reduce((sum, t) => sum + Math.abs(t.amount), 0);
     
@@ -60,7 +61,7 @@ function prepararDadosFinanceiros(transacoes, cards, accounts, goals) {
     
     // Agrupa por categoria (APENAS DESPESAS)
     const porCategoria = {};
-    transacoes
+    transacoesSemTransfer
         .filter(t => t.amount < 0) // Apenas despesas
         .forEach(t => {
             const cat = t.category;
@@ -83,7 +84,7 @@ function prepararDadosFinanceiros(transacoes, cards, accounts, goals) {
     
     // Gastos por fonte
     const porFonte = {};
-    transacoes.forEach(t => {
+    transacoesSemTransfer.forEach(t => {
         let fonte = 'Carteira';
         if (t.source && t.source !== 'wallet') {
             const card = cards?.find(c => c.id === t.source);
@@ -95,7 +96,7 @@ function prepararDadosFinanceiros(transacoes, cards, accounts, goals) {
     
     // Gastos por responsável (APENAS DESPESAS)
     const porPessoa = {};
-    transacoes
+    transacoesSemTransfer
         .filter(t => t.amount < 0) // Apenas despesas
         .forEach(t => {
             const pessoa = t.ownerName || 'Não identificado';
@@ -103,12 +104,12 @@ function prepararDadosFinanceiros(transacoes, cards, accounts, goals) {
         });
     
     // Maiores transações
-    const maioresDespesas = transacoes
+    const maioresDespesas = transacoesSemTransfer
         .filter(t => t.amount < 0)
         .sort((a, b) => a.amount - b.amount)
         .slice(0, 5);
     
-    const maioresReceitas = transacoes
+    const maioresReceitas = transacoesSemTransfer
         .filter(t => t.amount >= 0)
         .sort((a, b) => b.amount - a.amount)
         .slice(0, 5);
@@ -125,9 +126,9 @@ function prepararDadosFinanceiros(transacoes, cards, accounts, goals) {
         porPessoa,
         maioresDespesas,
         maioresReceitas,
-        totalTransacoes: transacoes.length,
+        totalTransacoes: transacoesSemTransfer.length,
         metasAtivas,
-        transacoes
+        transacoes: transacoesSemTransfer
     };
 }
 
