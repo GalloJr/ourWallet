@@ -1,7 +1,7 @@
-const {onCall, HttpsError} = require('firebase-functions/v2/https');
-const {onDocumentCreated} = require('firebase-functions/v2/firestore');
-const {onSchedule} = require('firebase-functions/v2/scheduler');
-const {defineSecret} = require('firebase-functions/params');
+const { onCall, HttpsError } = require('firebase-functions/v2/https');
+const { onDocumentCreated } = require('firebase-functions/v2/firestore');
+const { onSchedule } = require('firebase-functions/v2/scheduler');
+const { defineSecret } = require('firebase-functions/params');
 const admin = require('firebase-admin');
 const https = require('https');
 const nodemailer = require('nodemailer');
@@ -79,17 +79,17 @@ exports.updateAccountBalance = onCall(async (request) => {
 
   try {
     const accountRef = db.collection('accounts').doc(accountId);
-    
+
     const result = await db.runTransaction(async (transaction) => {
       const accountDoc = await transaction.get(accountRef);
-      
+
       if (!accountDoc.exists) {
         throw new Error('Conta não encontrada');
       }
 
       const currentBalance = accountDoc.data().balance || 0;
-      const newBalance = operation === 'add' 
-        ? currentBalance + amount 
+      const newBalance = operation === 'add'
+        ? currentBalance + amount
         : currentBalance - amount;
 
       // Prevenir saldo negativo excessivo (permitir até -10000 para overdraft)
@@ -97,7 +97,7 @@ exports.updateAccountBalance = onCall(async (request) => {
         throw new Error('Saldo insuficiente');
       }
 
-      transaction.update(accountRef, { 
+      transaction.update(accountRef, {
         balance: newBalance,
         lastUpdated: admin.firestore.FieldValue.serverTimestamp()
       });
@@ -117,7 +117,7 @@ exports.updateAccountBalance = onCall(async (request) => {
 exports.auditFinancialChanges = onDocumentCreated('transactions/{transactionId}', async (event) => {
   const transaction = event.data.data();
   const transactionId = event.params.transactionId;
-  
+
   // Criar log de auditoria
   await db.collection('audit_logs').add({
     action: 'transaction_created',
@@ -139,7 +139,7 @@ exports.auditFinancialChanges = onDocumentCreated('transactions/{transactionId}'
 exports.validateTransaction = onDocumentCreated('transactions/{transactionId}', async (event) => {
   const transaction = event.data.data();
   const transactionId = event.params.transactionId;
-  
+
   // Validações adicionais
   if (Math.abs(transaction.amount) > 1000000) {
     // Valor suspeito - marcar para revisão
@@ -147,7 +147,7 @@ exports.validateTransaction = onDocumentCreated('transactions/{transactionId}', 
       flaggedForReview: true,
       flagReason: 'Valor excepcionalmente alto'
     });
-    
+
     // Notificar admin (aqui você pode adicionar envio de email)
     console.warn(`Transação ${transactionId} marcada para revisão`);
   }
@@ -180,7 +180,7 @@ exports.batchConsolidatePayments = onCall(async (request) => {
       const transDoc = await transRef.get();
 
       if (transDoc.exists && transDoc.data().uid === walletId) {
-        batch.update(transRef, { 
+        batch.update(transRef, {
           paid: true,
           paidAt: admin.firestore.FieldValue.serverTimestamp(),
           paidBy: request.auth.uid
@@ -308,7 +308,7 @@ Dados:
 Gere 1 parágrafo com insights e 3 bullets com recomendações práticas. Use tom amigável e direto.`;
 
   try {
-  const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${geminiKey}`, {
+    const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${geminiKey}`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -445,9 +445,9 @@ exports.getStockQuote = onCall(async (request) => {
   try {
     // Buscar via Yahoo Finance
     const url = `https://query1.finance.yahoo.com/v8/finance/chart/${normalizedTicker}?interval=1d&range=1d`;
-    
+
     const response = await fetch(url);
-    
+
     if (!response.ok) {
       throw new HttpsError('not-found', `Erro ao buscar cotação: ${response.status}`);
     }
@@ -459,8 +459,8 @@ exports.getStockQuote = onCall(async (request) => {
       throw new HttpsError('not-found', 'Ação não encontrada');
     }
 
-    return { 
-      ticker: normalizedTicker, 
+    return {
+      ticker: normalizedTicker,
       price: quote,
       timestamp: new Date().toISOString()
     };
@@ -468,5 +468,137 @@ exports.getStockQuote = onCall(async (request) => {
   } catch (error) {
     console.error('Erro ao buscar cotação:', error);
     throw new HttpsError('internal', error.message || 'Erro ao buscar cotação');
+  }
+});
+
+/**
+ * Criar transação a partir de integração externa (VeicAi Telegram Bot)
+ */
+exports.createTransactionFromExternal = onCall(async (request) => {
+  // Permitir chamadas sem autenticação se vier com um token válido
+  const { token, transaction } = request.data;
+
+  // Token simples para validação (em produção, use algo mais seguro)
+  const INTEGRATION_TOKEN = process.env.VEICAI_INTEGRATION_TOKEN || 'veicai_integration_2024';
+
+  if (token !== INTEGRATION_TOKEN) {
+    throw new HttpsError('permission-denied', 'Token de integração inválido');
+  }
+
+  if (!transaction || !transaction.uid || !transaction.owner) {
+    throw new HttpsError('invalid-argument', 'Dados da transação incompletos');
+  }
+
+  try {
+    // Criar a transação no OurWallet
+    const newTransaction = {
+      uid: transaction.uid,
+      owner: transaction.owner,
+      amount: transaction.amount,
+      category: transaction.category || 'Transporte',
+      date: transaction.date || new Date().toISOString().split('T')[0],
+      desc: transaction.desc || 'Abastecimento via Telegram',
+      account: transaction.account || 'Conta Padrão',
+      source: transaction.source || 'VeicAi Telegram Bot',
+      paid: true,
+      paidAt: admin.firestore.FieldValue.serverTimestamp(),
+      createdAt: admin.firestore.FieldValue.serverTimestamp(),
+      // Metadados da sincronização
+      syncedFrom: 'veicai',
+      veicaiData: transaction.veicaiSync || null
+    };
+
+    const docRef = await db.collection('transactions').add(newTransaction);
+
+    console.log(`Transação criada via integração: ${docRef.id}`);
+
+    return {
+      success: true,
+      transactionId: docRef.id,
+      message: 'Transação criada com sucesso no OurWallet'
+    };
+
+  } catch (error) {
+    console.error('Erro ao criar transação:', error);
+    throw new HttpsError('internal', error.message || 'Erro ao criar transação');
+  }
+});
+
+/**
+ * Consulta de saldos via integração externa (VeicAi Telegram Bot)
+ */
+exports.getAccountBalancesFromExternal = onCall(async (request) => {
+  const { token, uid, integrationId } = request.data;
+
+  // Validação simples
+  const INTEGRATION_TOKEN = process.env.VEICAI_INTEGRATION_TOKEN || 'veicai_integration_2024';
+  if (token !== INTEGRATION_TOKEN) {
+    throw new HttpsError('permission-denied', 'Token de integração inválido');
+  }
+
+  if (!uid && !integrationId) {
+    throw new HttpsError('invalid-argument', 'UID ou ID de Integração não fornecido');
+  }
+
+  try {
+    let targetUid = uid;
+
+    if (integrationId) {
+      console.log(`Buscando usuário por integrationId: ${integrationId}`);
+      const userSnapshot = await db.collection('users')
+        .where('veicaiTenantId', '==', integrationId)
+        .limit(1)
+        .get();
+
+      if (!userSnapshot.empty) {
+        targetUid = userSnapshot.docs[0].id;
+        console.log(`Usuário encontrado via integração: ${targetUid}`);
+      }
+    }
+
+    if (!targetUid) {
+      return { accounts: [], message: 'UID não identificado via integração.' };
+    }
+
+    // Buscar contas do usuário (tentar por 'uid' e por 'owner' para garantir)
+    const [snapshotUid, snapshotOwner] = await Promise.all([
+      db.collection('accounts').where('uid', '==', targetUid).get(),
+      db.collection('accounts').where('owner', '==', targetUid).get()
+    ]);
+
+    const accountsMap = new Map();
+
+    // Adicionar da busca por UID
+    snapshotUid.forEach(doc => {
+      accountsMap.set(doc.id, doc.data());
+    });
+
+    // Adicionar da busca por Owner (se não tiver duplicado)
+    snapshotOwner.forEach(doc => {
+      if (!accountsMap.has(doc.id)) {
+        accountsMap.set(doc.id, doc.data());
+      }
+    });
+
+    if (accountsMap.size === 0) {
+      console.log(`Nenhuma conta encontrada para UID: ${targetUid}`);
+      return { accounts: [] };
+    }
+
+    const accounts = [];
+    accountsMap.forEach((data, id) => {
+      accounts.push({
+        id: id,
+        name: data.name,
+        balance: data.balance || 0,
+        type: data.type || 'Corrente'
+      });
+    });
+
+    return { accounts };
+
+  } catch (error) {
+    console.error('Erro ao consultar saldos:', error);
+    throw new HttpsError('internal', error.message || 'Erro ao consultar saldos');
   }
 });
