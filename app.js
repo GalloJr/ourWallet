@@ -284,11 +284,21 @@ if (paymentStatusFilter) {
 }
 
 // Source Select logic
+function popularParcelas(maxInstallments) {
+    const max = Math.max(1, parseInt(maxInstallments) || 12);
+    let html = '<option value="1">1x (À vista)</option>';
+    for (let i = 2; i <= max; i++) {
+        html += `<option value="${i}">${i}x</option>`;
+    }
+    installmentsSelect.innerHTML = html;
+}
+
 if (sourceSelect) {
     sourceSelect.addEventListener('change', (e) => {
         // Agora verificamos se o ID selecionado pertence a um cartão
-        const isCard = appState.cards.some(c => c.id === e.target.value);
-        if (isCard) {
+        const selectedCard = appState.cards.find(c => c.id === e.target.value);
+        if (selectedCard) {
+            popularParcelas(selectedCard.maxInstallments || 12);
             installmentsContainer.classList.remove('hidden');
         } else {
             installmentsContainer.classList.add('hidden');
@@ -1125,6 +1135,7 @@ window.prepararEdicaoCartao = (id) => {
     document.getElementById('edit-card-bill').value = (card.bill || 0).toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
     document.getElementById('edit-card-closing').value = card.closingDay || '';
     document.getElementById('edit-card-due').value = card.dueDay || '';
+    document.getElementById('edit-card-max-installments').value = card.maxInstallments || 12;
 }
 
 window.prepararEdicaoConta = (id) => {
